@@ -1,26 +1,45 @@
 ## FEATURE:
 
-- Pydantic AI agent that has another Pydantic AI agent as a tool.
-- Research Agent for the primary agent and then an email draft Agent for the subagent.
-- CLI to interact with the agent.
-- Gmail for the email draft agent, Brave API for the research agent.
+- Next.js Research Dashboard with integrated AI Assistant component
+- Research Dashboard as the primary interface with multi-source search capabilities
+- AI Assistant component that can generate content based on research context
+- Real-time streaming interface for AI responses
+- Gmail API integration for draft creation, Brave API for web search
 
 ## EXAMPLES:
 
-In the `examples/` folder, there is a README for you to read to understand what the example is all about and also how to structure your own README when you create documentation for the above feature.
+In the `examples/` folder, there are sample implementations to understand Next.js patterns and best practices for creating similar features.
 
-- `examples/cli.py` - use this as a template to create the CLI
-- `examples/agent/` - read through all of the files here to understand best practices for creating Pydantic AI agents that support different providers and LLMs, handling agent dependencies, and adding tools to the agent.
+- `examples/app/dashboard/` - use this as a template for creating dashboard layouts
+- `examples/components/streaming/` - patterns for handling streaming AI responses
+- `examples/app/actions/` - Server Actions for data fetching and mutations
+- `examples/lib/api/` - API client patterns for external service integration
 
-Don't copy any of these examples directly, it is for a different project entirely. But use this as inspiration and for best practices.
+Don't copy any of these examples directly, they are for different features entirely. But use them as inspiration and for Next.js best practices.
 
 ## DOCUMENTATION:
 
-Pydantic AI documentation: https://ai.pydantic.dev/
+- Next.js App Router: https://nextjs.org/docs/app
+- Vercel AI SDK: https://sdk.vercel.ai/docs
+- React Server Components: https://react.dev/reference/react/use-server
+- SWR for data fetching: https://swr.vercel.app/
+- Tailwind CSS: https://tailwindcss.com/docs
 
 ## OTHER CONSIDERATIONS:
 
-- Include a .env.example, README with instructions for setup including how to configure Gmail and Brave.
-- Include the project structure in the README.
-- Virtual environment has already been set up with the necessary dependencies.
-- Use python_dotenv and load_env() for environment variables
+- Include a `.env.local.example` with all required environment variables
+- Create comprehensive README with:
+  - Setup instructions including Gmail OAuth configuration
+  - Brave API key acquisition steps
+  - Project structure overview
+  - Development workflow
+  - Deployment guidelines
+- Use Next.js built-in environment variable handling (no need for dotenv)
+- Implement proper TypeScript types for all components and API responses
+- Include loading skeletons and error boundaries for better UX
+- Ensure all components are accessible (ARIA labels, keyboard navigation)
+- Set up proper testing with Jest and React Testing Library
+- Configure ESLint and Prettier for code consistency
+- Use Server Components by default, Client Components only when needed
+- Implement proper caching strategies for API responses
+- Handle rate limiting for external APIs gracefully
