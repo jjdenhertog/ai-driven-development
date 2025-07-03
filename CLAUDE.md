@@ -1,12 +1,14 @@
 # CLAUDE.md - Next.js Project Guidelines
 
 ### 🔄 Project Awareness & Context
+
 - **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
 - **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
 - **Use consistent naming conventions, file structure, and architecture patterns** as described in `PLANNING.md`.
 - **Follow Next.js App Router conventions** unless the project explicitly uses Pages Router.
 
 ### 🧱 Code Structure & Modularity
+
 - **Never create a file longer than 300 lines of code.** If a file approaches this limit, refactor by splitting it into modules, custom hooks, or utility files.
 - **Organize code into clearly separated modules**, grouped by feature or responsibility:
   - `components/` - Reusable UI components
@@ -20,6 +22,7 @@
 - **Use environment variables** through Next.js's built-in `.env.local` support.
 
 ### 🧪 Testing & Reliability
+
 - **Always create tests for new features** (components, hooks, utilities, API routes).
 - **After updating any logic**, check whether existing tests need to be updated. If so, do it.
 - **Tests should use**:
@@ -34,10 +37,13 @@
   - 1 test for loading states (if applicable)
 
 ### ✅ Task Completion
+
 - **Mark completed tasks in `TASK.md`** immediately after finishing them.
+- Please check through all the code you just wrote and make sure it follows security best practices. Make sure no sensitive information is in the front end and ther are no vulnerabilities people can exploit.
 - Add new sub-tasks or TODOs discovered during development to `TASK.md` under a "Discovered During Work" section.
 
 ### 📎 Style & Conventions
+
 - **Use TypeScript** for all new files (`.ts`, `.tsx`).
 - **Follow ESLint rules** and format with **Prettier**.
 - **Use strict TypeScript** settings (`strict: true` in `tsconfig.json`).
@@ -51,11 +57,12 @@
    * @returns {ReturnType} Description of return value
    */
   function example(param1: string): ReturnType {
-    // implementation
+  	// implementation
   }
   ```
 
 ### 🎨 React & Next.js Best Practices
+
 - **Use Server Components by default** in App Router, client components only when needed.
 - **Implement proper loading and error boundaries**.
 - **Use Next.js Image component** for optimized images.
@@ -67,12 +74,14 @@
   - Server Actions for mutations (App Router)
 
 ### 📚 Documentation & Explainability
+
 - **Update `README.md`** when new features are added, dependencies change, or setup steps are modified.
 - **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
 - When writing complex logic, **add an inline `// Reason:` comment** explaining the why, not just the what.
 - **Document component props** with TypeScript interfaces and JSDoc when helpful.
 
 ### 🧠 AI Behavior Rules
+
 - **Never assume missing context. Ask questions if uncertain.**
 - **Never hallucinate libraries or functions** – only use known, verified npm packages.
 - **Always confirm file paths and module names** exist before referencing them in code or tests.
