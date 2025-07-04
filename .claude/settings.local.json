@@ -10,6 +10,24 @@
       "Bash(tree:*)",
       "Bash(touch:*)",
       "Bash(cat:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(echo:*)",
+      "Bash(pwd:*)",
+      "Bash(cd:*)",
+      "Bash(git:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(diff:*)",
+      "Bash(curl:*)",
+      "Bash(jq:*)",
+      "Bash(ps:*)",
+      "Bash(lsof:*)",
+      "Bash(which:*)",
+      "Bash(chmod:*)",
+      "Bash(sed:*)",
+      "Bash(wc:*)",
+      "Bash(env:*)",
       "Bash(npm:*)",
       "Bash(npm run:*)",
       "Bash(npm install:*)",
@@ -39,5 +57,8 @@
       "WebFetch(domain:stackoverflow.com)"
     ],
     "deny": []
+  },
+  "confirmations": {
+    "enabled": true
   }
 }
