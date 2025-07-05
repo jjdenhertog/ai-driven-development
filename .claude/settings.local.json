@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/ntfy-notifier.sh notification"
+            "command": "~/.claude/hooks/ntfy-notifier.sh stop"
           }
         ]
       }
