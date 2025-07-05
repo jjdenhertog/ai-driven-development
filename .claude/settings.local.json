@@ -2,6 +2,7 @@
   "model": "opus",
   "permissions": {
     "allow": [
+      "Bash(rg:*)",
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(source:*)",
