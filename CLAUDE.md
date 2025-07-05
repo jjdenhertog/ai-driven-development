@@ -2,9 +2,9 @@
 
 ### 🔄 Project Awareness & Context
 
-- **Always read `PLANNING.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
-- **Check `TASK.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
-- **Use consistent naming conventions, file structure, and architecture patterns** as described in `PLANNING.md`.
+- **Always read `.claude/PROJECT.md`** at the start of a new conversation to understand the project's architecture, goals, style, and constraints.
+- **Check `.claude/TODO.md`** before starting a new task. If the task isn't listed, add it with a brief description and today's date.
+- **Use consistent naming conventions, file structure, and architecture patterns** as described in `.claude/PROJECT.md`.
 - **Follow Next.js App Router conventions** unless the project explicitly uses Pages Router.
 
 ### 🧱 Code Structure & Modularity
@@ -38,9 +38,9 @@
 
 ### ✅ Task Completion
 
-- **Mark completed tasks in `TASK.md`** immediately after finishing them.
+- **Mark completed tasks in `.claude/TODO.md`** immediately after finishing them.
 - Please check through all the code you just wrote and make sure it follows security best practices. Make sure no sensitive information is in the front end and ther are no vulnerabilities people can exploit.
-- Add new sub-tasks or TODOs discovered during development to `TASK.md` under a "Discovered During Work" section.
+- Add new sub-tasks or TODOs discovered during development to `.claude/TODO.md` under a "Discovered During Work" section.
 
 ### 📎 Style & Conventions
 
@@ -85,6 +85,6 @@
 - **Never assume missing context. Ask questions if uncertain.**
 - **Never hallucinate libraries or functions** – only use known, verified npm packages.
 - **Always confirm file paths and module names** exist before referencing them in code or tests.
-- **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `TASK.md`.
+- **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `.claude/TODO.md`.
 - **Check `package.json`** to understand available dependencies before suggesting new ones.
 - **Respect Next.js version** - features vary significantly between versions (check for App Router vs Pages Router).
