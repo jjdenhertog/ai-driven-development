@@ -56,7 +56,9 @@
       "WebFetch(domain:tailwindcss.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:stackoverflow.com)",
-      "Bash(./install.sh:*)"
+      "Bash(./install.sh:*)",
+      "Bash(../install.sh)",
+      "Bash(bash:*)"
     ],
     "deny": []
   },

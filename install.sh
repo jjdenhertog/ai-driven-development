@@ -12,6 +12,12 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Global variables for batch mode
+batch_mode=false
+default_action="skip"
+interactive_mode=false
+conflict_choice=""
+
 # Function to print colored output
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -35,12 +41,29 @@ ask_yes_no() {
     local default="$2"
     local answer
     
+    # In batch mode or non-interactive, use default
+    if [[ "$batch_mode" == "true" ]] || [[ "$interactive_mode" != "true" ]]; then
+        if [[ "$default" == "y" ]]; then
+            print_info "$question [Y/n]: Y (batch mode)"
+            return 0
+        else
+            print_info "$question [y/N]: N (batch mode)"
+            return 1
+        fi
+    fi
+    
     while true; do
         if [[ "$default" == "y" ]]; then
-            read -p "$question [Y/n]: " answer
+            read -p "$question [Y/n]: " answer </dev/tty || {
+                print_error "Failed to read input. Using default: $default"
+                [[ "$default" == "y" ]] && return 0 || return 1
+            }
             answer=${answer:-y}
         else
-            read -p "$question [y/N]: " answer
+            read -p "$question [y/N]: " answer </dev/tty || {
+                print_error "Failed to read input. Using default: $default"
+                [[ "$default" == "y" ]] && return 0 || return 1
+            }
             answer=${answer:-n}
         fi
         
@@ -59,6 +82,26 @@ handle_file_conflict() {
     local relative_path="$3"
     
     print_warning "File conflict detected: $relative_path"
+    
+    # Check if we're in batch mode or non-interactive
+    if [[ "$batch_mode" == "true" ]] || [[ "$interactive_mode" != "true" ]]; then
+        local reason=""
+        if [[ "$batch_mode" == "true" ]]; then
+            reason="batch mode enabled"
+        else
+            reason="non-interactive terminal"
+        fi
+        
+        if [[ "$default_action" == "overwrite" ]]; then
+            print_info "Auto-handling ($reason): Overwriting $target_file"
+            cp "$source_file" "$target_file"
+            return 0
+        else
+            print_info "Auto-handling ($reason): Skipping $relative_path"
+            return 1
+        fi
+    fi
+    
     echo "  Source: $source_file"
     echo "  Target: $target_file"
     echo ""
@@ -69,7 +112,11 @@ handle_file_conflict() {
     echo ""
     
     while true; do
-        read -p "Enter your choice [1-3]: " choice
+        # Ensure we're reading from the terminal, not from a pipe
+        read -p "Enter your choice [1-3]: " choice </dev/tty || {
+            print_error "Failed to read input. Defaulting to skip."
+            return 1
+        }
         case $choice in
             1)
                 print_info "Overwriting $target_file"
@@ -122,13 +169,17 @@ copy_specific_items() {
             if [[ -d "$target_item" ]]; then
                 # Target directory exists, handle conflicts for each file inside
                 print_warning "Directory $item already exists in target"
-                if ask_yes_no "Merge contents of $item directory?" "y"; then
-                    # Copy files from source directory to target, handling conflicts
-                    copy_directory_contents "$source_item" "$target_item" "$item"
-                else
-                    print_info "Skipping directory $item"
+                
+                # If we're in batch mode with skip action, skip the entire directory
+                if [[ "$batch_mode" == "true" ]] && [[ "$default_action" == "skip" ]]; then
+                    print_info "Skipping directory $item (batch mode: skip all)"
                     ((files_skipped++))
+                    continue
                 fi
+                
+                # Otherwise, merge the directory and handle individual file conflicts
+                print_info "Merging directory $item contents"
+                copy_directory_contents "$source_item" "$target_item" "$item"
             else
                 # Target directory doesn't exist, copy entire directory
                 print_info "Copying directory $item"
@@ -185,14 +236,71 @@ copy_directory_contents() {
             print_info "Copying $dir_name/$rel_path"
             cp "$file" "$target_file"
         fi
-    done < <(find "$source_dir" -type f -print0)
+    done < <(find "$source_dir" -type f -print0) || true
+}
+
+# Check if script is running interactively
+is_interactive() {
+    [[ -t 0 && -t 1 ]]
+}
+
+# Print usage information
+usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --batch          Run in batch mode (skip all prompts, use defaults)"
+    echo "  --overwrite-all  Run in batch mode and overwrite all conflicting files"
+    echo "  --help           Show this help message"
+    echo ""
+    echo "Environment variables:"
+    echo "  PRPS_TARGET_DIR  Target directory for installation (required in batch mode)"
+    echo ""
+    echo "Examples:"
+    echo "  $0                                          # Interactive mode"
+    echo "  PRPS_TARGET_DIR=/path/to/project $0 --batch       # Batch mode, skip conflicts"
+    echo "  PRPS_TARGET_DIR=/path/to/project $0 --overwrite-all  # Batch mode, overwrite"
 }
 
 # Main installation function
 main() {
+    # Check if we're running interactively at the start
+    if is_interactive; then
+        interactive_mode=true
+    fi
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --batch)
+                batch_mode=true
+                shift
+                ;;
+            --overwrite-all)
+                batch_mode=true
+                default_action="overwrite"
+                shift
+                ;;
+            --help|-h)
+                usage
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+    
     print_info "PRPS Agentic Engineering (Nextjs) Installation Script"
     print_info "==========================================="
     echo ""
+    
+    if [[ "$batch_mode" == "true" ]]; then
+        print_info "Running in batch mode (default action: $default_action)"
+        echo ""
+    fi
     
     # Get the directory where this script is located
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -205,7 +313,7 @@ main() {
         chmod +x "$file"
         print_info "Made executable: ${file#$SCRIPT_DIR/}"
         ((sh_files_count++))
-    done < <(find "$SCRIPT_DIR" -name "*.sh" -type f -print0)
+    done < <(find "$SCRIPT_DIR" -name "*.sh" -type f -print0) || true
     
     if [[ $sh_files_count -eq 0 ]]; then
         print_warning "No .sh files found to make executable"
@@ -216,10 +324,28 @@ main() {
     
     # Step 2: Get target directory
     print_info "Step 2: Specify target directory"
-    echo "Enter the path to your existing project directory where you want to install these tools:"
+    
+    # In batch mode, we need the target directory from an environment variable or we exit
+    if [[ "$batch_mode" == "true" ]]; then
+        if [[ -z "$PRPS_TARGET_DIR" ]]; then
+            print_error "In batch mode, you must set PRPS_TARGET_DIR environment variable"
+            print_info "Example: PRPS_TARGET_DIR=/path/to/project $0 --batch"
+            exit 1
+        fi
+        target_dir="$PRPS_TARGET_DIR"
+        print_info "Using target directory from PRPS_TARGET_DIR: $target_dir"
+    else
+        echo "Enter the path to your existing project directory where you want to install these tools:"
+        echo "(Note: Cannot install into the same directory as this script: $SCRIPT_DIR)"
+    fi
     
     while true; do
-        read -p "Target directory: " target_dir
+        if [[ "$batch_mode" != "true" ]]; then
+            read -p "Target directory: " target_dir </dev/tty || {
+                print_error "Failed to read input"
+                exit 1
+            }
+        fi
         
         # Expand tilde and relative paths
         target_dir="${target_dir/#\~/$HOME}"
@@ -227,6 +353,13 @@ main() {
         
         if [[ -z "$target_dir" ]]; then
             print_error "Please enter a directory path"
+            continue
+        fi
+        
+        # Check if target is the same as script directory
+        if [[ "$(realpath "$target_dir" 2>/dev/null || echo "$target_dir")" == "$SCRIPT_DIR" ]]; then
+            print_error "Cannot install into the same directory as the installation script!"
+            print_info "Please choose a different directory"
             continue
         fi
         
@@ -243,10 +376,15 @@ main() {
             print_success "Target directory: $target_dir"
             break
         fi
+        
+        # In batch mode, exit the loop after one iteration
+        if [[ "$batch_mode" == "true" ]]; then
+            break
+        fi
     done
     echo ""
     
-    # Step 3: Confirm installation
+    # Step 3: Confirm installation and conflict handling
     print_info "Step 3: Confirm installation"
     echo "Source directory: $SCRIPT_DIR"
     echo "Target directory: $target_dir"
@@ -257,6 +395,47 @@ main() {
         exit 0
     fi
     echo ""
+    
+    # Ask about conflict handling strategy if interactive
+    if [[ "$interactive_mode" == "true" ]] && [[ "$batch_mode" != "true" ]]; then
+        print_info "How should file conflicts be handled?"
+        echo "1) Ask for each conflict (recommended)"
+        echo "2) Skip all conflicts (keep existing files)"
+        echo "3) Overwrite all conflicts (replace with new files)"
+        echo ""
+        
+        while true; do
+            read -p "Enter your choice [1-3]: " conflict_choice </dev/tty || {
+                print_error "Failed to read input"
+                exit 1
+            }
+            
+            case $conflict_choice in
+                1)
+                    print_info "Will ask for each conflict"
+                    # Keep default behavior
+                    break
+                    ;;
+                2)
+                    print_info "Will skip all conflicts"
+                    batch_mode=true
+                    default_action="skip"
+                    break
+                    ;;
+                3)
+                    print_info "Will overwrite all conflicts"
+                    batch_mode=true
+                    default_action="overwrite"
+                    break
+                    ;;
+                *)
+                    echo "Please enter 1, 2, or 3."
+                    conflict_choice=""  # Reset invalid choice
+                    ;;
+            esac
+        done
+        echo ""
+    fi
     
     # Step 4: Copy specific items
     print_info "Step 4: Copying PRPS tools..."
@@ -271,7 +450,7 @@ main() {
     while IFS= read -r -d '' file; do
         chmod +x "$file"
         ((target_sh_count++))
-    done < <(find "$target_dir" -name "*.sh" -type f -print0 2>/dev/null)
+    done < <(find "$target_dir" -name "*.sh" -type f -print0 2>/dev/null) || true
     
     if [[ $target_sh_count -gt 0 ]]; then
         print_success "Made $target_sh_count shell script(s) executable in target directory"

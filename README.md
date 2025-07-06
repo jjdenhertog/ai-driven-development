@@ -8,19 +8,66 @@ This repository provides a comprehensive framework for **Context Engineering** -
 
 ### Installation
 
+This framework can be installed into any existing Next.js project. The installation process will add the Context Engineering tools while respecting your existing project structure.
+
 1. **Clone this repository:**
    ```bash
    git clone <repository-url>
    cd prps-agentic-eng-nextjs
    ```
 
-2. **Make the install script executable and run it:**
+2. **Run the installation script:**
    ```bash
-   chmod +x install.sh
    ./install.sh
    ```
 
-3. **Navigate to your project directory** and you're ready to go!
+3. **Follow the interactive installation process:**
+   - Enter your target project directory
+   - Choose how to handle file conflicts:
+     - **Ask for each conflict** (recommended) - Review each file individually
+     - **Skip all conflicts** - Keep your existing files unchanged
+     - **Overwrite all conflicts** - Replace with framework files
+
+4. **What gets installed:**
+   - `.claude/` directory with commands, hooks, and settings
+   - `PROMPTS/` directory for prompt templates
+   - `PRPs/` directory for Product Requirements Prompts
+   - `CLAUDE.md` with Next.js specific guidelines
+   - Example files and templates
+
+### Installation Options
+
+#### Interactive Installation (Recommended)
+```bash
+./install.sh
+```
+The script will guide you through the process and let you choose how to handle conflicts.
+
+#### Batch Mode Installation
+For automated deployments or CI/CD:
+
+```bash
+# Skip all conflicts (keep existing files)
+PRPS_TARGET_DIR=/path/to/project ./install.sh --batch
+
+# Overwrite all conflicts
+PRPS_TARGET_DIR=/path/to/project ./install.sh --overwrite-all
+```
+
+### Post-Installation
+
+After installation, verify everything is working:
+
+```bash
+# Check that commands are available
+ls .claude/commands/
+
+# Verify hooks are executable
+ls -la .claude/hooks/*.sh
+
+# Review the settings
+cat .claude/settings.local.json
+```
 
 ### Example Workflow
 
@@ -363,6 +410,26 @@ What to avoid and why
 - Data exposure risks
 
 ## 🚨 Troubleshooting
+
+### Installation Issues
+
+**Script exits after Step 1:**
+- This usually means you're trying to install into the same directory as the source
+- Run the script from your project directory: `cd /your/project && /path/to/prps-agentic-eng-nextjs/install.sh`
+
+**"Please enter 1, 2, or 3" infinite loop:**
+- This occurs when the script can't read input properly
+- Try running with explicit options: `./install.sh --batch` or `./install.sh --overwrite-all`
+- Or ensure you're running in a proper terminal (not through a script or pipe)
+
+**Permission denied errors:**
+```bash
+# Make sure the install script is executable
+chmod +x install.sh
+
+# If installing to a protected directory, use sudo (not recommended)
+sudo ./install.sh
+```
 
 ### Common Issues
 
