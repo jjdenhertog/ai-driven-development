@@ -1,5 +1,4 @@
 {
-  "model": "opus",
   "permissions": {
     "allow": [
       "Bash(rg:*)",
@@ -56,13 +55,12 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:tailwindcss.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:stackoverflow.com)"
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(./install.sh:*)"
     ],
     "deny": []
   },
-  "confirmations": {
-    "enabled": true
-  },
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -75,13 +73,13 @@
         ]
       }
     ],
-    "Notification" : [
+    "Notification": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command":".claude/hooks/ntfy-notifier.sh notification"
+            "command": ".claude/hooks/ntfy-notifier.sh notification"
           }
         ]
       }
@@ -97,5 +95,8 @@
         ]
       }
     ]
+  },
+  "confirmations": {
+    "enabled": true
   }
 }

@@ -1,18 +1,29 @@
-# Create PRP
+# Create PRPs
 
 ## Feature file: $ARGUMENTS
 
-Generate a complete PRP for general feature implementation with thorough research. Ensure context is passed to the AI agent to enable self-validation and iterative refinement. Read the feature file first to understand what needs to be created, how the examples provided help, and any other considerations.
+Generate multiple numbered PRPs for feature implementation, breaking down complex tasks into focused, manageable units. Each PRP should handle ONE major item with supporting minor items.
 
-The AI agent only gets the context you are appending to the PRP and training data. Assume the AI agent has access to the codebase and the same knowledge cutoff as you, so it's important that your research findings are included or referenced in the PRP. The Agent has Websearch capabilities, so pass URLs to documentation and examples.
+**IMPORTANT**: Tasks should be broken down so each PRP is focused and achievable in a single implementation pass. The AI agent only gets the context you provide in each PRP, so make each one self-contained.
+
+## Initial Steps
+
+1. **Check Existing PRPs**
+   - List all files in PRPs/ folder
+   - List all files in PRPs/archive/ folder  
+   - Find the highest number (e.g., if ARCHIVE_01_*, 02_* exist, start with 03_*)
+
+2. **Read Essential Context**
+   - Read PRPs/templates/prp_base.md for template structure
+   - Read .claude/PROJECT.md for project conventions
+   - Read feature file to understand requirements
 
 ## Research Process
 
 1. **Codebase Analysis**
-
    - Search for similar components/patterns in the codebase
-   - Identify files to reference in PRP (components, hooks, utilities)
-   - Note existing conventions to follow (component structure, styling approach)
+   - Identify files to reference in PRPs
+   - Note existing conventions to follow
    - Check test patterns for validation approach
    - Review App Router vs Pages Router usage
    - Check package.json for available dependencies
@@ -32,6 +43,24 @@ The AI agent only gets the context you are appending to the PRP and training dat
    - Integration requirements and where to find them?
    - Performance requirements (SSR/SSG/ISR/Client-side)?
    - Accessibility requirements?
+
+## Task Breakdown Rules
+
+1. **One Major Item Per PRP**: Each PRP focuses on ONE primary deliverable
+2. **Supporting Items**: Include 3-5 minor tasks that support the major item
+3. **Logical Ordering**: Number PRPs in execution order
+4. **Clear Dependencies**: If PRP-03 needs PRP-02, make it explicit
+
+## Naming Convention
+
+```
+{NUMBER}_{descriptive_name}.md
+```
+
+Examples:
+- `01_create_auth_components.md`
+- `02_setup_api_routes.md`
+- `03_implement_user_dashboard.md`
 
 ## PRP Generation
 
@@ -54,18 +83,17 @@ Using PRPs/templates/prp_base.md as template:
 
 ### Implementation Blueprint
 
-- Start with component hierarchy diagram
-- Define TypeScript interfaces/types first
+- Component hierarchy for this PRP only
+- TypeScript interfaces/types specific to this PRP
 - Reference real files for patterns
-- Include error handling strategy (Error Boundaries, try-catch)
-- List tasks to be completed to fulfill the PRP in the order they should be completed:
+- Error handling strategy
+- Tasks for THIS PRP (not the entire feature):
   1. Type definitions
   2. Server/Client component decisions
-  3. Core component implementation
-  4. Hooks (if needed)
-  5. API routes/Server Actions (if needed)
-  6. Tests
-  7. Documentation
+  3. Core implementation
+  4. Supporting items (3-5 tasks)
+  5. Tests for this PRP's components
+  6. Integration points
 
 ### Validation Gates (Must be Executable)
 
@@ -83,16 +111,22 @@ npm run build
 npm run test:e2e
 ```
 
-**_ CRITICAL AFTER YOU ARE DONE RESEARCHING AND EXPLORING THE CODEBASE BEFORE YOU START WRITING THE PRP _**
+**_ CRITICAL AFTER YOU ARE DONE RESEARCHING AND EXPLORING THE CODEBASE BEFORE YOU START WRITING THE PRPs _**
 
-**_ ULTRATHINK ABOUT THE PRP AND PLAN YOUR APPROACH THEN START WRITING THE PRP _**
+**_ ULTRATHINK ABOUT TASK BREAKDOWN AND HOW TO SPLIT THE FEATURE INTO FOCUSED PRPs _**
 
 ## Output
 
-Save as: `PRPs/{feature-name}.md`
+Create multiple files:
+- `PRPs/03_first_major_item.md`
+- `PRPs/04_second_major_item.md`
+- Continue numbering sequentially...
 
-## Quality Checklist
+## Quality Checklist (Per PRP)
 
+- [ ] Focused on ONE major deliverable
+- [ ] Self-contained with all necessary context
+- [ ] Clear dependencies on previous PRPs noted
 - [ ] All necessary context included (Next.js version, Router type, dependencies)
 - [ ] TypeScript types clearly defined
 - [ ] Server/Client component boundaries clear
@@ -102,8 +136,9 @@ Save as: `PRPs/{feature-name}.md`
 - [ ] Error handling and loading states documented
 - [ ] Accessibility considerations included
 - [ ] Performance implications noted (bundle size, SSR/SSG)
+- [ ] 3-5 supporting tasks included
 
-Score the PRP on a scale of 1-10 (confidence level to succeed in one-pass implementation using Claude Codes)
+Score each PRP on a scale of 1-10 (confidence level to succeed in one-pass implementation)
 
 Remember: The goal is one-pass implementation success through comprehensive context. Include specific Next.js patterns like:
 
@@ -112,3 +147,17 @@ Remember: The goal is one-pass implementation success through comprehensive cont
 - Link usage patterns
 - Data fetching strategy
 - Environment variable usage
+
+## Complexity Guidelines
+
+- **Simple feature** (1-2 components): 1 PRP
+- **Medium feature** (3-5 components): 2-3 PRPs  
+- **Complex feature** (6+ components): 3-5 PRPs
+- **Full application**: 5+ PRPs
+
+## Final Summary
+
+After creating all PRPs, provide:
+1. List of created files with their focus
+2. Execution order and dependencies
+3. Total complexity assessment

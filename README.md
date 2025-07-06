@@ -1,296 +1,483 @@
-# Context Engineering Template
+# PRPS Agentic Engineering Framework for Next.js
 
-A comprehensive template for getting started with Context Engineering - the discipline of engineering context for AI coding assistants so they have the information necessary to get the job done end to end.
+**Supercharge your Claude Code experience with Context Engineering**
 
-> **Context Engineering is 10x better than prompt engineering and 100x better than vibe coding.**
+This repository provides a comprehensive framework for **Context Engineering** - Instead of relying on clever prompts, we provide AI agents with comprehensive context, structured workflows, and automated quality gates to consistently deliver production-ready code.
 
 ## 🚀 Quick Start
 
+### Installation
+
+1. **Clone this repository:**
+   ```bash
+   git clone <repository-url>
+   cd prps-agentic-eng-nextjs
+   ```
+
+2. **Make the install script executable and run it:**
+   ```bash
+   chmod +x install.sh
+   ./install.sh
+   ```
+
+3. **Navigate to your project directory** and you're ready to go!
+
+### Example Workflow
+
+Here's the complete workflow for implementing a new feature:
+
 ```bash
-# 1. Clone this template
-git clone https://github.com/coleam00/Context-Engineering-Intro.git
-cd Context-Engineering-Intro
+# 1. Generate a comprehensive prompt (optional - you can skip if you have a simple feature)
+/generate-prp-prompt "create a user dashboard with real-time metrics and export functionality"
 
-# 2. Set up your project rules (optional - template provided)
-# Edit CLAUDE.md to add your project-specific guidelines
+# 2. Generate detailed PRPs from your prompt or feature description
+/generate-prp PROMPTS/dashboard_metrics.md
 
-# 3. Add examples (highly recommended)
-# Place relevant code examples in the examples/ folder
+# 3. Execute the PRP to implement the feature
+/execute-prp PRPs/dashboard_metrics_01.md
 
-# 4. Create your initial feature request
-# Edit INITIAL.md with your feature requirements
+# 4. Check for and fix any errors
+/check-errors
 
-# 5. Generate a comprehensive PRP (Product Requirements Prompt)
-# In Claude Code, run:
-/generate-prp INITIAL.md
+# 5. Security audit and remediation
+/check-security
 
-# 6. Execute the PRP to implement your feature
-# In Claude Code, run:
-/execute-prp PRPs/your-feature-name.md
+# Pro tip: Use /clear between each command to manage Claude's context window
 ```
 
-## 📚 Table of Contents
-
-- [What is Context Engineering?](#what-is-context-engineering)
-- [Template Structure](#template-structure)
-- [Step-by-Step Guide](#step-by-step-guide)
-- [Writing Effective INITIAL.md Files](#writing-effective-initialmd-files)
-- [The PRP Workflow](#the-prp-workflow)
-- [Using Examples Effectively](#using-examples-effectively)
-- [Best Practices](#best-practices)
-
-## What is Context Engineering?
-
-Context Engineering represents a paradigm shift from traditional prompt engineering:
-
-### Prompt Engineering vs Context Engineering
-
-**Prompt Engineering:**
-- Focuses on clever wording and specific phrasing
-- Limited to how you phrase a task
-- Like giving someone a sticky note
-
-**Context Engineering:**
-- A complete system for providing comprehensive context
-- Includes documentation, examples, rules, patterns, and validation
-- Like writing a full screenplay with all the details
-
-### Why Context Engineering Matters
-
-1. **Reduces AI Failures**: Most agent failures aren't model failures - they're context failures
-2. **Ensures Consistency**: AI follows your project patterns and conventions
-3. **Enables Complex Features**: AI can handle multi-step implementations with proper context
-4. **Self-Correcting**: Validation loops allow AI to fix its own mistakes
-
-## Template Structure
+## 📁 Repository Structure
 
 ```
-context-engineering-intro/
+prps-agentic-eng-nextjs/
+├── install.sh                    # Smart installation script
 ├── .claude/
-│   ├── commands/
-│   │   ├── generate-prp.md    # Generates comprehensive PRPs
-│   │   └── execute-prp.md     # Executes PRPs to implement features
-│   └── settings.local.json    # Claude Code permissions
-├── PRPs/
+│   ├── commands/                 # Custom Claude Code commands
+│   │   ├── generate-prp-prompt.md    # Generate comprehensive prompts
+│   │   ├── generate-prp.md           # Create implementation blueprints
+│   │   ├── execute-prp.md            # Execute PRPs with quality gates
+│   │   ├── check-errors.md           # Comprehensive error checking/fixing
+│   │   └── check-security.md         # Security audit and remediation
+│   ├── hooks/                    # Automated quality assurance
+│   │   ├── smart-lint.sh            # Intelligent linting across languages
+│   │   ├── ntfy-notifier.sh         # Push notifications
+│   │   └── common-helpers.sh        # Shared utilities
+│   ├── documents/                # Reference docs for prompts
+│   └── settings.local.json       # Claude permissions and configuration
+├── PROMPTS/                      # Generated and template prompts
+│   ├── INITIAL.md               # Template for feature requests
+│   └── INITIAL_EXAMPLE.md       # Example feature request
+├── PRPs/                         # Product Requirements Prompts
 │   ├── templates/
-│   │   └── prp_base.md       # Base template for PRPs
-│   └── EXAMPLE_multi_agent_prp.md  # Example of a complete PRP
-├── examples/                  # Your code examples (critical!)
-├── CLAUDE.md                 # Global rules for AI assistant
-├── INITIAL.md               # Template for feature requests
-├── INITIAL_EXAMPLE.md       # Example feature request
-└── README.md                # This file
+│   │   └── prp_base.md          # Base template for PRPs
+│   └── EXAMPLE_multi_agent_dashboard_prp.md
+├── examples/                     # Example implementations
+└── CLAUDE.md                     # Next.js project guidelines
 ```
 
-This template doesn't focus on RAG and tools with context engineering because I have a LOT more in store for that soon. ;)
+## 🎯 Core Concepts
 
-## Step-by-Step Guide
+### What is Context Engineering?
 
-### 1. Set Up Global Rules (CLAUDE.md)
+Context Engineering is a methodology that provides AI agents with comprehensive context instead of relying on clever prompts. It includes:
 
-The `CLAUDE.md` file contains project-wide rules that the AI assistant will follow in every conversation. The template includes:
+- **Complete codebase understanding** through research phases
+- **Structured implementation blueprints** (PRPs)
+- **Automated quality gates** with zero tolerance for errors
+- **Parallel agent spawning** for complex problem-solving
+- **Comprehensive validation loops** ensuring production readiness
 
-- **Project awareness**: Reading planning docs, checking tasks
-- **Code structure**: File size limits, module organization
-- **Testing requirements**: Unit test patterns, coverage expectations
-- **Style conventions**: Language preferences, formatting rules
-- **Documentation standards**: Docstring formats, commenting practices
+### Product Requirements Prompts (PRPs)
 
-**You can use the provided template as-is or customize it for your project.**
+PRPs are detailed implementation blueprints that contain:
 
-### 2. Create Your Initial Feature Request
+- **Goal, Why, What** - Clear feature definition
+- **Complete Context** - Codebase patterns, examples, documentation
+- **Implementation Blueprint** - TypeScript types, component structure
+- **Validation Gates** - Linting, testing, build requirements
+- **Anti-patterns** - What to avoid
 
-Edit `INITIAL.md` to describe what you want to build:
+## 🛠️ Commands Reference
+
+### Core Workflow Commands
+
+#### `/generate-prp-prompt <description>`
+Synthesizes comprehensive prompts by combining templates with your feature description.
+
+**Example:**
+```bash
+/generate-prp-prompt "user authentication system with social login"
+```
+
+**Output:** Creates `PROMPTS/auth_system.md` with complete context.
+
+#### `/generate-prp <prompt-file>`
+Generates multiple numbered PRPs from feature descriptions, breaking complex features into manageable, focused implementation chunks.
+
+**Features:**
+- One major item per PRP
+- Dependency tracking between PRPs
+- Confidence scoring for complexity
+- Research-based codebase context
+
+**Example:**
+```bash
+/generate-prp PROMPTS/auth_system.md
+```
+
+**Output:** Creates `PRPs/auth_system_01.md`, `PRPs/auth_system_02.md`, etc.
+
+#### `/execute-prp <prp-file>`
+Implements features from PRPs with strict quality standards and automated validation.
+
+**Mandatory Workflow:**
+1. **Research Phase** - Analyze existing codebase patterns
+2. **Planning Phase** - Design architecture and components
+3. **Implementation** - Build with real-time validation
+4. **Archive** - Move completed PRP to archive folder
+
+**Quality Gates:**
+- Zero ESLint warnings
+- Zero TypeScript errors
+- All tests must pass
+- Build must succeed
+
+**Example:**
+```bash
+/execute-prp PRPs/auth_system_01.md
+```
+
+### Quality Assurance Commands
+
+#### `/check-errors`
+Comprehensive code quality verification and fixing using parallel agents.
+
+**Approach:** "FIXING task, not reporting task"
+- Spawns multiple agents to fix different error types in parallel
+- Zero tolerance for warnings or errors
+- Re-runs checks until everything is green
+
+**Coverage:**
+- ESLint errors and warnings
+- TypeScript type errors
+- Test failures
+- Build errors
+- Import/export issues
+
+#### `/check-security`
+Security audit and vulnerability remediation using parallel fixing agents.
+
+**Security Checks:**
+- Exposed API keys/credentials
+- Input validation vulnerabilities
+- XSS/CSRF protection gaps
+- Authentication/authorization issues
+- Dependency vulnerabilities
+- Next.js security best practices
+
+**Example:**
+```bash
+/check-security
+```
+
+### Utility Commands
+
+#### `/update-project`
+Generates or updates `PROJECT.md` with comprehensive project context including tech stack, architecture, and conventions.
+
+## 🎣 Hooks System
+
+### Automated Quality Assurance
+
+The framework includes intelligent hooks that automatically maintain code quality:
+
+#### `smart-lint.sh`
+**Triggers:** After Write/Edit operations
+**Features:**
+- Auto-detects project type (Go, Python, JS/TS, Rust, Nix)
+- Respects project Makefiles and package.json scripts
+- Smart file filtering (only processes modified files)
+- Zero tolerance - everything must be green
+
+#### `ntfy-notifier.sh`
+**Triggers:** Task completion or errors
+**Features:**
+- Push notifications to your devices
+- Terminal context detection (tmux, Terminal, iTerm2)
+- Rate limiting to prevent spam
+- Configurable via YAML config
+
+### Customizing Hooks
+
+Hooks are located in `.claude/hooks/` and can be customized:
+
+```bash
+# Edit the smart linter
+vim .claude/hooks/smart-lint.sh
+
+# Configure notifications
+vim .claude/hooks/ntfy-notifier.sh
+```
+
+## ⚙️ Configuration
+
+### Claude Permissions (`.claude/settings.local.json`)
+
+The framework requires specific permissions to function properly:
+
+```json
+{
+  "model": "opus",
+  "toolPermissions": {
+    "bash": {
+      "allowedCommands": [
+        "npm", "yarn", "pnpm", "bun",
+        "git", "gh", "rg", "grep",
+        "eslint", "prettier", "tsc",
+        "pytest", "go", "cargo",
+        "make", "chmod", "find"
+      ]
+    },
+    "webfetch": {
+      "allowedHosts": [
+        "nextjs.org", "react.dev", "docs.github.com",
+        "tailwindcss.com", "typescript.org"
+      ]
+    }
+  },
+  "hooks": {
+    "postToolUse": {
+      "write": [".claude/hooks/smart-lint.sh"],
+      "edit": [".claude/hooks/smart-lint.sh"],
+      "multiEdit": [".claude/hooks/smart-lint.sh"]
+    }
+  }
+}
+```
+
+### Customizing Configuration
+
+**Model Selection:**
+- `opus` - Maximum quality for complex implementations
+- `sonnet` - Balanced quality and speed
+- `haiku` - Fast iterations and simple tasks
+
+**Adding New Commands:**
+Edit the `allowedCommands` array to include project-specific tools:
+
+```json
+"allowedCommands": [
+  "npm", "yarn", "custom-build-tool"
+]
+```
+
+**Web Fetch Permissions:**
+Add documentation sites relevant to your project:
+
+```json
+"allowedHosts": [
+  "nextjs.org", "your-docs-site.com"
+]
+```
+
+## 📋 Templates
+
+### PRP Base Template
+
+Located in `PRPs/templates/prp_base.md`, this template provides the structure for all PRPs:
 
 ```markdown
-## FEATURE:
-[Describe what you want to build - be specific about functionality and requirements]
+# Feature Name PRP
 
-## EXAMPLES:
-[List any example files in the examples/ folder and explain how they should be used]
+## Goal
+What this PRP accomplishes
 
-## DOCUMENTATION:
-[Include links to relevant documentation, APIs, or MCP server resources]
+## Why
+Business/technical justification
 
-## OTHER CONSIDERATIONS:
-[Mention any gotchas, specific requirements, or things AI assistants commonly miss]
+## What
+Detailed implementation requirements
+
+## Context
+- Codebase patterns
+- Existing components
+- Documentation links
+- Dependencies
+
+## Implementation Blueprint
+- TypeScript interfaces
+- Component structure
+- File organization
+- API design
+
+## Validation Gates
+- [ ] ESLint passes
+- [ ] TypeScript compiles
+- [ ] Tests pass
+- [ ] Build succeeds
+- [ ] Security audit clean
+
+## Anti-patterns
+What to avoid and why
 ```
 
-**See `INITIAL_EXAMPLE.md` for a complete example.**
+### Prompt Templates
 
-### 3. Generate the PRP
+**`PROMPTS/INITIAL.md`** - Template for feature requests:
+- Feature description
+- Examples and references
+- Documentation links
+- Special considerations
 
-PRPs (Product Requirements Prompts) are comprehensive implementation blueprints that include:
+**`PROMPTS/INITIAL_EXAMPLE.md`** - Example of a complete feature request with all necessary context.
 
-- Complete context and documentation
-- Implementation steps with validation
-- Error handling patterns
-- Test requirements
+## 🔄 Best Practices
 
-They are similar to PRDs (Product Requirements Documents) but are crafted more specifically to instruct an AI coding assistant.
+### Context Management
 
-Run in Claude Code:
+**Use `/clear` between commands** to manage Claude's context window and ensure optimal performance.
+
+### PRP Quality
+
+**One major item per PRP** - Break complex features into focused, manageable chunks.
+
+**Include comprehensive context:**
+- Existing codebase patterns
+- Relevant documentation
+- Dependencies and constraints
+- Examples and anti-patterns
+
+### Validation Loops
+
+**Zero tolerance for errors** - Everything must be perfect before proceeding:
+- ESLint warnings = blocking
+- TypeScript errors = blocking
+- Test failures = blocking
+- Build errors = blocking
+
+### Security First
+
+**Always run security checks** after implementing features:
+- Input validation
+- Authentication/authorization
+- Dependency vulnerabilities
+- Data exposure risks
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**Command not found:**
 ```bash
-/generate-prp INITIAL.md
+# Ensure scripts are executable
+chmod +x .claude/hooks/*.sh
 ```
 
-**Note:** The slash commands are custom commands defined in `.claude/commands/`. You can view their implementation:
-- `.claude/commands/generate-prp.md` - See how it researches and creates PRPs
-- `.claude/commands/execute-prp.md` - See how it implements features from PRPs
+**Linting failures:**
+```bash
+# Check project configuration
+npm run lint
+npm run type-check
+```
 
-The `$ARGUMENTS` variable in these commands receives whatever you pass after the command name (e.g., `INITIAL.md` or `PRPs/your-feature.md`).
+**Permission errors:**
+```bash
+# Verify Claude permissions in settings.local.json
+cat .claude/settings.local.json
+```
 
-This command will:
-1. Read your feature request
-2. Research the codebase for patterns
-3. Search for relevant documentation
-4. Create a comprehensive PRP in `PRPs/your-feature-name.md`
+### Hook Debugging
 
-### 4. Execute the PRP
+**Check hook execution:**
+```bash
+# Manually run hooks
+.claude/hooks/smart-lint.sh
+```
 
-Once generated, execute the PRP to implement your feature:
+**View hook logs:**
+```bash
+# Check recent hook outputs
+tail -f /tmp/claude-hooks.log
+```
+
+
+### Adding New Commands
+
+1. Create a new `.md` file in `.claude/commands/`
+2. Follow the existing command structure
+3. Include comprehensive documentation
+4. Test thoroughly before committing
+
+### Improving Templates
+
+1. Update templates in `PRPs/templates/`
+2. Ensure backward compatibility
+3. Document changes in commit messages
+4. Provide migration guide if needed
+
+### Hook Development
+
+1. Add new hooks to `.claude/hooks/`
+2. Follow the common helpers pattern
+3. Include proper error handling
+4. Update `settings.local.json` configuration
+
+## 📚 Advanced Usage
+
+### Multi-Agent Orchestration
+
+The framework supports spawning multiple agents for parallel problem-solving:
 
 ```bash
-/execute-prp PRPs/your-feature-name.md
+# This command will spawn multiple agents to fix different error types
+/check-errors
 ```
 
-The AI coding assistant will:
-1. Read all context from the PRP
-2. Create a detailed implementation plan
-3. Execute each step with validation
-4. Run tests and fix any issues
-5. Ensure all success criteria are met
+### Custom Validation Gates
 
-## Writing Effective INITIAL.md Files
+Add project-specific validation to PRPs:
 
-### Key Sections Explained
-
-**FEATURE**: Be specific and comprehensive
-- ❌ "Build a web scraper"
-- ✅ "Build an async web scraper using BeautifulSoup that extracts product data from e-commerce sites, handles rate limiting, and stores results in PostgreSQL"
-
-**EXAMPLES**: Leverage the examples/ folder
-- Place relevant code patterns in `examples/`
-- Reference specific files and patterns to follow
-- Explain what aspects should be mimicked
-
-**DOCUMENTATION**: Include all relevant resources
-- API documentation URLs
-- Library guides
-- MCP server documentation
-- Database schemas
-
-**OTHER CONSIDERATIONS**: Capture important details
-- Authentication requirements
-- Rate limits or quotas
-- Common pitfalls
-- Performance requirements
-
-## The PRP Workflow
-
-### How /generate-prp Works
-
-The command follows this process:
-
-1. **Research Phase**
-   - Analyzes your codebase for patterns
-   - Searches for similar implementations
-   - Identifies conventions to follow
-
-2. **Documentation Gathering**
-   - Fetches relevant API docs
-   - Includes library documentation
-   - Adds gotchas and quirks
-
-3. **Blueprint Creation**
-   - Creates step-by-step implementation plan
-   - Includes validation gates
-   - Adds test requirements
-
-4. **Quality Check**
-   - Scores confidence level (1-10)
-   - Ensures all context is included
-
-### How /execute-prp Works
-
-1. **Load Context**: Reads the entire PRP
-2. **Plan**: Creates detailed task list using TodoWrite
-3. **Execute**: Implements each component
-4. **Validate**: Runs tests and linting
-5. **Iterate**: Fixes any issues found
-6. **Complete**: Ensures all requirements met
-
-See `PRPs/EXAMPLE_multi_agent_prp.md` for a complete example of what gets generated.
-
-## Using Examples Effectively
-
-The `examples/` folder is **critical** for success. AI coding assistants perform much better when they can see patterns to follow.
-
-### What to Include in Examples
-
-1. **Code Structure Patterns**
-   - How you organize modules
-   - Import conventions
-   - Class/function patterns
-
-2. **Testing Patterns**
-   - Test file structure
-   - Mocking approaches
-   - Assertion styles
-
-3. **Integration Patterns**
-   - API client implementations
-   - Database connections
-   - Authentication flows
-
-4. **CLI Patterns**
-   - Argument parsing
-   - Output formatting
-   - Error handling
-
-### Example Structure
-
-```
-examples/
-├── README.md           # Explains what each example demonstrates
-├── cli.py             # CLI implementation pattern
-├── agent/             # Agent architecture patterns
-│   ├── agent.py      # Agent creation pattern
-│   ├── tools.py      # Tool implementation pattern
-│   └── providers.py  # Multi-provider pattern
-└── tests/            # Testing patterns
-    ├── test_agent.py # Unit test patterns
-    └── conftest.py   # Pytest configuration
+```markdown
+## Custom Validation Gates
+- [ ] API contract tests pass
+- [ ] Performance benchmarks meet SLA
+- [ ] Accessibility audit scores 95+
+- [ ] Bundle size under 250kb
 ```
 
-## Best Practices
+### Integration with CI/CD
 
-### 1. Be Explicit in INITIAL.md
-- Don't assume the AI knows your preferences
-- Include specific requirements and constraints
-- Reference examples liberally
+The framework's quality gates align perfectly with CI/CD pipelines:
 
-### 2. Provide Comprehensive Examples
-- More examples = better implementations
-- Show both what to do AND what not to do
-- Include error handling patterns
+```yaml
+# .github/workflows/quality.yml
+name: Quality Gates
+on: [push, pull_request]
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npm run type-check
+      - name: Test
+        run: npm run test
+      - name: Build
+        run: npm run build
+```
 
-### 3. Use Validation Gates
-- PRPs include test commands that must pass
-- AI will iterate until all validations succeed
-- This ensures working code on first try
+## 🎯 Philosophy
 
-### 4. Leverage Documentation
-- Include official API docs
-- Add MCP server resources
-- Reference specific documentation sections
+This framework embodies the philosophy that **context beats cleverness**. Instead of trying to be clever with prompts, we provide comprehensive context that enables AI agents to consistently deliver production-ready code.
 
-### 5. Customize CLAUDE.md
-- Add your conventions
-- Include project-specific rules
-- Define coding standards
+**Key Principles:**
+- **Context Engineering > Prompt Engineering**
+- **Validation Loops > Hope and Pray**
+- **Parallel Agents > Sequential Bottlenecks**
+- **Zero Tolerance > Good Enough**
+- **Production Ready > Proof of Concept**
 
-## Resources
-
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [Context Engineering Best Practices](https://www.philschmid.de/context-engineering)
+---
