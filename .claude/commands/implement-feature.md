@@ -17,8 +17,8 @@ You are tasked with implementing: $ARGUMENTS
 
 For complex features, say: "Let me ultrathink about this architecture and component design before proposing a solution."
 
-**USE MULTIPLE AGENTS** when the feature has independent parts:
-"I'll spawn agents to tackle different aspects of this feature"
+**USE MULTIPLE [SONNET] model AGENTS** when the feature has independent parts:
+"I'll spawn [Sonnet] model agents to tackle different aspects of this feature and output their thinking instead of summarizing"
 
 Consult CLAUDE.md IMMEDIATELY and follow it EXACTLY.
 
