@@ -196,6 +196,8 @@ The pre-commit hooks will verify EVERYTHING. They will:
 - [ ] Accessibility audit passes
 - [ ] Performance metrics acceptable
 - [ ] Old/replaced code is DELETED
+- [ ] PRP or Feature .md file is renamed to ARCHIVE\_\*.md
+- [ ] PRP or Feature .md file is MOVED to the local archive folder
 - [ ] Documentation is complete
 - [ ] NO console.logs or debug code
 - [ ] NO TODOs or temporary solutions
