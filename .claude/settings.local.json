@@ -70,7 +70,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/smart-lint.sh"
+            "command": ".claude/hooks/smart-lint.sh"
+          }
+        ]
+      }
+    ],
+    "Notification" : [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command":".claude/hooks/ntfy-notifier.sh notification"
           }
         ]
       }
@@ -81,7 +92,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/ntfy-notifier.sh stop"
+            "command": ".claude/hooks/ntfy-notifier.sh stop"
           }
         ]
       }
