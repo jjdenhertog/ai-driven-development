@@ -1,4 +1,4 @@
-# PRPS Agentic Engineering Framework for Next.js
+# Context Engineering Framework for Next.js
 
 **Supercharge your Claude Code experience with Context Engineering**
 
