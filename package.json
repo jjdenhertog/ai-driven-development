@@ -1,0 +1,35 @@
+{
+  "name": "@jjdenhertog/ai-driven-dev",
+  "version": "0.1.0",
+  "description": "AI-driven development workflow with learning capabilities for Claude",
+  "main": "index.js",
+  "bin": {
+    "aidev": "./bin/ai-dev.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "development",
+    "claude",
+    "automation",
+    "prp",
+    "workflow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "lib/",
+    "templates/",
+    "README-npm.md"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jjdenhertog/ai-driven-development.git"
+  }
+}

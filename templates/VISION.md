@@ -55,14 +55,14 @@ Traditional AI code generation lacks memory - each session starts fresh, repeati
 ## How It Works
 
 ### Phase 1: Concept Analysis
-- Human provides project vision in `/concepts/`
+- Human provides project vision in `/concept/`
 - AI analyzes and creates feature queue
 - Features are numbered for execution order
 - Pattern establishment tasks created first
 
 ### Phase 2: Iterative Development
 ```bash
-/next-task  # AI picks next feature, implements it
+/aidev-next-task  # AI picks next feature, implements it
 ```
 - AI checks for existing patterns
 - Generates PRP with learned knowledge
@@ -71,7 +71,7 @@ Traditional AI code generation lacks memory - each session starts fresh, repeati
 
 ### Phase 3: Learning Loop
 ```bash
-/review-complete --pr=23  # After human corrections
+/aidev-review-complete --pr=23  # After human corrections
 ```
 - AI analyzes what changed
 - Captures patterns with confidence scores
@@ -136,11 +136,11 @@ This system creates a feedback loop where:
 
 ## Implementation Commands
 
-- `/analyze-concept` - Break down project vision
-- `/next-task` - Implement next feature
-- `/review-complete` - Capture learning
-- `/retry-feature` - Re-attempt with learning
-- `/export-patterns` - Document conventions
+- `/aidev-generate-project` - Break down project vision
+- `/aidev-next-task` - Implement next feature
+- `/aidev-review-complete` - Capture learning
+- `/aidev-retry-feature` - Re-attempt with learning
+- `/aidev-export-patterns` - Document conventions
 
 ## Philosophy
 

@@ -1,0 +1,40 @@
+{
+  "patterns": [],
+  "metadata": {
+    "version": "1.0.0",
+    "created": "",
+    "lastUpdated": "",
+    "totalCorrections": 0,
+    "averageConfidence": 0
+  },
+  "categories": {
+    "code_style": {
+      "description": "Code formatting and style conventions",
+      "patterns": []
+    },
+    "architecture": {
+      "description": "Project structure and architectural decisions",
+      "patterns": []
+    },
+    "naming": {
+      "description": "Naming conventions for files, variables, functions",
+      "patterns": []
+    },
+    "testing": {
+      "description": "Testing patterns and approaches",
+      "patterns": []
+    },
+    "documentation": {
+      "description": "Documentation style and requirements",
+      "patterns": []
+    },
+    "security": {
+      "description": "Security best practices",
+      "patterns": []
+    },
+    "performance": {
+      "description": "Performance optimization patterns",
+      "patterns": []
+    }
+  }
+}
