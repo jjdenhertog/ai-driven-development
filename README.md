@@ -183,7 +183,7 @@ Example learned pattern:
 ## Configuration & Customization
 
 ### Personal Preferences Note
-The current setup reflects the author's personal preferences:
+The current setup reflects the my personal preferences:
 - **Framework**: Next.js 14+ with App Router
 - **UI**: Material-UI (MUI) with sx prop styling
 - **State**: Zustand for client state, TanStack Query for server state
