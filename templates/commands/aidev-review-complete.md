@@ -6,29 +6,81 @@ allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task"]
 # Command: aidev-review-complete
 
 ## Purpose
-Manually analyzes the differences between AI-generated code and human corrections to capture learning patterns and improve future implementations.
+Manually analyzes the differences between AI-generated code and human corrections to capture learning patterns and improve future implementations. This command can be used for any task that has an active pull request (branch exists).
 
 **Note**: This command is typically not needed if you're using `aidev-review-tasks`, which automatically captures learning when PRs are merged. Use this command for:
-- Manual learning capture for specific PRs
+- Manual learning capture for specific PRs that are in review
 - Re-analyzing PRs that were already processed
-- Historical PR analysis
+- Tasks that have been reviewed and need manual learning capture
 - Debugging automated learning capture
 
 ## Process
 
-### 1. PR Analysis
+### 1. Validate Task State
 ```bash
-# Get PR details
-gh pr view [PR_NUMBER] --json number,title,branch,commits
+# Parse arguments
+PR_NUMBER=$1
 
-# Check out the branch
-git checkout [BRANCH_NAME]
+if [ -z "$PR_NUMBER" ]; then
+  echo "❌ Error: PR number required"
+  echo "Usage: claude /aidev-review-complete [PR-number]"
+  exit 1
+fi
 
-# Get the diff between AI commits and current state
-git diff [FIRST_AI_COMMIT]..HEAD
+# Get PR details to find task ID
+PR_INFO=$(gh pr view $PR_NUMBER --json title,branch)
+TASK_ID=$(echo "$PR_INFO" | jq -r '.branch' | sed 's/ai\///' | cut -d'-' -f1)
+
+# Check if task exists and has an active branch
+TASK_FILE=$(find .aidev/features/queue -name "${TASK_ID}-*.md" 2>/dev/null)
+
+if [ -z "$TASK_FILE" ]; then
+  # Check if already completed
+  if [ -f .aidev/features/completed/${TASK_ID}-*.md ]; then
+    echo "❌ Error: Task ${TASK_ID} is already completed"
+    echo "This command is for analyzing active PRs before merging."
+    exit 1
+  else
+    echo "❌ Error: Task ${TASK_ID} not found"
+    exit 1
+  fi
+fi
+
+# Check if branch exists (indicates PR is active)
+git fetch --prune --quiet
+if ! git branch -r | grep -q "origin/ai/${TASK_ID}-"; then
+  echo "❌ Error: No active branch found for task ${TASK_ID}"
+  echo "This command requires an active PR (branch must exist)."
+  exit 1
+fi
+
+# Verify PR exists and is open
+BRANCH=$(git branch -r | grep "origin/ai/${TASK_ID}-" | head -1 | sed 's/.*origin\///')
+PR_STATE=$(gh pr view --head "$BRANCH" --json state -q '.state' 2>/dev/null)
+
+if [ "$PR_STATE" != "OPEN" ]; then
+  echo "❌ Error: PR for task ${TASK_ID} is not open (state: ${PR_STATE:-not found})"
+  exit 1
+fi
+
+echo "✅ Task ${TASK_ID} has active PR and is ready for review"
 ```
 
-### 2. Identify Corrections
+### 2. PR Analysis
+```bash
+# Get PR details
+gh pr view $PR_NUMBER --json number,title,branch,commits
+
+# Check out the branch
+BRANCH_NAME=$(gh pr view $PR_NUMBER --json branch -q '.branch')
+git checkout $BRANCH_NAME
+
+# Get the diff between AI commits and current state
+FIRST_AI_COMMIT=$(git log --author="Claude AI" --format="%H" | tail -1)
+git diff $FIRST_AI_COMMIT..HEAD
+```
+
+### 3. Identify Corrections
 Analyze each file changed after the last AI commit:
 
 #### Categorize Corrections:
@@ -39,7 +91,7 @@ Analyze each file changed after the last AI commit:
 - **Performance**: Optimization, caching strategies
 - **Patterns**: Consistent use of project conventions
 
-### 3. Learning Capture
+### 4. Learning Capture
 For each correction, create a learning entry:
 
 ```markdown
@@ -67,7 +119,7 @@ For each correction, create a learning entry:
 Based on how often this pattern has been corrected
 ```
 
-### 4. Update Pattern Files
+### 5. Update Pattern Files
 
 #### For New Patterns:
 Create/update `.aidev/patterns/learned/[category]-patterns.md`:
@@ -88,7 +140,7 @@ Create/update `.aidev/patterns/learned/[category]-patterns.md`:
 - Update confidence based on consistency
 - Add new examples if significantly different
 
-### 5. Session Learning Report
+### 6. Session Learning Report
 Create `.aidev/corrections/[task-id]-corrections.md`:
 ```markdown
 # Learning Report: [Task Name]
@@ -110,7 +162,7 @@ Create `.aidev/corrections/[task-id]-corrections.md`:
 [Full list of corrections with examples]
 ```
 
-### 6. Knowledge Base Update
+### 7. Knowledge Base Update
 Update `.aidev/patterns/learned-patterns.json`:
 ```json
 {
@@ -135,12 +187,13 @@ Update `.aidev/patterns/learned-patterns.json`:
 }
 ```
 
-### 7. Move Task to Approved
-- Move task from `.aidev/features/in-review/` to `.aidev/features/approved/`
-- Update task file with completion timestamp
+### 8. Update Task File
+- Add learning capture metadata to task file in `.aidev/features/queue/`
+- Update task file with review timestamp
 - Add reference to learning report
+- Note: Task remains in queue until PR is merged (per modern workflow)
 
-### 8. Commit Learning
+### 9. Commit Learning
 ```bash
 git add .aidev/
 git commit -m "learn: captured corrections from [task-name]
@@ -168,12 +221,15 @@ The next `/aidev-next-task` execution will:
 3. Note in commits which learned patterns were applied
 
 ## Example Usage
+
+### Successful Review
 ```bash
-claude /aidev-review-complete --pr=23
+claude /aidev-review-complete 23
 ```
 
 Output:
 ```
+✅ Task 003 has active PR and is ready for review
 📚 Analyzing corrections from PR #23...
 🔍 Found 5 files with human changes
 📝 Captured 8 corrections across 3 categories
@@ -185,11 +241,24 @@ Output:
 📈 Patterns Reinforced:
 - Use single quotes for imports (confidence: 0.85 → 0.90)
 
-✅ Task moved to approved
+✅ Learning captured (task remains in queue until PR merged)
 💾 Learning saved to knowledge base
 ```
 
+### Attempt to Review Non-In-Review Task
+```bash
+claude /aidev-review-complete 15
+```
+
+Output:
+```
+❌ Error: Task 001 is already completed
+This command is for analyzing active PRs before merging.
+```
+
 ## Important Notes
+- This command can ONLY be used for tasks with active PRs (branch must exist)
+- The task must be in `.aidev/features/queue/` folder with an active branch
 - Only analyze changes made AFTER the last AI commit
 - Don't capture corrections to syntax errors or bugs (these are failures, not patterns)
 - Focus on style and architectural patterns that can be reused

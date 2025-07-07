@@ -152,9 +152,7 @@ const init = () => {
       'patterns/established',
       'learning',
       'features/queue',
-      'features/in-progress',
-      'features/in-review',
-      'features/approved',
+      'features/completed',
       'concept',
       'knowledge',
       'sessions',
@@ -277,7 +275,7 @@ prompts/
     );
     
     // Create .gitignore files in empty directories to ensure they're tracked
-    ['features/queue', 'features/in-progress', 'features/in-review', 'features/approved', 'concept', 'knowledge', 'sessions', 'corrections', 'examples'].forEach(dir => {
+    ['features/queue', 'features/completed', 'concept', 'knowledge', 'sessions', 'corrections', 'examples'].forEach(dir => {
       const gitignorePath = path.join(TARGET_ROOT, AI_DEV_DIR, dir, '.gitignore');
       fs.writeFileSync(gitignorePath, '');
     });

@@ -39,10 +39,8 @@ your-project/
 ├── .aidev/
 │   ├── concept/       # High-level project vision
 │   ├── features/      # Task management
-│   │   ├── queue/     # Tasks ready to implement
-│   │   ├── in-progress/
-│   │   ├── in-review/
-│   │   └── approved/
+│   │   ├── queue/     # Tasks ready to implement (branch existence indicates in-progress/review)
+│   │   └── completed/ # Completed tasks
 │   ├── patterns/      # Learned patterns
 │   │   ├── learned/   # Category-specific patterns
 │   │   └── established/

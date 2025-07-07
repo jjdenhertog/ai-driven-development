@@ -21,13 +21,20 @@ Re-implements a feature that has been reviewed and corrected, applying all learn
 # Accept feature ID as parameter
 FEATURE_ID="$1"
 
-# Verify feature exists in approved or in-review
-if [[ -f "features/approved/${FEATURE_ID}-*.md" ]]; then
-  FEATURE_FILE=$(ls features/approved/${FEATURE_ID}-*.md)
-  PREVIOUS_STATE="approved"
-elif [[ -f "features/in-review/${FEATURE_ID}-*.md" ]]; then
-  FEATURE_FILE=$(ls features/in-review/${FEATURE_ID}-*.md)
-  PREVIOUS_STATE="in-review"
+# Verify feature exists and check its state
+if [[ -f ".aidev/features/completed/${FEATURE_ID}-*.md" ]]; then
+  FEATURE_FILE=$(ls .aidev/features/completed/${FEATURE_ID}-*.md)
+  PREVIOUS_STATE="completed"
+elif [[ -f ".aidev/features/queue/${FEATURE_ID}-*.md" ]]; then
+  FEATURE_FILE=$(ls .aidev/features/queue/${FEATURE_ID}-*.md)
+  # Check if it has an active branch (in progress/review)
+  git fetch --prune --quiet
+  if git branch -r | grep -q "origin/ai/${FEATURE_ID}-"; then
+    PREVIOUS_STATE="has-branch"
+  else
+    echo "Error: Feature ${FEATURE_ID} is in queue but has no implementation yet"
+    exit 1
+  fi
 else
   echo "Error: Feature ${FEATURE_ID} not found"
   exit 1
@@ -84,7 +91,7 @@ Based on previous corrections:
 - Apply all learned corrections proactively
 
 #### For Partial Update:
-- Keep parts that were approved
+- Keep parts that were working well
 - Rewrite only the corrected sections
 - Apply patterns to new code only
 
@@ -118,7 +125,7 @@ During implementation:
 
 Example commit messages:
 ```bash
-git commit -m "feat(${FEATURE}): reimplemented with learned patterns
+git commit --author="Claude AI <claude@anthropic.com>" -m "feat(${FEATURE}): reimplemented with learned patterns
 
 🤖 AI Generated (Retry)
 Applied patterns:
@@ -193,10 +200,11 @@ EOF
 )"
 ```
 
-### 9. Move Feature Status
-- If from approved: stays in approved (new version)
-- If from in-review: stays in in-review
+### 9. Update Feature Status
+- If from completed: create new version in queue
+- If from queue (with branch): continue with new branch
 - Add retry attempt to feature metadata
+- Note: Following modern workflow, tasks stay in queue until PR is merged
 
 ## Success Metrics
 Track retry success rate:

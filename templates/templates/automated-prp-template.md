@@ -28,6 +28,9 @@ ${CODEBASE_ANALYSIS}
 - [ ] Identified dependencies
 - [ ] Reviewed similar implementations
 - [ ] Checked for potential conflicts
+- [ ] Scanned for reusable utilities and helpers
+- [ ] Mapped existing API endpoints
+- [ ] Identified components to extend or reuse
 
 ### External Research
 ${EXTERNAL_RESEARCH}
@@ -49,6 +52,20 @@ ${SESSION_CONTEXT}
 
 ### Example References
 ${EXAMPLE_REFERENCES}
+
+### Existing Project Resources
+${PROJECT_ANALYSIS}
+- **Reusable Utilities**: ${EXISTING_UTILS}
+- **Available Components**: ${REUSABLE_COMPONENTS}
+- **Existing API Endpoints**: ${EXISTING_APIS}
+- **Current Patterns**: ${CURRENT_PATTERNS}
+
+### Duplication Prevention
+${DUPLICATION_CHECK}
+- **Functions to reuse instead of recreating**: ${REUSABLE_FUNCTIONS}
+- **Components to extend**: ${EXTENDABLE_COMPONENTS}
+- **Patterns to follow**: ${ESTABLISHED_CONVENTIONS}
+- **AVOID recreating**: ${AVOID_RECREATING}
 
 ### Documentation & References
 ```yaml
@@ -88,8 +105,9 @@ ${TECHNICAL_REQUIREMENTS}
 ### Acceptance Criteria
 ${ACCEPTANCE_CRITERIA}
 
-## 🛠️ Implementation Plan
+## 🛠️ Implementation Plan with Validation Checkpoints
 
+### 🔍 Checkpoint 1: Type Safety Foundation
 ### TypeScript Types and Interfaces
 ```typescript
 ${TYPE_DEFINITIONS}
@@ -108,6 +126,13 @@ ${TYPE_DEFINITIONS}
 // });
 ```
 
+**Validation Checkpoint 1:**
+- [ ] All types defined before implementation
+- [ ] Zod schemas match TypeScript types
+- [ ] No `any` types used
+- [ ] All properties marked `readonly` where appropriate
+
+### 🔍 Checkpoint 2: Architecture Validation
 ### Component Hierarchy & Architecture
 ```yaml
 ${COMPONENT_HIERARCHY}
@@ -122,6 +147,12 @@ ${COMPONENT_HIERARCHY}
 # └── __tests__/
 #     └── Feature.test.tsx
 ```
+
+**Validation Checkpoint 2:**
+- [ ] Component hierarchy matches project patterns
+- [ ] Server/Client components properly separated
+- [ ] No client-only features in Server Components
+- [ ] File structure follows conventions
 
 ### Pattern Mode Implementation
 ${IF_PATTERN_MODE}
@@ -147,9 +178,30 @@ ${END_IF_FEATURE_MODE}
 
 ${FILE_STRUCTURE}
 
+### 🔍 Checkpoint 3: Pre-Implementation Review
+**Before starting implementation:**
+- [ ] All file paths are correct and follow project structure
+- [ ] No duplicate functionality being created
+- [ ] Dependencies are available and imported correctly
+- [ ] Implementation order makes logical sense
+
 ## 💻 Implementation Steps
 
 ${IMPLEMENTATION_STEPS}
+
+### 🔍 Checkpoint 4: Mid-Implementation Validation
+**After implementing core functionality:**
+- [ ] Core feature works as expected
+- [ ] No TypeScript errors in implemented files
+- [ ] Build still passes
+- [ ] Fresh perspective review: Does this match the spec?
+
+### 🔍 Checkpoint 5: Pattern Adherence Check
+**Before implementing detailed examples:**
+- [ ] Following established patterns exactly
+- [ ] Not introducing new patterns unnecessarily
+- [ ] Code style matches existing codebase
+- [ ] Using project's preferred libraries/approaches
 
 ### Detailed Implementation Examples
 
@@ -312,21 +364,66 @@ export async function PUT(
 - [ ] Performance acceptable
 - [ ] Security considerations addressed
 
-## ✅ Validation Requirements
+## ✅ Multi-Phase Validation Process
 
-### Code Quality Checks
+### Phase 1: Continuous Implementation Validation
+**Run after each major code change:**
+
+#### Code Quality Checks
 ```bash
-# Must pass before proceeding
+# Must pass before proceeding to next file/component
 # Check with project's lint/type-check commands
 ```
+- [ ] No TypeScript errors
+- [ ] No ESLint violations
+- [ ] Imports are correct and resolvable
 
-### Build Validation
+#### Incremental Build Validation
 ```bash
 npm run build
 # Expected: Build completes without errors
 ```
+- [ ] Build passes after each component/module completion
+- [ ] No new build warnings introduced
 
-### Testing Requirements
+### Phase 2: Fresh Perspective Self-Validation
+**After completing each major component:**
+
+1. **Mental Reset**: Step back and re-read the feature specification
+2. **Implementation Review**: Review the code as if seeing it for the first time
+3. **Simulate User Journey**:
+   - [ ] Does the implementation match the specification?
+   - [ ] Are all user flows properly handled?
+   - [ ] Is the code intuitive and maintainable?
+   
+4. **Identify Gaps**:
+   - [ ] Missing error handling
+   - [ ] Incomplete edge cases
+   - [ ] Accessibility concerns
+   - [ ] Performance bottlenecks
+   - [ ] Security vulnerabilities
+
+### Phase 3: Self-Correction Loop
+**If issues identified in Phase 2:**
+
+1. **Document Issues Found**:
+   ```yaml
+   Issues:
+     - Issue: [description]
+       Fix: [planned correction]
+       Priority: [high/medium/low]
+   ```
+
+2. **Apply Corrections**:
+   - Fix highest priority issues first
+   - Re-run Phase 1 validation after each fix
+   - Document what was changed and why
+
+3. **Re-validate**:
+   - Return to Phase 2 with fresh perspective
+   - Continue loop until no critical issues remain
+
+### Phase 4: Integration Testing
 ${IF_TESTS_NEEDED}
 - Create tests in co-located test files
 - Achieve minimum 80% coverage
@@ -367,7 +464,7 @@ describe('Feature', () => {
 ```
 ${END_IF_TESTS_NEEDED}
 
-### Integration Points
+### Phase 5: Integration Points Validation
 ```yaml
 ${INTEGRATION_POINTS}
 # Examples:
@@ -384,11 +481,30 @@ ${INTEGRATION_POINTS}
 #   - location: contexts/ or stores/
 ```
 
-### Validation Criteria
-- [ ] Feature works as specified
+- [ ] All integration points connected
+- [ ] Data flows correctly between components
+- [ ] State management works as expected
+- [ ] API endpoints properly integrated
+
+### Phase 6: Final Validation Report
+
+#### Implementation Confidence
+- **Confidence Level**: [High/Medium/Low]
+- **Reasoning**: ${CONFIDENCE_REASONING}
+
+#### Risk Assessment
+- **Potential Issues**: ${RISK_ITEMS}
+- **Mitigation Steps**: ${MITIGATION_STEPS}
+
+#### Final Checklist
+- [ ] Feature works exactly as specified
 - [ ] No regression in existing functionality
-- [ ] Code follows project conventions
+- [ ] Code follows all project conventions
 - [ ] All quality gates passed
+- [ ] Performance metrics acceptable
+- [ ] Security best practices followed
+- [ ] Accessibility standards met
+- [ ] Documentation complete (if required)
 
 ## 🚀 Git Workflow
 
@@ -446,6 +562,45 @@ Generated by Claude AI
 Review corrections will be captured for learning
 ```
 
+## 📊 Validation Summary & Continuous Improvement
+
+### Final Self-Assessment
+**Complete this after all implementation is done:**
+
+#### Implementation Quality Score
+- **Completeness**: [1-10] - Does it fully implement the specification?
+- **Code Quality**: [1-10] - Does it follow all conventions and best practices?
+- **Test Coverage**: [1-10] - Are all scenarios properly tested?
+- **Performance**: [1-10] - Is the implementation optimized?
+- **Security**: [1-10] - Are all security concerns addressed?
+
+#### Lessons Learned
+```yaml
+What Went Well:
+  - ${POSITIVE_OUTCOMES}
+
+Challenges Encountered:
+  - ${CHALLENGES_FACED}
+
+Patterns Discovered:
+  - ${NEW_PATTERNS_IDENTIFIED}
+
+Future Improvements:
+  - ${IMPROVEMENT_SUGGESTIONS}
+```
+
+#### Validation Loop Summary
+- **Total Validation Cycles**: ${VALIDATION_CYCLE_COUNT}
+- **Issues Found and Fixed**: ${ISSUES_FIXED_COUNT}
+- **Time Saved by Early Detection**: ${TIME_SAVED_ESTIMATE}
+
+### Continuous Validation Metrics
+- [ ] All 6 validation checkpoints passed
+- [ ] Fresh perspective review completed at least twice
+- [ ] Self-correction loop executed when needed
+- [ ] No critical issues remain unresolved
+- [ ] Implementation confidence is HIGH
+
 ## ⚠️ Important Reminders
 
 ### Key Principles
@@ -455,6 +610,13 @@ Review corrections will be captured for learning
 
 ### Implementation Notes
 ${IMPLEMENTATION_NOTES}
+
+### Code Reuse Checklist
+- [ ] Checked for existing utility functions before creating new ones
+- [ ] Verified no duplicate API endpoints will be created
+- [ ] Identified components that can be extended rather than recreated
+- [ ] Ensured following established patterns from the codebase
+- [ ] Avoided recreating functionality that already exists
 
 ### Risk Assessment
 - **Low Risk**: ${LOW_RISK_ITEMS}

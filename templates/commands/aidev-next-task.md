@@ -24,7 +24,16 @@ fi
 
 #### Without --force flag (default):
 1. Scan `.aidev/features/queue/` for all tasks
-2. For each task, check dependencies:
+2. Check if task is already in progress by looking for branches:
+   ```bash
+   # Function to check if task is in progress
+   is_task_in_progress() {
+     local task_id=$1
+     git fetch --prune  # Ensure we have latest branch info
+     git branch -r | grep -q "origin/ai/${task_id}-"
+   }
+   ```
+3. For each task, check dependencies:
    ```javascript
    // Pseudo-code for dependency checking
    function canExecuteTask(task) {
@@ -34,9 +43,7 @@ fi
      
      // Check if all dependencies are completed
      for (const depId of task.dependencies) {
-       const depCompleted = 
-         fileExists(`.aidev/features/approved/${depId}-*.md`) ||
-         fileExists(`.aidev/features/in-review/${depId}-*.md`);
+       const depCompleted = fileExists(`.aidev/features/completed/${depId}-*.md`);
        
        if (!depCompleted) {
          return false;
@@ -45,10 +52,15 @@ fi
      return true;
    }
    ```
-3. Select the lowest numbered task that has all dependencies satisfied
-4. If no tasks are ready, show status of blocked tasks:
+4. Select the lowest numbered task that:
+   - Is not already in progress (no branch exists)
+   - Has all dependencies satisfied
+5. If no tasks are ready, show status of blocked tasks:
    ```
    ❌ No tasks ready for execution
+   
+   In Progress:
+   - 002-layout-system (branch: ai/002-layout-system)
    
    Blocked tasks:
    - 003-api-endpoints: Waiting for [001-user-authentication]
@@ -67,15 +79,31 @@ fi
   ```
 
 #### Common steps:
-- Move selected task to `.aidev/features/in-progress/`
-- Read the task specification completely
+- Read the task specification completely from `.aidev/features/queue/`
+- Note: Task remains in queue folder (branch existence indicates in-progress/review status)
 
 ### 2. Context Loading
 - **Check .aidev/examples/** for coding style and patterns
 - Load established patterns from `.aidev/patterns/established/`
 - Load learned patterns from `.aidev/patterns/learned/`
 - Read recent sessions from `.aidev/sessions/` for context
-- Analyze existing codebase for similar implementations
+- **Deep analysis of existing codebase**:
+  ```bash
+  # Find all utility functions to avoid duplication
+  rg "export (function|const)" --type ts --type tsx | grep -E "(util|helper|lib)" > .aidev/temp/existing-utils.txt
+  
+  # Find all API routes
+  find app/api -name "route.ts" -o -name "route.tsx" > .aidev/temp/api-routes.txt
+  
+  # Find all components
+  find . -name "*.tsx" -path "*/components/*" > .aidev/temp/components.txt
+  
+  # Analyze imports to understand dependencies
+  rg "^import" --type ts --type tsx | sort | uniq > .aidev/temp/import-patterns.txt
+  ```
+- Identify reusable components and utilities
+- Map existing API endpoints that could be reused
+- Check for established patterns in the current codebase
 
 ### 3. Behavior Mode Detection
 
@@ -104,11 +132,7 @@ When the task is an instruction file:
 - Single commit for the documentation
 
 ### 4. Git Setup
-Configure git for AI attribution:
-```bash
-git config user.name "Claude AI"
-git config user.email "claude@anthropic.com"
-```
+No git configuration needed - we'll use --author flag on commits for AI attribution.
 
 Check if task has existing PR context:
 ```bash
@@ -132,6 +156,9 @@ If no PR exists (new task):
 # Create new feature branch
 git checkout -b ai/[task-id]-[task-name]
 # Example: ai/001-user-authentication
+
+# Push branch immediately (marks task as in-progress/review)
+git push -u origin ai/[task-id]-[task-name]
 ```
 
 ### 5. PRP Generation
@@ -144,6 +171,11 @@ For pattern and feature tasks, generate a PRP using `./.aidev/templates/automate
 - Previous corrections to avoid
 - Session context from recent sessions
 - **If task has PR feedback**: Include the "Required Changes" section from task file
+- **Existing codebase analysis**: 
+  - Available utilities and helpers to reuse
+  - Existing components that can be extended
+  - API endpoints already implemented
+  - Current patterns and conventions in use
 
 The template includes placeholders for:
 - ${FEATURE_OVERVIEW}, ${TASK_ID}, ${TASK_NAME}, etc.
@@ -161,23 +193,23 @@ Save the generated PRP to:
 #### For Pattern/Feature Tasks
 Execute the PRP with these requirements:
 - Make atomic commits at logical boundaries
-- Each commit should have meaningful AI attribution:
+- Each commit should have meaningful AI attribution using --author flag:
   
   For new implementation:
-  ```
-  feat(auth): implement user registration flow
+  ```bash
+  git commit --author="Claude AI <claude@anthropic.com>" -m "feat(auth): implement user registration flow
 
   🤖 AI Generated
   Task: 001-user-authentication
   Session: 2025-01-07-001
   PRP: .aidev/sessions/2025-01-07-001/001-prp.md
 
-  Co-Authored-By: Claude <noreply@anthropic.com>
+  Co-Authored-By: Claude <noreply@anthropic.com>"
   ```
   
   For addressing review feedback:
-  ```
-  fix(auth): address review feedback - [specific change]
+  ```bash
+  git commit --author="Claude AI <claude@anthropic.com>" -m "fix(auth): address review feedback - [specific change]
 
   🤖 AI Generated
   Task: 001-user-authentication
@@ -185,7 +217,7 @@ Execute the PRP with these requirements:
   Session: 2025-01-07-002
   Addressing: Review feedback from [date]
 
-  Co-Authored-By: Claude <noreply@anthropic.com>
+  Co-Authored-By: Claude <noreply@anthropic.com>"
   ```
 - Run validation after each major component
 - Document decisions in session log
@@ -194,15 +226,15 @@ Execute the PRP with these requirements:
 - Read the task specification content
 - Create the documentation file at the specified location
 - Make a single commit:
-  ```
-  docs: add [instruction-name] documentation
+  ```bash
+  git commit --author="Claude AI <claude@anthropic.com>" -m "docs: add [instruction-name] documentation
 
   🤖 AI Generated
   Task: [task-id]-[task-name]
   Type: instruction
   Session: [timestamp]
 
-  Co-Authored-By: Claude <noreply@anthropic.com>
+  Co-Authored-By: Claude <noreply@anthropic.com>"
   ```
 - No validation or testing needed
 
@@ -270,6 +302,9 @@ Document validation results in session log.
 Ensure all commits are pushed to the remote branch:
 
 ```bash
+# Pull any existing changes first (in case user made direct commits)
+git pull origin ai/[task-id]-[task-name] --rebase --no-edit 2>/dev/null || true
+
 # Push all commits to remote
 git push -u origin ai/[task-id]-[task-name]
 
@@ -419,30 +454,85 @@ EOF
    - Implementation matches task requirements
 
 ### 12. Finalization
-1. **Ensure all changes are committed and pushed**:
+1. **Ensure all changes are committed and pushed to feature branch**:
    ```bash
    # Check for any uncommitted changes
-   git status
+   if [ -n "$(git status --porcelain)" ]; then
+     # If there are uncommitted changes, commit them
+     git add .
+     git commit --author="Claude AI <claude@anthropic.com>" -m "chore: finalize task [task-id]"
+   fi
    
-   # If there are uncommitted changes, commit them
-   git add .
-   git commit -m "chore: finalize task [task-id]"
-   
-   # Push all commits to ensure branch is fully synced
+   # Pull any user changes first, then push all commits
+   git pull origin ai/[task-id]-[task-name] --rebase --no-edit
    git push
    ```
 
-2. **Update task tracking**:
-   - Move task from `.aidev/features/in-progress/` to `.aidev/features/in-review/`
-   - Update task file with PR number
-   - Create summary of what was implemented
+2. **Update task tracking on main branch**:
+   ```bash
+   # Store current PR number and task info
+   PR_NUMBER=[pr-number-from-gh-output]
+   TASK_ID=[task-id]
+   TASK_FILE=$(find .aidev/features/queue -name "${TASK_ID}-*.md")
+   
+   # Switch to main branch
+   git checkout main
+   git pull origin main
+   
+   # Move task from queue to completed
+   mv "$TASK_FILE" .aidev/features/completed/
+   
+   # Add completion metadata to task file
+   COMPLETED_FILE=".aidev/features/completed/$(basename $TASK_FILE)"
+   echo -e "\n## Implementation Details" >> "$COMPLETED_FILE"
+   echo "- PR: #${PR_NUMBER}" >> "$COMPLETED_FILE"
+   echo "- Branch: ai/${TASK_ID}-[task-name]" >> "$COMPLETED_FILE"
+   echo "- Completed: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> "$COMPLETED_FILE"
+   echo "- Session: ${SESSION_ID}" >> "$COMPLETED_FILE"
+   
+   # Commit and push the state change to main
+   git add .aidev/features/
+   git commit --author="Claude AI <claude@anthropic.com>" -m "chore: complete task ${TASK_ID} - PR #${PR_NUMBER} created
+
+🤖 AI Task Management
+Task successfully implemented and PR created
+Session: ${SESSION_ID}
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # Pull latest main changes first, then push
+   git pull origin main --rebase --no-edit
+   git push origin main
+   
+   # Note: Feature branch is kept until PR is merged
+   # Do NOT delete the branch here
+   ```
+
+3. **Create summary of what was implemented**:
+   - Document in session log
+   - Task file now contains PR reference and completion details
 
 ## Error Handling
 If any step fails:
 1. Document the error in session log
-2. Rollback to clean state
-3. Move task back to queue with error notes
-4. Report clear error message
+2. Rollback to clean state:
+   ```bash
+   # If on feature branch, push any work done
+   if [ -n "$(git status --porcelain)" ]; then
+     git add .
+     git commit --author="Claude AI <claude@anthropic.com>" -m "WIP: task ${TASK_ID} - error encountered"
+   fi
+   # Pull any user changes first, then push
+   git pull origin ai/${TASK_ID}-${TASK_NAME} --rebase --no-edit 2>/dev/null || true
+   git push
+   
+   # Switch back to main
+   git checkout main
+   
+   # Note: Task remains in queue, branch indicates work attempted
+   ```
+3. Report clear error message with recovery instructions
+4. The existing branch can be reused on retry
 
 ## Example Usage
 ```bash
@@ -513,3 +603,9 @@ Output for instruction task:
 - Document why decisions were made
 - Include comprehensive error handling
 - Ensure all validation passes before PR creation
+- Task state is determined by:
+  - **Available**: File in `queue/`, no branch exists
+  - **In Progress**: File in `queue/`, branch exists
+  - **Completed**: File in `completed/`
+- Always analyze existing code to avoid duplication
+- Feature branches are kept until PR is merged

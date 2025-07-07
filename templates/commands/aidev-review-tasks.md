@@ -1,19 +1,34 @@
 ---
-description: "Reviews all tasks in review state and manages their lifecycle based on PR activity"
+description: "Reviews all tasks with active PRs and manages their lifecycle based on PR activity"
 allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task", "TodoRead", "TodoWrite"]
 ---
 
 # Command: aidev-review-tasks
 
 ## Purpose
-Automatically reviews all tasks that are in the `in-review` state by checking their associated pull requests on GitHub. Manages task state transitions based on PR activity, user comments, and merge status.
+Automatically reviews all tasks that have active pull requests by checking their branches and PR status on GitHub. Manages task state transitions based on PR activity, user comments, and merge status. In the new simplified system, tasks remain in `queue/` until their PR is merged, then move to `completed/`.
 
 ## Process
 
 ### 1. Discovery Phase
-- Scan `.aidev/features/in-review/` directory for all tasks
-- Extract PR numbers from each task file
+- Fetch all remote branches with pattern `ai/[task-id]-*`
+- For each branch, check if corresponding task exists in `queue/`
+- Extract PR information for each active branch
 - Build a list of tasks to review with their associated PRs
+
+```bash
+# Get all AI task branches
+git fetch --prune
+git branch -r | grep "origin/ai/" | while read branch; do
+  task_id=$(echo $branch | sed 's/.*ai\/\([0-9]*\)-.*/\1/')
+  task_file=$(find .aidev/features/queue -name "${task_id}-*.md")
+  
+  if [ -f "$task_file" ]; then
+    # Task has an active branch and is in queue
+    echo "Task $task_id has PR to review"
+  fi
+done
+```
 
 ### 2. PR Analysis Loop
 For each task in review:
@@ -43,7 +58,7 @@ Determine which scenario applies:
 
 **Action**: 
 - Log status: "Awaiting review"
-- Keep task in `in-review` state
+- Task remains in `queue/` with active branch
 - No further action needed
 
 #### Scenario 2: @aidev Comment in PR (User Feedback)
@@ -69,12 +84,12 @@ Determine which scenario applies:
 2. If changes requested:
    - Document required changes in task file
    - Add PR context (number, branch, feedback)
-   - Move task back to `queue` for next-task pickup
-   - Keep the PR open for continued work
+   - Task already in `queue/`, ready for next-task pickup
+   - Keep the PR and branch open for continued work
 
 3. If only questions/clarifications:
-   - Keep in review
-   - Document questions for human to answer
+   - Task remains in `queue/` with active branch
+   - Document questions for human to answer in task file
 
 #### Scenario 3: New Code Commits by User (User Making Changes)
 **Detection**:
@@ -85,7 +100,7 @@ Determine which scenario applies:
 
 **Action**:
 - Log status: "User is making direct changes"
-- Keep task in `in-review` state
+- Task remains in `queue/` with active branch
 - No AI action needed (user is handling)
 
 #### Scenario 4: New Code Commits AND Comments (Active Collaboration)
@@ -105,12 +120,12 @@ Determine which scenario applies:
 3. If AI work is needed:
    - Document feedback in task file
    - Add PR and branch information
-   - Move task to `queue` for next-task
+   - Task already in `queue/`, ready for next-task pickup
    - Task will be picked up with existing PR context
 
 4. If user is handling everything:
-   - Keep in review
-   - Document activity
+   - Task remains in `queue/` with active branch
+   - Document activity in task file
 
 #### Scenario 5: Branch Merged with Main (Task Complete)
 **Detection**:
@@ -263,15 +278,40 @@ Determine which scenario applies:
    Conflicting correction: -0.2 (min 0.1)
    ```
 
-8. **Move task to approved** and update task file:
-   - Move from `.aidev/features/in-review/` to `.aidev/features/approved/`
-   - Add completion timestamp
-   - Add reference to learning report
+8. **Move task to completed** and update task file:
+   ```bash
+   # Switch to main branch
+   git checkout main
+   git pull origin main
+   
+   # Move from queue to completed
+   mv .aidev/features/queue/[task-id]-*.md .aidev/features/completed/
+   
+   # Add completion metadata
+   echo -e "\n## Implementation Details" >> .aidev/features/completed/[task-id]-*.md
+   echo "- PR: #[pr-number]" >> .aidev/features/completed/[task-id]-*.md
+   echo "- Merged: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> .aidev/features/completed/[task-id]-*.md
+   echo "- Learning Report: .aidev/corrections/[task-id]-corrections.md" >> .aidev/features/completed/[task-id]-*.md
+   
+   # Commit and push to main
+   git add .aidev/features/
+   git commit --author="Claude AI <claude@anthropic.com>" -m "chore: complete task [task-id] - PR #[pr-number] merged
 
+🤖 AI Task Management
+Task completed with learning capture
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # Pull latest main changes first, then push
+   git pull origin main --rebase --no-edit
+   git push origin main
+   ```
+   
 9. **Clean up**:
    ```bash
-   # Delete local branch
+   # Delete local and remote branch
    git branch -d [BRANCH_NAME]
+   git push origin --delete [BRANCH_NAME]
    ```
 
 **Important Learning Rules**:
@@ -303,19 +343,26 @@ const aidevComments = comments.filter(comment => {
 
 ### 5. Task State Management
 
+#### State Detection (Branch-Based):
+- **In Queue + No Branch**: Task available for work
+- **In Queue + Branch Exists**: Task has active PR (in progress/review)
+- **In Completed**: Task finished and PR merged
+
 #### State Transitions:
-- `in-review` → `queue`: When changes are requested via comments (for pickup by next-task)
-- `in-review` → `approved`: When PR is merged
-- `in-review` → `in-review`: When awaiting review or user is handling
+- `queue` (with branch) → `completed`: When PR is merged
+- Task remains in `queue` when:
+  - Changes are requested (ready for next-task pickup)
+  - Awaiting review
+  - User is handling changes
 
 #### Task File Updates:
-For each state change, update the task file with:
+For each significant event, update the task file with:
 ```markdown
 ## Review History
-- [Date]: Moved to in-review (PR #X created)
+- [Date]: PR #X created (branch: ai/[task-id]-[name])
 - [Date]: Comments received requesting changes
-- [Date]: Moved back to queue for updates
-- [Date]: Merged and approved
+- [Date]: Changes requested documented for AI
+- [Date]: PR merged and task completed
 
 ## PR Context
 - PR Number: #X
@@ -323,7 +370,7 @@ For each state change, update the task file with:
 - Feedback: [Summary of requested changes]
 ```
 
-When moving back to queue, also add:
+When changes are requested, add to the task file:
 ```markdown
 ## Required Changes
 Based on PR #X feedback:
@@ -347,10 +394,13 @@ After reviewing all tasks, generate a summary:
 ## Detailed Status
 
 ### Awaiting Review
-- [Task ID]: PR #[X] - No activity
+- [Task ID]: PR #[X] - No activity (branch: ai/[task-id]-[name])
 
-### Requires Action
+### Requires AI Action
 - [Task ID]: PR #[X] - Comments requesting [specific changes]
+
+### User Handling
+- [Task ID]: PR #[X] - User making direct changes
 
 ### Completed
 - [Task ID]: PR #[X] - Merged on [date]
@@ -362,7 +412,7 @@ After reviewing all tasks, generate a summary:
 ### 7. Error Handling
 - If GitHub API fails: Log error and skip that task
 - If branch doesn't exist: Mark task as needing attention
-- If PR is closed but not merged: Move task to special `rejected` state
+- If PR is closed but not merged: Delete branch and document rejection in task file (task remains in queue for retry)
 
 ## Example Usage
 ```bash
@@ -371,8 +421,8 @@ claude /aidev-review-tasks
 
 Output:
 ```
-🔍 Reviewing tasks in review state...
-📋 Found 5 tasks to review
+🔍 Checking for tasks with active PRs...
+📋 Found 5 tasks with branches to review
 
 Task 001-user-authentication (PR #23):
   ✓ Merged with main - capturing learnings
@@ -384,12 +434,12 @@ Task 001-user-authentication (PR #23):
   🧠 Updating pattern database:
     - New pattern: "use-optional-chaining" (confidence: 0.6)
     - Reinforced: "single-quotes-imports" (0.85 → 0.90)
-  ✅ Moved to approved
+  ✅ Moved to completed
   📄 Learning report: .aidev/corrections/001-corrections.md
 
 Task 002-dashboard-layout (PR #24):
   💬 New comments from user requesting changes
-  🔄 Moving back to queue
+  📝 Changes documented for AI pickup
   📝 Action items documented in task file
 
 Task 003-api-endpoints (PR #25):
@@ -404,7 +454,7 @@ Task 005-error-handling (PR #27):
   📝 Analyzing feedback for next steps
 
 📊 Summary:
-- 1 task completed and approved
+- 1 task completed
 - 2 tasks need AI work
 - 1 task awaiting review  
 - 1 task being handled by user
@@ -413,16 +463,17 @@ Task 005-error-handling (PR #27):
 ## Integration Points
 
 ### With aidev-next-task
-When a task is moved back to `queue`:
-- The next run of `aidev-next-task` will pick it up
-- Task file contains PR number and branch name
-- aidev-next-task should:
-  1. Check if PR context exists in task file
-  2. If yes, checkout existing branch instead of creating new
+When a task needs AI work:
+- Task remains in `queue/` with active branch
+- The next run of `aidev-next-task` will detect the branch
+- Task file contains PR number and required changes
+- aidev-next-task will:
+  1. Detect existing branch for the task
+  2. Checkout existing branch instead of creating new
   3. Pull latest changes from the branch
   4. Address the documented feedback
   5. Push new commits to same PR
-  6. Move back to `in-review` when done
+  6. PR remains open for continued review
 
 ### With aidev-review-complete
 When a PR is merged, `aidev-review-tasks` automatically performs the full learning capture:
@@ -441,7 +492,9 @@ Use `aidev-review-complete` only for:
 ## Important Notes
 - Only comments from human users trigger actions
 - AI-generated comments are always ignored
-- Tasks only move to `approved` when merged with main
+- Tasks only move to `completed` when PR is merged with main
+- Tasks stay in `queue/` throughout the entire PR lifecycle
+- Branch existence indicates task is being worked on
 - User activity is monitored but not interfered with
 - Failed PRs (closed without merging) need special handling
 - The command is idempotent - safe to run multiple times

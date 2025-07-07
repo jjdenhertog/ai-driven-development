@@ -49,6 +49,8 @@ Create instruction tasks instead of implementation tasks when:
 - External accounts need to be created (AWS, Google Cloud, etc.)
 - Hardware or network configuration is required
 - Manual deployment steps are needed
+- Environment variables require user-provided values (API keys, secrets, database URLs)
+- Configuration files need real credentials or sensitive data
 
 ### 3. Task Prioritization
 Organize tasks by priority and dependencies:
@@ -60,11 +62,12 @@ Organize tasks by priority and dependencies:
   - Project initialization (if no package.json exists)
   - Framework setup (if concept needs Next.js but it's not installed)
   - Missing dependencies (if concept needs NextAuth but it's not in package.json)
-  - Environment setup (if .env files don't exist but are needed)
+  - Environment setup (if .env files don't exist but are needed) - **Use type: "instruction"**
   - Database setup (if concept needs database but no Prisma/DB setup found)
   - Build tool configuration (if missing required configs)
 - **Only create tasks for actual gaps** - don't recreate what already exists
 - **Tasks should bridge from current state to concept requirements**
+- **IMPORTANT**: Environment configuration tasks that require user-provided credentials should be `type: "instruction"`
 
 **Second Priority - Patterns & Infrastructure (100-199)**:
 - Component patterns (if UI components are needed)
@@ -98,9 +101,14 @@ Use the template from `.aidev/templates/feature-specification-template.md` to cr
 - Documentation links and potential gotchas
 
 **Task Types**:
-- `type: "feature"` - For implementing user-facing functionality
+- `type: "feature"` - For implementing user-facing functionality or code generation tasks
 - `type: "pattern"` - For establishing code patterns and architecture
-- `type: "instruction"` - For tasks requiring user to perform manual steps
+- `type: "instruction"` - For tasks requiring user to perform manual steps (including providing credentials, API keys, or other sensitive data)
+
+**Important Distinction**:
+- If the task generates files with placeholders → `type: "instruction"` (user must fill in real values)
+- If the task generates complete, working code → `type: "feature"` or `type: "pattern"`
+- Environment configuration with secrets → Always `type: "instruction"`
 
 **Critical Pattern Tasks to Consider**:
 Only create these if the concept requires them:
@@ -206,6 +214,10 @@ After initial generation, perform a "clean context" validation:
      - Test infrastructure (if TDD mentioned but no test setup)
      - Database migrations (if using Prisma but no migration pattern)
      - Configuration validation (if many env vars but no validation)
+   - **Incorrect task types**:
+     - Environment configuration with user-provided values should be `type: "instruction"`
+     - Tasks that generate code/files should be `type: "feature"` or `type: "pattern"`
+     - System-level setup requiring manual steps should be `type: "instruction"`
    
 ### Phase 3: Self-Correction Loop
 If validation identifies issues:
@@ -213,8 +225,11 @@ If validation identifies issues:
 2. **Adjust task order** if dependencies are wrong
 3. **Update task descriptions** for clarity
 4. **Remove unnecessary tasks** that don't align with concept
-5. **Re-run validation** from Phase 2 to verify fixes
-6. **Repeat until no issues remain**:
+5. **Fix task types** if incorrectly assigned:
+   - Change `type: "feature"` to `type: "instruction"` for tasks requiring user action
+   - Ensure environment configuration tasks are properly typed
+6. **Re-run validation** from Phase 2 to verify fixes
+7. **Repeat until no issues remain**:
    - Keep iterating through correction and validation
    - Document each iteration's changes
    - Only proceed when validation passes completely
@@ -284,10 +299,12 @@ Example:
 ⚠️ Validation identified issues:
   - Missing: Database migration setup
   - Dependency: Auth pattern needed before user feature
+  - Incorrect: 002-setup-environment-config.md has type "feature" but should be "instruction"
 
 🔧 Self-correcting (Iteration 1)...
   ✓ Added 001-setup-database-migrations.md
   ✓ Reordered auth pattern before user features
+  ✓ Changed 002-setup-environment-config.md from type "feature" to "instruction"
 
 🔍 Re-validating after corrections...
   - Checking all tasks again
@@ -428,10 +445,24 @@ Create a new Next.js 14+ project with TypeScript, App Router, ESLint, and the re
 - [ ] TypeScript configured with strict mode
 ```
 
-### Example Setup Task (Implementation)
-For tasks requiring user configuration, the technical requirements should look like:
+### Example Environment Configuration Task (Instruction)
+For tasks requiring user configuration, use `type: "instruction"`:
 ```markdown
-### Technical Requirements
+---
+id: "002"
+name: "setup-environment-config"
+type: "instruction"
+dependencies: ["001-setup-nextjs-project"]
+estimated_lines: 0
+priority: "critical"
+---
+
+# Setup: Environment Configuration
+
+## Overview
+Create environment configuration files with placeholders for all required secrets and configuration values.
+
+## Technical Requirements
 1. Create `.env.local` file with the following variables:
    ```
    # Database Configuration
