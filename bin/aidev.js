@@ -177,12 +177,6 @@ sessions/
 prompts/
 *.tmp
 *.log
-
-# Keep structure but ignore content
-features/queue/*
-!features/queue/.gitkeep
-features/completed/*
-!features/completed/.gitkeep
 `;
     
     fs.writeFileSync(
@@ -190,9 +184,11 @@ features/completed/*
       gitignoreContent.trim()
     );
     
-    // Create .gitkeep files
+    // Create .gitignore files in empty directories to ensure they're tracked
     ['features/queue', 'features/completed', 'concept', 'sessions', 'examples'].forEach(dir => {
-      fs.writeFileSync(path.join(TARGET_ROOT, AI_DEV_DIR, dir, '.gitkeep'), '');
+      const gitignorePath = path.join(TARGET_ROOT, AI_DEV_DIR, dir, '.gitignore');
+      // Empty .gitignore file - this ensures the directory is tracked by git
+      fs.writeFileSync(gitignorePath, '');
     });
     
     // Success message

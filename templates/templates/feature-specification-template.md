@@ -1,9 +1,9 @@
 ---
 id: "XXX"
 name: "feature-name"
-type: "feature" # or "pattern"
+type: "feature" # feature, pattern, or instruction
 dependencies: []
-estimated_lines: 300
+estimated_lines: 300 # Use 0 for instruction tasks
 priority: "medium" # high, medium, low
 ---
 
