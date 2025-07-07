@@ -6,7 +6,13 @@ allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task"]
 # Command: aidev-review-complete
 
 ## Purpose
-Analyzes the differences between AI-generated code and human corrections to capture learning patterns and improve future implementations.
+Manually analyzes the differences between AI-generated code and human corrections to capture learning patterns and improve future implementations.
+
+**Note**: This command is typically not needed if you're using `aidev-review-tasks`, which automatically captures learning when PRs are merged. Use this command for:
+- Manual learning capture for specific PRs
+- Re-analyzing PRs that were already processed
+- Historical PR analysis
+- Debugging automated learning capture
 
 ## Process
 

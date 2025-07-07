@@ -58,8 +58,26 @@ git config user.name "Claude AI"
 git config user.email "claude@anthropic.com"
 ```
 
-Create feature branch:
+Check if task has existing PR context:
 ```bash
+# Look for PR context in task file
+# If found: PR Number and Branch name
+```
+
+If PR exists (task returned from review):
+```bash
+# Checkout existing branch
+git checkout ai/[task-id]-[task-name]
+
+# Pull latest changes
+git pull origin ai/[task-id]-[task-name]
+
+# Continue working on same branch
+```
+
+If no PR exists (new task):
+```bash
+# Create new feature branch
 git checkout -b ai/[task-id]-[task-name]
 # Example: ai/001-user-authentication
 ```
@@ -73,6 +91,7 @@ For pattern and feature tasks, generate a PRP using `./.aidev/templates/automate
 - Established patterns from `.aidev/patterns/established/`
 - Previous corrections to avoid
 - Session context from recent sessions
+- **If task has PR feedback**: Include the "Required Changes" section from task file
 
 The template includes placeholders for:
 - ${FEATURE_OVERVIEW}, ${TASK_ID}, ${TASK_NAME}, etc.
@@ -91,6 +110,8 @@ Save the generated PRP to:
 Execute the PRP with these requirements:
 - Make atomic commits at logical boundaries
 - Each commit should have meaningful AI attribution:
+  
+  For new implementation:
   ```
   feat(auth): implement user registration flow
 
@@ -98,6 +119,19 @@ Execute the PRP with these requirements:
   Task: 001-user-authentication
   Session: 2025-01-07-001
   PRP: .aidev/sessions/2025-01-07-001/001-prp.md
+
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ```
+  
+  For addressing review feedback:
+  ```
+  fix(auth): address review feedback - [specific change]
+
+  🤖 AI Generated
+  Task: 001-user-authentication
+  PR: #24
+  Session: 2025-01-07-002
+  Addressing: Review feedback from [date]
 
   Co-Authored-By: Claude <noreply@anthropic.com>
   ```
@@ -160,7 +194,38 @@ Created documentation file as specified in the task.
 - Documentation ready for use
 ```
 
-### 8. Pull Request Creation
+### 8. Validation & Testing
+Before creating the pull request, ensure all changes are validated:
+
+#### For Pattern/Feature Tasks
+```bash
+# Run tests
+npm test
+
+# Run linting
+npm run lint
+
+# Run type checking
+npm run type-check
+
+# Build the project
+npm run build
+```
+
+Document validation results in session log.
+
+### 9. Commit & Push
+Ensure all commits are pushed to the remote branch:
+
+```bash
+# Push all commits to remote
+git push -u origin ai/[task-id]-[task-name]
+
+# Verify all commits are pushed
+git status
+```
+
+### 10. Pull Request Creation
 
 #### For Pattern/Feature Tasks
 ```bash
@@ -223,10 +288,63 @@ EOF
 )"
 ```
 
-### 9. Finalization
-- Move task from `.aidev/features/in-progress/` to `.aidev/features/in-review/`
-- Update task file with PR number
-- Create summary of what was implemented
+### 11. Code Quality Feedback Loop
+**For Pattern/Feature Tasks Only** - Perform a fresh perspective analysis:
+
+1. **Step back and analyze the generated code**:
+   - Does the implementation actually fulfill what was briefed in the task?
+   - Are all requirements from the task specification met?
+   - Is the code following the established patterns correctly?
+
+2. **Quality Checklist**:
+   - [ ] All task requirements implemented
+   - [ ] Code follows project patterns and conventions
+   - [ ] Error handling is comprehensive
+   - [ ] Types are properly defined
+   - [ ] No security vulnerabilities introduced
+   - [ ] Performance considerations addressed
+   - [ ] Code is maintainable and readable
+
+3. **Document findings in session log**:
+   ```markdown
+   ### Fresh Perspective Analysis
+   #### Alignment with Brief
+   - [List how each requirement was addressed]
+   - [Note any deviations from the original brief]
+   
+   #### Quality Assessment
+   - Code clarity: [rating and notes]
+   - Pattern adherence: [rating and notes]
+   - Completeness: [rating and notes]
+   
+   #### Potential Improvements
+   - [List any identified improvements]
+   ```
+
+4. **If critical issues found**:
+   - Make necessary corrections
+   - Commit with message: "fix: address quality feedback - [specific issue]"
+   - Push changes: `git push`
+   - Update PR description with corrections made
+
+### 12. Finalization
+1. **Ensure all changes are committed and pushed**:
+   ```bash
+   # Check for any uncommitted changes
+   git status
+   
+   # If there are uncommitted changes, commit them
+   git add .
+   git commit -m "chore: finalize task [task-id]"
+   
+   # Push all commits to ensure branch is fully synced
+   git push
+   ```
+
+2. **Update task tracking**:
+   - Move task from `.aidev/features/in-progress/` to `.aidev/features/in-review/`
+   - Update task file with PR number
+   - Create summary of what was implemented
 
 ## Error Handling
 If any step fails:
