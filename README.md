@@ -89,6 +89,9 @@ Here's the complete workflow for implementing a new feature:
 # 5. Security audit and remediation
 /check-security
 
+# 6. Optimize API calls and database queries
+/check-api-database
+
 # Pro tip: Use /clear between each command to manage Claude's context window
 ```
 
@@ -103,7 +106,8 @@ prps-agentic-eng-nextjs/
 │   │   ├── generate-prp.md           # Create implementation blueprints
 │   │   ├── execute-prp.md            # Execute PRPs with quality gates
 │   │   ├── check-errors.md           # Comprehensive error checking/fixing
-│   │   └── check-security.md         # Security audit and remediation
+│   │   ├── check-security.md         # Security audit and remediation
+│   │   └── check-api-database.md     # API/database optimization and cost reduction
 │   ├── hooks/                    # Automated quality assurance
 │   │   ├── smart-lint.sh            # Intelligent linting across languages
 │   │   ├── ntfy-notifier.sh         # Push notifications
@@ -224,6 +228,27 @@ Security audit and vulnerability remediation using parallel fixing agents.
 **Example:**
 ```bash
 /check-security
+```
+
+#### `/check-api-database`
+Comprehensive API and database optimization for performance and cost reduction.
+
+**Approach:** "OPTIMIZATION task, not reporting task"
+- Spawns multiple agents to optimize different inefficiencies in parallel
+- Zero tolerance for redundant calls or slow queries
+- Reads API documentation to understand best practices
+
+**Optimization Coverage:**
+- Duplicate API call consolidation
+- N+1 query problem resolution
+- Request batching and caching
+- Database query optimization
+- API cost reduction strategies
+- Payload size minimization
+
+**Example:**
+```bash
+/check-api-database
 ```
 
 ### Utility Commands
