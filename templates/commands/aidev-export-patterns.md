@@ -28,7 +28,7 @@ Read from `.aidev/patterns/learned/`:
 - Performance optimizations
 
 #### Pattern Metadata
-Read from `.aidev/knowledge/patterns.json`:
+Read from `.aidev/patterns/learned-patterns.json`:
 - Confidence levels
 - Frequency data
 - Last updated dates

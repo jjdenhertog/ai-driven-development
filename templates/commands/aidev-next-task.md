@@ -14,7 +14,59 @@ Automatically picks the next task from the feature queue and implements it based
 ## Process
 
 ### 1. Task Selection
-- Look in `.aidev/features/queue/` for the lowest numbered task
+```bash
+# Parse command arguments
+FORCE_MODE=false
+if [[ "$1" == "--force" ]]; then
+  FORCE_MODE=true
+fi
+```
+
+#### Without --force flag (default):
+1. Scan `.aidev/features/queue/` for all tasks
+2. For each task, check dependencies:
+   ```javascript
+   // Pseudo-code for dependency checking
+   function canExecuteTask(task) {
+     if (!task.dependencies || task.dependencies.length === 0) {
+       return true;
+     }
+     
+     // Check if all dependencies are completed
+     for (const depId of task.dependencies) {
+       const depCompleted = 
+         fileExists(`.aidev/features/approved/${depId}-*.md`) ||
+         fileExists(`.aidev/features/in-review/${depId}-*.md`);
+       
+       if (!depCompleted) {
+         return false;
+       }
+     }
+     return true;
+   }
+   ```
+3. Select the lowest numbered task that has all dependencies satisfied
+4. If no tasks are ready, show status of blocked tasks:
+   ```
+   ❌ No tasks ready for execution
+   
+   Blocked tasks:
+   - 003-api-endpoints: Waiting for [001-user-authentication]
+   - 004-dashboard: Waiting for [002-layout-system, 003-api-endpoints]
+   
+   Use --force to override dependency checks
+   ```
+
+#### With --force flag:
+- Select the lowest numbered task regardless of dependencies
+- Show warning if dependencies are not met:
+  ```
+  ⚠️  Warning: Task has unmet dependencies
+  Missing: [001-user-authentication, 002-layout-system]
+  Proceeding anyway due to --force flag
+  ```
+
+#### Common steps:
 - Move selected task to `.aidev/features/in-progress/`
 - Read the task specification completely
 
@@ -321,11 +373,50 @@ EOF
    - [List any identified improvements]
    ```
 
-4. **If critical issues found**:
-   - Make necessary corrections
-   - Commit with message: "fix: address quality feedback - [specific issue]"
-   - Push changes: `git push`
-   - Update PR description with corrections made
+4. **Feedback Resolution Loop**:
+   ```
+   WHILE (critical issues found) {
+     // Make corrections
+     - Fix identified issues
+     - Commit with message: "fix: address quality feedback - [specific issue]"
+     - Push changes: `git push`
+     
+     // Re-validate
+     - Run all tests again
+     - Run linting again
+     - Run type checking again
+     - Perform fresh analysis
+     
+     // Document iteration
+     - Update session log with changes made
+     - Note if new issues were found
+     
+     // Check if resolved
+     - If all issues resolved: EXIT LOOP
+     - If new issues found: CONTINUE LOOP
+   }
+   ```
+
+5. **Session log should track iterations**:
+   ```markdown
+   ### Quality Feedback Iterations
+   #### Iteration 1
+   - Issue: Missing error handling in API routes
+   - Fix: Added try-catch blocks and proper error responses
+   - Result: Tests now pass, but found type issue
+   
+   #### Iteration 2
+   - Issue: TypeScript error in response types
+   - Fix: Updated response interface
+   - Result: All checks pass ✓
+   ```
+
+6. **Only proceed to PR creation when**:
+   - All critical issues are resolved
+   - All tests pass
+   - No linting errors
+   - No type errors
+   - Implementation matches task requirements
 
 ### 12. Finalization
 1. **Ensure all changes are committed and pushed**:
@@ -355,13 +446,43 @@ If any step fails:
 
 ## Example Usage
 ```bash
+# Normal execution (respects dependencies)
 claude /aidev-next-task
+
+# Force execution (ignores dependencies)
+claude /aidev-next-task --force
 ```
 
-Output for feature task:
+Output when dependencies not met:
+```
+🤖 Checking for next available task...
+❌ No tasks ready for execution
+
+Blocked tasks:
+- 003-api-endpoints: Waiting for [001-user-authentication]
+- 004-dashboard: Waiting for [002-layout-system, 003-api-endpoints]
+
+Use --force to override dependency checks
+```
+
+Output with --force flag:
+```
+🤖 Starting next task (force mode)...
+⚠️  Warning: Task has unmet dependencies
+Missing: [001-user-authentication]
+Proceeding anyway due to --force flag
+
+📋 Selected: 003-api-endpoints
+🔍 Loading patterns and context...
+📝 Generating PRP...
+🔨 Implementing feature...
+```
+
+Output for feature task (normal):
 ```
 🤖 Starting next task...
 📋 Selected: 001-user-authentication
+✅ All dependencies satisfied
 🔍 Loading patterns and context...
 📝 Generating PRP...
 🔨 Implementing feature...
@@ -378,6 +499,7 @@ Output for instruction task:
 🤖 Starting next task...
 📋 Selected: 005-configure-pm2-windows
 📄 Task type: instruction
+✅ No dependencies required
 🔍 Loading context...
 📝 Creating documentation...
   ✓ Created docs/pm2-setup.md

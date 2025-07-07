@@ -207,12 +207,17 @@ After initial generation, perform a "clean context" validation:
      - Database migrations (if using Prisma but no migration pattern)
      - Configuration validation (if many env vars but no validation)
    
-### Phase 3: Self-Correction
+### Phase 3: Self-Correction Loop
 If validation identifies issues:
 1. **Add missing tasks** with appropriate numbering
 2. **Adjust task order** if dependencies are wrong
 3. **Update task descriptions** for clarity
 4. **Remove unnecessary tasks** that don't align with concept
+5. **Re-run validation** from Phase 2 to verify fixes
+6. **Repeat until no issues remain**:
+   - Keep iterating through correction and validation
+   - Document each iteration's changes
+   - Only proceed when validation passes completely
 
 ### Phase 4: Final Validation Report
 Create a comprehensive summary showing:
@@ -280,9 +285,25 @@ Example:
   - Missing: Database migration setup
   - Dependency: Auth pattern needed before user feature
 
-🔧 Self-correcting...
+🔧 Self-correcting (Iteration 1)...
   ✓ Added 001-setup-database-migrations.md
   ✓ Reordered auth pattern before user features
+
+🔍 Re-validating after corrections...
+  - Checking all tasks again
+  - Verifying dependency order
+  - Ensuring completeness
+
+⚠️ New issue found:
+  - Missing: Error boundary pattern for frontend
+
+🔧 Self-correcting (Iteration 2)...
+  ✓ Added 103-pattern-error-boundary.md
+
+🔍 Re-validating after corrections...
+  - All requirements met
+  - Dependencies properly ordered
+  - No gaps identified
 
 ✅ Final validation complete!
 

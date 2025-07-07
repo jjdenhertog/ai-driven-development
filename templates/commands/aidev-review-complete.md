@@ -111,7 +111,7 @@ Create `.aidev/corrections/[task-id]-corrections.md`:
 ```
 
 ### 6. Knowledge Base Update
-Update `.aidev/knowledge/patterns.json`:
+Update `.aidev/patterns/learned-patterns.json`:
 ```json
 {
   "patterns": {

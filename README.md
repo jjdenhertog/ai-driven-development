@@ -16,13 +16,15 @@ aidev init
 
 AI-Driven Development transforms how you work with AI assistants by:
 
-- 📚 **Learning from corrections** - AI remembers and applies your feedback
+- 📚 **Learning from corrections** - AI automatically captures and applies your feedback when PRs merge
 - 🎯 **Breaking down concepts** - Converts high-level ideas into implementable features
 - 🔍 **Intelligent assessment** - Analyzes current project state to generate only needed tasks
 - 🔄 **Iterative improvement** - Each feature builds on lessons from previous ones
 - ✅ **Quality enforcement** - Built-in checks ensure production-ready code
 - 🤖 **Git integration** - Proper attribution and PR-based workflows
 - 🎨 **Self-validation** - Multi-pass validation ensures tasks achieve concept goals
+- 🔗 **Dependency management** - Tasks execute in correct order based on dependencies
+- 💬 **PR-based feedback** - Use @aidev comments to request changes
 
 ## Project Structure
 
@@ -36,8 +38,14 @@ your-project/
 │   └── PROJECT.md     # Project documentation
 ├── .aidev/
 │   ├── concept/       # High-level project vision
-│   ├── features/      # Feature queue and completed
+│   ├── features/      # Task management
+│   │   ├── queue/     # Tasks ready to implement
+│   │   ├── in-progress/
+│   │   ├── in-review/
+│   │   └── approved/
 │   ├── patterns/      # Learned patterns
+│   │   ├── learned/   # Category-specific patterns
+│   │   └── established/
 │   ├── learning/      # Correction analysis
 │   ├── sessions/      # Development logs
 │   ├── examples/      # Code style examples
@@ -84,29 +92,68 @@ This intelligently:
 ### 3. Implement Features
 
 ```bash
-/aidev-next-task
+/aidev-next-task          # Respects task dependencies
+/aidev-next-task --force  # Override dependencies if needed
 ```
 
-AI picks the next feature, researches the codebase, creates a plan, and implements it.
+AI picks the next available task (with satisfied dependencies), researches the codebase, creates a plan, and implements it with a PR.
 
 ### 4. Review and Correct
 
-Make corrections to the PR. The AI learns from every change you make.
+Review the PR on GitHub. You have two options:
 
-### 5. Capture Learning
+1. **Make direct corrections** - The AI learns automatically when you merge
+2. **Request changes** - Comment with `@aidev your requested changes here`
+
+### 5. Monitor Progress
 
 ```bash
-/aidev-review-complete --pr=123
+/aidev-review-tasks
 ```
 
-AI analyzes your corrections and updates its patterns.
+This command:
+- Checks all PRs in review
+- Captures learning from merged PRs automatically
+- Moves tasks with @aidev feedback back to queue
+- Provides status of all active tasks
+
+### Example Workflow
+
+```bash
+# 1. Generate tasks from concept
+/aidev-generate-project
+# → Creates: 001-setup, 002-auth, 003-api (depends on 002)
+
+# 2. Implement first task
+/aidev-next-task
+# → Implements 001-setup, creates PR #1
+
+# 3. Review shows blocked task
+/aidev-next-task
+# → Shows: "003-api waiting for 002-auth"
+# → Implements 002-auth, creates PR #2
+
+# 4. Request changes on PR #2
+# On GitHub: "@aidev please use JWT instead of sessions"
+
+# 5. Check status
+/aidev-review-tasks
+# → PR #1 merged: learning captured ✓
+# → PR #2 has feedback: moved to queue with changes
+
+# 6. AI re-implements with feedback
+/aidev-next-task
+# → Re-implements 002-auth with JWT
+```
 
 ## Commands
 
 ### Core Workflow
 - `/aidev-generate-project` - Intelligently convert concept to features with gap analysis
-- `/aidev-next-task` - Implement next feature in queue with auto-generated PRP
-- `/aidev-review-complete` - Learn from corrections
+- `/aidev-next-task` - Implement next available task (respects dependencies)
+- `/aidev-next-task --force` - Force implementation ignoring dependencies
+- `/aidev-review-tasks` - Review all PRs and capture learning automatically
+- `/aidev-review-complete --pr=123` - Manually capture learning from a specific PR
 - `/aidev-retry-feature` - Re-implement with learned patterns
 
 ### Quality Control
@@ -141,14 +188,35 @@ Automatically considers critical patterns based on your concept:
 - Database migrations (if using Prisma)
 - Configuration validation (if complex env setup)
 
+## Enhanced Features
+
+### Automatic Learning Capture
+When you merge a PR, the system automatically:
+- Analyzes differences between AI commits and final code
+- Categorizes corrections (style, architecture, logic, security, performance)
+- Updates pattern confidence scores
+- Applies learning to future implementations
+
+### Dependency Management
+Tasks are executed in the correct order:
+- Dependencies specified in task files are respected
+- Blocked tasks show clear status with waiting dependencies
+- Use `--force` flag to override when needed
+
+### PR-Based Feedback Loop
+Two ways to provide feedback on PRs:
+1. **Direct corrections** - Make changes and merge; learning captured automatically
+2. **@aidev comments** - Request changes; task returns to queue with your feedback
+
 ## Learning System
 
 The AI learns through a confidence-based pattern system:
 
 1. **Pattern Detection**: Analyzes corrections to identify patterns
-2. **Confidence Scoring**: Patterns gain confidence through consistency
-3. **Automatic Application**: High-confidence patterns (>0.8) applied automatically
-4. **Continuous Refinement**: Conflicting corrections adjust confidence
+2. **Duplicate Prevention**: Similar patterns are merged (80% similarity threshold)
+3. **Confidence Scoring**: Patterns gain confidence through consistency
+4. **Automatic Application**: High-confidence patterns (>0.8) applied automatically
+5. **Continuous Refinement**: Conflicting corrections adjust confidence
 
 Example learned pattern:
 ```json
@@ -170,9 +238,11 @@ Example learned pattern:
 1. **Clear Concepts**: Write detailed concept documents - the AI's intelligence scales with clarity
 2. **Small Features**: Keep features under 500 lines for better reviews
 3. **Clear Corrections**: When correcting, fix the pattern not just the instance
-4. **Consistent Style**: The AI learns your style through repetition
-5. **Trust the Process**: Let the AI fail early to learn your preferences
-6. **Start Anywhere**: Works with empty directories or existing projects
+4. **Use @aidev Comments**: For change requests, start comments with @aidev
+5. **Let Learning Happen**: Merge PRs to trigger automatic learning capture
+6. **Consistent Style**: The AI learns your style through repetition
+7. **Trust Dependencies**: Let the system manage task order unless urgent
+8. **Start Anywhere**: Works with empty directories or existing projects
 
 ## Requirements
 

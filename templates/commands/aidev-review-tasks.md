@@ -46,16 +46,18 @@ Determine which scenario applies:
 - Keep task in `in-review` state
 - No further action needed
 
-#### Scenario 2: Comment in PR (User Feedback)
+#### Scenario 2: @aidev Comment in PR (User Feedback)
 **Detection**:
 - New comments exist on the PR
+- Comments start with @aidev mention
 - Comments are from human users (not from Claude/AI)
 - PR is still open
 
 **Action**:
 ```bash
-# Analyze comments for actionable feedback
-# Ignore comments authored by Claude or bot accounts
+# Analyze @aidev comments for actionable feedback
+# Only process comments that start with @aidev
+# Ignore all other comments and bot accounts
 ```
 
 1. Read and categorize comments:
@@ -166,7 +168,29 @@ Determine which scenario applies:
 
 4. **Update Pattern Files**:
    
-   For New Patterns - Create/update `.aidev/patterns/learned/[category]-patterns.md`:
+   **Check for Existing Patterns**:
+   ```javascript
+   // Load existing patterns
+   const patternsFile = '.aidev/patterns/learned-patterns.json';
+   const existingPatterns = JSON.parse(fs.readFileSync(patternsFile));
+   
+   // Check for similar patterns
+   function findSimilarPattern(newPattern, existingPatterns) {
+     return existingPatterns.find(existing => {
+       // Check for similar rule or code pattern
+       const ruleSimilarity = calculateSimilarity(existing.rule, newPattern.rule);
+       const codeSimilarity = calculateSimilarity(existing.example, newPattern.example);
+       
+       // If 80% similar, consider it the same pattern
+       return ruleSimilarity > 0.8 || codeSimilarity > 0.8;
+     });
+   }
+   ```
+   
+   For New Patterns:
+   - First check if a similar pattern already exists
+   - If similar pattern found, merge and update confidence
+   - If truly new, create entry in `.aidev/patterns/learned/[category]-patterns.md`:
    ```markdown
    # Learned [Category] Patterns
    
@@ -177,12 +201,14 @@ Determine which scenario applies:
    - **Confidence**: [Current confidence level]
    - **First Seen**: [Date]
    - **Last Applied**: [Date]
+   - **Similar To**: [List any similar patterns that were merged]
    ```
    
    For Existing Patterns:
    - Increment frequency counter
    - Update confidence based on consistency
    - Add new examples if significantly different
+   - Merge similar patterns to avoid duplication
 
 5. **Create Session Learning Report** at `.aidev/corrections/[task-id]-corrections.md`:
    ```markdown
@@ -205,7 +231,7 @@ Determine which scenario applies:
    [Full list of corrections with examples]
    ```
 
-6. **Update Knowledge Base** - Update `.aidev/knowledge/patterns.json`:
+6. **Update Knowledge Base** - Update `.aidev/patterns/learned-patterns.json`:
    ```json
    {
      "patterns": {
@@ -256,15 +282,22 @@ Determine which scenario applies:
 - Document the "why" behind each correction for context
 
 ### 4. Comment Filtering
-**Important**: Ignore comments from AI/bot accounts:
+**Important**: Only process comments that start with @aidev mention:
 ```javascript
 // Pseudo-code for filtering
-const humanComments = comments.filter(comment => {
+const aidevComments = comments.filter(comment => {
   const author = comment.author.login;
-  return !author.includes('claude') && 
-         !author.includes('bot') &&
-         !author.includes('ai') &&
-         author !== 'noreply@anthropic.com';
+  const body = comment.body.trim();
+  
+  // First, filter out AI/bot accounts
+  const isBot = author.includes('claude') || 
+                 author.includes('bot') ||
+                 author.includes('ai') ||
+                 author.includes('[bot]') ||
+                 author === 'noreply@anthropic.com';
+  
+  // Only process human comments that start with @aidev
+  return !isBot && body.toLowerCase().startsWith('@aidev');
 });
 ```
 

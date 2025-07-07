@@ -43,14 +43,99 @@ const copyRecursive = (src, dest) => {
   }
 };
 
+const updateExistingProject = () => {
+  log('📝 Updating configuration files only...', colors.blue);
+  
+  try {
+    // Ensure directories exist
+    ensureDir(path.join(TARGET_ROOT, CLAUDE_DIR));
+    ensureDir(path.join(TARGET_ROOT, CLAUDE_DIR, 'commands'));
+    ensureDir(path.join(TARGET_ROOT, AI_DEV_DIR, 'examples'));
+    ensureDir(path.join(TARGET_ROOT, AI_DEV_DIR, 'templates'));
+    
+    // Copy commands to .claude/commands
+    log('📋 Updating custom commands...', colors.blue);
+    const commandsSource = path.join(PACKAGE_ROOT, 'templates', 'commands');
+    const commandsDest = path.join(TARGET_ROOT, CLAUDE_DIR, 'commands');
+    copyRecursive(commandsSource, commandsDest);
+    
+    // Copy templates
+    log('📋 Updating templates...', colors.blue);
+    const templatesSource = path.join(PACKAGE_ROOT, 'templates');
+    if (fs.existsSync(templatesSource)) {
+      fs.readdirSync(templatesSource).forEach(item => {
+        const src = path.join(templatesSource, item);
+        const stats = fs.statSync(src);
+        
+        if (stats.isDirectory()) 
+          return;
+        
+        if (item === 'CLAUDE.md') 
+          return;
+        
+        const filename = item.replace('.template', '');
+        const dest = path.join(TARGET_ROOT, AI_DEV_DIR, 'templates', filename);
+        fs.copyFileSync(src, dest);
+      });
+    }
+    
+    // Copy templates subfolder
+    const templatesSubfolderSource = path.join(PACKAGE_ROOT, 'templates', 'templates');
+    if (fs.existsSync(templatesSubfolderSource)) {
+      fs.readdirSync(templatesSubfolderSource).forEach(file => {
+        const src = path.join(templatesSubfolderSource, file);
+        const dest = path.join(TARGET_ROOT, AI_DEV_DIR, 'templates', file);
+        fs.copyFileSync(src, dest);
+      });
+    }
+    
+    // Copy examples
+    log('📚 Updating code style examples...', colors.blue);
+    const examplesSource = path.join(PACKAGE_ROOT, 'templates', 'examples');
+    const examplesDest = path.join(TARGET_ROOT, AI_DEV_DIR, 'examples');
+    if (fs.existsSync(examplesSource)) 
+      copyRecursive(examplesSource, examplesDest);
+    
+    // Update CLAUDE.md
+    log('📝 Updating CLAUDE.md...', colors.blue);
+    const claudeMdSource = path.join(PACKAGE_ROOT, 'templates', 'CLAUDE.md');
+    const claudeMdDest = path.join(TARGET_ROOT, 'CLAUDE.md');
+    
+    if (fs.existsSync(claudeMdDest)) {
+      const existingContent = fs.readFileSync(claudeMdDest, 'utf8');
+      const aiDevSection = fs.readFileSync(claudeMdSource, 'utf8');
+      fs.writeFileSync(claudeMdDest, existingContent + '\n\n' + aiDevSection);
+      log('✅ Updated existing CLAUDE.md', colors.green);
+    } else {
+      fs.copyFileSync(claudeMdSource, claudeMdDest);
+      log('✅ Created CLAUDE.md', colors.green);
+    }
+    
+    // Success message
+    log('\n✅ AI-Driven Development configuration updated!', colors.bright + colors.green);
+    log('\n📝 Updated files:', colors.yellow);
+    log('   - CLAUDE.md', colors.reset);
+    log('   - .claude/commands/', colors.reset);
+    log('   - .aidev/examples/', colors.reset);
+    log('   - .aidev/templates/', colors.reset);
+    log('\n✅ Preserved all other content', colors.green);
+    
+  } catch (error) {
+    log(`\n❌ Error: ${error.message}`, colors.red);
+    process.exit(1);
+  }
+};
+
 const init = () => {
   log('\n🚀 AI-Driven Development Setup', colors.bright + colors.cyan);
   log('================================\n', colors.cyan);
   
   // Check if already initialized
   if (fs.existsSync(path.join(TARGET_ROOT, AI_DEV_DIR))) {
-    log('⚠️  AI-Dev already initialized in this project', colors.yellow);
-    process.exit(1);
+    log('⚠️  AI-Dev already initialized - updating configuration only', colors.yellow);
+    log('   Updating only', colors.yellow);
+    updateExistingProject();
+    return;
   }
   
   try {
@@ -63,11 +148,17 @@ const init = () => {
       'commands',
       'templates',
       'patterns',
+      'patterns/learned',
+      'patterns/established',
       'learning',
       'features/queue',
-      'features/completed',
+      'features/in-progress',
+      'features/in-review',
+      'features/approved',
       'concept',
+      'knowledge',
       'sessions',
+      'corrections',
       'prompts',
       'examples'
     ];
@@ -165,8 +256,9 @@ const init = () => {
     }
     
     // Create learning patterns file
+    const patternsFilePath = path.join(TARGET_ROOT, AI_DEV_DIR, 'patterns', 'learned-patterns.json');
     fs.writeFileSync(
-      path.join(TARGET_ROOT, AI_DEV_DIR, 'patterns', 'learned-patterns.json'),
+      patternsFilePath,
       JSON.stringify({ patterns: [], metadata: { created: new Date().toISOString() } }, null, 2)
     );
     
@@ -185,9 +277,8 @@ prompts/
     );
     
     // Create .gitignore files in empty directories to ensure they're tracked
-    ['features/queue', 'features/completed', 'concept', 'sessions', 'examples'].forEach(dir => {
+    ['features/queue', 'features/in-progress', 'features/in-review', 'features/approved', 'concept', 'knowledge', 'sessions', 'corrections', 'examples'].forEach(dir => {
       const gitignorePath = path.join(TARGET_ROOT, AI_DEV_DIR, dir, '.gitignore');
-      // Empty .gitignore file - this ensures the directory is tracked by git
       fs.writeFileSync(gitignorePath, '');
     });
     
