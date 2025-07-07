@@ -86,26 +86,35 @@ Template optimized for AI agents to implement features with sufficient context a
 
 ### TypeScript Types and Interfaces
 
-Define all types first for type safety and clarity:
+Define all types first for type safety and clarity, following our coding standards:
 
 ```typescript
-// Types for props, state, API responses
+// Types for props, state, API responses - always use readonly
 interface FeatureProps {
-	// Component props
+	readonly id: string;
+	readonly name: string;
+	readonly onChange?: (value: string) => void;
 }
 
 interface FeatureState {
-	// State shape
+	readonly loading: boolean;
+	readonly data: FeatureData | null;
+	readonly error: Error | null;
 }
 
 type ApiResponse = {
-	// API response structure
+	readonly items: ReadonlyArray<Item>;
+	readonly total: number;
 };
 
-// Zod schemas for runtime validation (if using)
+// Zod schemas for runtime validation (ALWAYS use in API routes)
 const featureSchema = z.object({
-	// Runtime validation
+	name: z.string().min(1, 'Name is required'),
+	email: z.string().email('Invalid email'),
+	role: z.enum(['admin', 'user', 'guest']),
 });
+
+type FeatureFormData = z.infer<typeof featureSchema>;
 ```
 
 ### Component Hierarchy & Architecture
@@ -167,48 +176,145 @@ Task N:
 ### Per task pseudocode as needed added to each task
 
 ```typescript
-// Task 2: Server Component example
-// app/components/Feature/Feature.tsx
+// Task 2: Server Component example (following our patterns)
+// src/features/Feature/Feature.tsx
 export default async function Feature({ params }: FeatureProps) {
-	// PATTERN: Data fetching in Server Components
-	const data = await fetchFeatureData(params.id); // Direct DB/API call
+	// Direct DB/API call using Prisma
+	const data = await prisma.feature.findUnique({
+		where: { id: params.id }
+	});
 
-	// PATTERN: Error handling with error.tsx
-	if (!data) {
-		notFound(); // Next.js notFound function
-	}
+	if (!data) 
+		notFound();
 
-	// PATTERN: Pass serializable props to Client Components
+	// Pass serializable props to Client Components
 	return (
-		<div className='feature-container'>
+		<Box>
 			<FeatureHeader title={data.title} />
 			<FeatureContent initialData={data} />
-		</div>
+		</Box>
 	);
 }
 
-// Task 3: Client Component example
-// app/components/Feature/FeatureContent.tsx
-('use client');
+// Task 3: Client Component example (following our patterns)
+// src/features/Feature/components/FeatureContent.tsx
+'use client';
 
-export function FeatureContent({ initialData }: ContentProps) {
-	// PATTERN: SWR/React Query for client-side data
-	const { data, error, isLoading } = useSWR(`/api/feature/${initialData.id}`, fetcher, {
-		fallbackData: initialData,
+import { useQuery } from '@tanstack/react-query';
+import { Box, CircularProgress } from '@mui/material';
+
+export const FeatureContent: React.FC<ContentProps> = ({ initialData }) => {
+	// TanStack Query for client-side data
+	const { data, error, isLoading } = useQuery({
+		queryKey: ['feature', initialData.id],
+		queryFn: async () => {
+			const response = await fetch(`/api/feature/${initialData.id}`);
+			if (!response.ok) throw new Error('Failed to fetch');
+			return response.json();
+		},
+		initialData,
 	});
 
-	// PATTERN: Loading states
-	if (isLoading) return <FeatureSkeleton />;
-
-	// PATTERN: Error boundaries
-	if (error) return <FeatureError error={error} />;
-
-	// PATTERN: Event handlers with proper typing
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+	// Memoized event handler with useCallback
+	const handleClick = useCallback((id: string) => {
 		// Handle interaction
-	};
+		console.log('Clicked:', id);
+	}, []);
 
-	return <div>{/* Component JSX */}</div>;
+	// Expensive computation with useMemo
+	const processedData = useMemo(() => {
+		return data?.items.filter(item => item.active);
+	}, [data?.items]);
+
+	if (isLoading) 
+		return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
+
+	if (error) 
+		return <ErrorDisplay error={error} />;
+
+	return (
+		<Box sx={{ p: 2 }}>
+			{processedData?.map(item => (
+				<FeatureItem 
+					key={item.id} 
+					item={item} 
+					onClick={handleClick}
+				/>
+			))}
+		</Box>
+	);
+};
+
+// Task 4: Custom Hook example
+// src/features/Feature/hooks/useFeature.ts
+export function useFeature(id: string) {
+	const queryClient = useQueryClient();
+	
+	const query = useQuery({
+		queryKey: ['feature', id],
+		queryFn: () => fetchFeature(id),
+	});
+
+	const mutation = useMutation({
+		mutationFn: (data: UpdateFeatureData) => updateFeature(id, data),
+		onSuccess: (updatedData) => {
+			queryClient.setQueryData(['feature', id], updatedData);
+			queryClient.invalidateQueries({ queryKey: ['features'] });
+			enqueueSnackbar('Feature updated successfully');
+		},
+		onError: () => {
+			enqueueSnackbar('Failed to update feature', { variant: 'error' });
+		},
+	});
+
+	return {
+		...query,
+		update: mutation.mutate,
+		isUpdating: mutation.isPending,
+	};
+}
+
+// Task 5: API Route example (following our patterns)
+// app/api/feature/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+const updateSchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string().optional(),
+	active: z.boolean().optional(),
+});
+
+export async function PUT(
+	request: NextRequest,
+	{ params }: { params: { id: string } }
+) {
+	try {
+		const session = await getServerSession(authOptions);
+		if (!session) 
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+		const body = await request.json();
+		const validatedData = updateSchema.parse(body);
+
+		const feature = await prisma.feature.update({
+			where: { id: params.id },
+			data: validatedData,
+		});
+
+		// Clear cache after mutation
+		await redis.del(`feature:${params.id}`);
+
+		return NextResponse.json(feature);
+	} catch (error) {
+		if (error instanceof z.ZodError) 
+			return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+		
+		return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+	}
 }
 ```
 
@@ -238,48 +344,81 @@ API INTEGRATION:
 
 ```bash
 # Run these FIRST - fix any errors before proceeding
-npm run lint                    # ESLint with Next.js config
-npm run type-check             # TypeScript compiler check
+npm run lint <file>              # Check specific file for linting errors
+npm run lint:fix <file>          # Auto-fix linting issues
+npm run type-check <file>        # TypeScript check for specific file
 
 # Expected: No errors. If errors, READ the error and fix.
+# Note: If commands are not available, notify the user. Do not use tsc --noEmit directly.
 ```
 
-### Level 2: Component Tests
+### Level 2: Component Tests (Only if explicitly requested)
 
 ```typescript
-// __tests__/Feature.test.tsx with these test cases:
-import { render, screen, fireEvent } from '@testing-library/react';
+// src/features/Feature/Feature.test.tsx - Co-located with component
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const createTestQueryClient = () => new QueryClient({
+	defaultOptions: {
+		queries: { retry: false },
+	},
+});
 
 describe('Feature', () => {
 	it('renders without crashing', () => {
-		render(<Feature {...mockProps} />);
+		const queryClient = createTestQueryClient();
+		render(
+			<QueryClientProvider client={queryClient}>
+				<Feature {...mockProps} />
+			</QueryClientProvider>
+		);
 		expect(screen.getByRole('heading')).toBeInTheDocument();
 	});
 
 	it('handles user interaction', async () => {
 		const user = userEvent.setup();
-		render(<Feature {...mockProps} />);
+		const onEdit = vi.fn();
+		const queryClient = createTestQueryClient();
+		
+		render(
+			<QueryClientProvider client={queryClient}>
+				<Feature {...mockProps} onEdit={onEdit} />
+			</QueryClientProvider>
+		);
 
 		await user.click(screen.getByRole('button'));
-		expect(screen.getByText('Updated')).toBeInTheDocument();
+		expect(onEdit).toHaveBeenCalled();
 	});
 
 	it('handles error states gracefully', () => {
-		render(<Feature {...errorProps} />);
+		const queryClient = createTestQueryClient();
+		render(
+			<QueryClientProvider client={queryClient}>
+				<Feature {...errorProps} />
+			</QueryClientProvider>
+		);
 		expect(screen.getByText(/error/i)).toBeInTheDocument();
 	});
 
 	it('shows loading state', () => {
-		render(<Feature loading />);
-		expect(screen.getByTestId('skeleton')).toBeInTheDocument();
+		const queryClient = createTestQueryClient();
+		render(
+			<QueryClientProvider client={queryClient}>
+				<Feature loading />
+			</QueryClientProvider>
+		);
+		expect(screen.getByRole('progressbar')).toBeInTheDocument();
 	});
 });
 ```
 
 ```bash
-# Run and iterate until passing:
-npm test -- Feature.test.tsx --watch
+# Run tests with Vitest (only if explicitly requested)
+npm test                         # Run all tests
+npm test Feature.test.tsx        # Run specific test file
 # If failing: Read error, understand root cause, fix code, re-run
 ```
 

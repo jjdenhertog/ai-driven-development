@@ -11,35 +11,43 @@
 
 - **Never create a file longer than 300 lines of code.** If a file approaches this limit, refactor by splitting it into modules, custom hooks, or utility files.
 - **Organize code into clearly separated modules**, grouped by feature or responsibility:
-  - `components/` - Reusable UI components
+  - `src/components/` - Shared UI components
+  - `src/components/ui/` - Custom UI library (B-prefixed components)
+  - `src/features/` - Feature modules with self-contained functionality
   - `app/` - App Router pages and layouts
-  - `lib/` - Utility functions and shared logic
-  - `hooks/` - Custom React hooks
-  - `types/` - TypeScript type definitions
-  - `services/` - API clients and external service integrations
+  - `src/lib/` - Core utilities and singletons (prisma, redis, auth)
+  - `src/hooks/` - Shared React hooks
+  - `src/types/` - Global TypeScript types organized by domain
+  - `src/services/` - API service layer (client/server separated)
+  - `src/stores/` - Zustand state stores
+  - `src/schemas/` - Zod validation schemas
+  - `src/utils/` - Shared utilities (client/server/shared)
+- **Feature-first organization**: Each feature in `src/features/` should be self-contained with its own components, hooks, utils, and types.
 - **Co-locate related files** (component + styles + tests) when appropriate.
 - **Use barrel exports** (`index.ts`) for cleaner imports from feature directories.
 - **Use environment variables** through Next.js's built-in `.env.local` support.
 
 ### 🧪 Testing & Reliability
 
-- **Always create tests for new features** (components, hooks, utilities, API routes).
-- **After updating any logic**, check whether existing tests need to be updated. If so, do it.
+- **Use Test-Driven Development (TDD)** with Vitest as the test runner.
+- **Co-locate tests with code** - place test files next to the files they test.
 - **Tests should use**:
-  - Jest for unit tests
+  - Vitest for unit tests
   - React Testing Library for component tests
-  - Playwright or Cypress for E2E tests (if configured)
-- **Test files should be co-located** as `ComponentName.test.tsx` or in a `__tests__` folder.
+  - Playwright for E2E tests
+  - MSW for API mocking
+- **Test files should be co-located** as `ComponentName.test.tsx` right next to the component.
 - Include at least:
   - 1 test for expected behavior
   - 1 test for edge cases
   - 1 test for error states
   - 1 test for loading states (if applicable)
+- **Run linting and type checking** after completing tasks using the provided commands.
 
 ### ✅ Task Completion
 
 - **Mark completed tasks in `.claude/TODO.md`** immediately after finishing them.
-- Please check through all the code you just wrote and make sure it follows security best practices. Make sure no sensitive information is in the front end and ther are no vulnerabilities people can exploit.
+- Please check through all the code you just wrote and make sure it follows security best practices. Make sure no sensitive information is in the front end and there are no vulnerabilities people can exploit.
 - Add new sub-tasks or TODOs discovered during development to `.claude/TODO.md` under a "Discovered During Work" section.
 
 ### 📎 Style & Conventions
@@ -47,17 +55,13 @@
 - **Use TypeScript** for all new files (`.ts`, `.tsx`).
 - **Follow ESLint rules** and format with **Prettier**.
 - **Use strict TypeScript** settings (`strict: true` in `tsconfig.json`).
-- **Prefer functional components** with hooks over class components.
-- **Use CSS Modules, Tailwind CSS, or styled-components** (check project setup).
-- Write **JSDoc comments for complex functions**:
+- **Prefer functional components** with arrow functions and hooks.
+- **Use Material-UI (MUI)** as the primary UI framework with the sx prop for styling.
+- **Minimal documentation** - Keep JSDoc comments minimal, only for complex functions:
   ```typescript
-  /**
-   * Brief description of what the function does.
-   * @param {string} param1 - Description of param1
-   * @returns {ReturnType} Description of return value
-   */
-  function example(param1: string): ReturnType {
-  	// implementation
+  // Only document if code is not self-explanatory
+  function complexCalculation(data: DataType): ResultType {
+    // implementation
   }
   ```
 
@@ -70,15 +74,78 @@
 - **Implement proper SEO** with metadata API or generateMetadata.
 - **Use proper data fetching patterns**:
   - Server Components for static data
-  - SWR or React Query for client-side fetching
+  - TanStack Query (React Query) for client-side fetching
   - Server Actions for mutations (App Router)
+- **State Management**:
+  - Zustand for client-side global state
+  - TanStack Query for server state
+  - React Context for feature-specific state
+  - useState for local component state
+
+### 💅 Coding Style Patterns
+
+- **Component Definition**: Use arrow functions with const:
+  ```typescript
+  export const UserProfile: React.FC<Props> = ({ name, email }) => {
+    return <div>{name}</div>;
+  };
+  ```
+- **Naming Conventions**:
+  - Variables: `camelCase` for regular, `UPPER_SNAKE_CASE` for constants
+  - Collections: Use plural (`users`, `items`)
+  - Booleans: `is`, `has`, `should` prefixes (`isActive`, `hasPermission`)
+  - Event handlers: `on` prefix (`onChange`, `onMouseOver`)
+  - Functions: Verb-based (`fetchData`, `calculateTotal`)
+  - Hooks: `use` prefix (`useAuth`, `useUsers`)
+  - Types/Interfaces: `PascalCase`, no prefixes (use `interface` for objects, `type` for unions/aliases)
+- **Remove braces for 2-line if-statements**:
+  ```typescript
+  if (!origin || origin === 'center') 
+    return defaults;
+  ```
+- **Don't use return types** when TypeScript can infer them:
+  ```typescript
+  function getCurrentMaskX() {
+    return 0;
+  }
+  ```
+- **Prefer @ts-ignore over casting**:
+  ```typescript
+  // @ts-ignore
+  element.style.webkitClipPath = clipPath;
+  ```
+- **Keep function params in one line**:
+  ```typescript
+  export function initializePlugin(data: PluginData, target: HTMLElement, value: unknown, tween: gsap.core.Tween, _pluginName: string): null {
+  }
+  ```
+- **Use readonly for all interface properties**:
+  ```typescript
+  interface Props {
+    readonly id: string;
+    readonly name: string;
+    readonly onChange?: (value: string) => void;
+  }
+  ```
+- **Always use useCallback for event handlers**:
+  ```typescript
+  const handleClick = useCallback(() => {
+    // handler logic
+  }, [dependencies]);
+  ```
+- **Use useMemo for expensive computations and filtering**:
+  ```typescript
+  const filteredItems = useMemo(() => {
+    return items.filter(item => item.active);
+  }, [items]);
+  ```
 
 ### 📚 Documentation & Explainability
 
-- **Update `README.md`** when new features are added, dependencies change, or setup steps are modified.
-- **Comment non-obvious code** and ensure everything is understandable to a mid-level developer.
+- **Keep documentation minimal** - code should be self-explanatory.
+- **No JSDoc comments** except for complex functions that truly need explanation.
+- **Comment non-obvious code** only when the "why" is not clear from the code itself.
 - When writing complex logic, **add an inline `// Reason:` comment** explaining the why, not just the what.
-- **Document component props** with TypeScript interfaces and JSDoc when helpful.
 
 ### 🧠 AI Behavior Rules
 
@@ -88,3 +155,12 @@
 - **Never delete or overwrite existing code** unless explicitly instructed to or if part of a task from `.claude/TODO.md`.
 - **Check `package.json`** to understand available dependencies before suggesting new ones.
 - **Respect Next.js version** - features vary significantly between versions (check for App Router vs Pages Router).
+- **Follow the technology stack strictly**:
+  - Material-UI for UI components
+  - TanStack Query for data fetching
+  - Zustand for state management
+  - Prisma with MySQL for database
+  - Redis for caching
+  - NextAuth for authentication
+  - Zod for validation
+  - React Hook Form for complex forms
