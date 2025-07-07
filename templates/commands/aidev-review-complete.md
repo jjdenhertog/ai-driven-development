@@ -64,7 +64,7 @@ Based on how often this pattern has been corrected
 ### 4. Update Pattern Files
 
 #### For New Patterns:
-Create/update `.ai-dev/patterns/learned/[category]-patterns.md`:
+Create/update `.aidev/patterns/learned/[category]-patterns.md`:
 ```markdown
 # Learned [Category] Patterns
 
@@ -83,7 +83,7 @@ Create/update `.ai-dev/patterns/learned/[category]-patterns.md`:
 - Add new examples if significantly different
 
 ### 5. Session Learning Report
-Create `.ai-dev/corrections/[task-id]-corrections.md`:
+Create `.aidev/corrections/[task-id]-corrections.md`:
 ```markdown
 # Learning Report: [Task Name]
 
@@ -105,7 +105,7 @@ Create `.ai-dev/corrections/[task-id]-corrections.md`:
 ```
 
 ### 6. Knowledge Base Update
-Update `.ai-dev/knowledge/patterns.json`:
+Update `.aidev/knowledge/patterns.json`:
 ```json
 {
   "patterns": {
@@ -130,13 +130,13 @@ Update `.ai-dev/knowledge/patterns.json`:
 ```
 
 ### 7. Move Task to Approved
-- Move task from `/features/in-review/` to `/features/approved/`
+- Move task from `.aidev/features/in-review/` to `.aidev/features/approved/`
 - Update task file with completion timestamp
 - Add reference to learning report
 
 ### 8. Commit Learning
 ```bash
-git add .ai-dev/
+git add .aidev/
 git commit -m "learn: captured corrections from [task-name]
 
 📚 Learning Summary:

@@ -5,7 +5,7 @@ const path = require('path');
 
 const PACKAGE_ROOT = path.join(__dirname, '..');
 const TARGET_ROOT = process.cwd();
-const AI_DEV_DIR = '.ai-dev';
+const AI_DEV_DIR = '.aidev';
 const CLAUDE_DIR = '.claude';
 
 const colors = {
@@ -18,18 +18,18 @@ const colors = {
   cyan: '\x1b[36m'
 };
 
-function log(message, color = '') {
+const log = (message, color = '') => {
   console.log(`${color}${message}${colors.reset}`);
-}
+};
 
-function ensureDir(dir) {
-  if (!fs.existsSync(dir)) {
+const ensureDir = (dir) => {
+  if (!fs.existsSync(dir)) 
     fs.mkdirSync(dir, { recursive: true });
-  }
-}
+};
 
-function copyRecursive(src, dest) {
-  if (!fs.existsSync(src)) return;
+const copyRecursive = (src, dest) => {
+  if (!fs.existsSync(src)) 
+    return;
   
   const stats = fs.statSync(src);
   
@@ -41,9 +41,9 @@ function copyRecursive(src, dest) {
   } else {
     fs.copyFileSync(src, dest);
   }
-}
+};
 
-function init() {
+const init = () => {
   log('\n🚀 AI-Driven Development Setup', colors.bright + colors.cyan);
   log('================================\n', colors.cyan);
   
@@ -54,8 +54,8 @@ function init() {
   }
   
   try {
-    // Create main .ai-dev directory
-    log('📁 Creating .ai-dev directory...', colors.blue);
+    // Create main .aidev directory
+    log('📁 Creating .aidev directory...', colors.blue);
     ensureDir(path.join(TARGET_ROOT, AI_DEV_DIR));
     
     // Create subdirectories
@@ -87,32 +87,46 @@ function init() {
     const commandsDest = path.join(TARGET_ROOT, CLAUDE_DIR, 'commands');
     copyRecursive(commandsSource, commandsDest);
     
-    // Copy templates and other files to .ai-dev
+    // Copy templates and other files to .aidev
     log('📋 Copying templates and configuration...', colors.blue);
-    const templateFiles = [
-      'templates/VISION.md',
-      'templates/PROJECT.md.template',
-      'templates/TODO.md.template',
-      'templates/learning-patterns.json',
-      'templates/prp-template.md',
-      'templates/feature-template.md'
-    ];
     
-    templateFiles.forEach(file => {
-      const src = path.join(PACKAGE_ROOT, file);
-      const filename = path.basename(file).replace('.template', '');
-      const dest = path.join(TARGET_ROOT, AI_DEV_DIR, 'templates', filename);
-      if (fs.existsSync(src)) {
+    // Copy all template files from templates/ to .aidev/templates/
+    const templatesSource = path.join(PACKAGE_ROOT, 'templates');
+    if (fs.existsSync(templatesSource)) {
+      fs.readdirSync(templatesSource).forEach(item => {
+        const src = path.join(templatesSource, item);
+        const stats = fs.statSync(src);
+        
+        // Skip directories for now (handled separately)
+        if (stats.isDirectory()) 
+          return;
+        
+        // Skip CLAUDE.md as it goes to project root
+        if (item === 'CLAUDE.md') 
+          return;
+        
+        // Copy template files to .aidev/templates/
+        const filename = item.replace('.template', '');
+        const dest = path.join(TARGET_ROOT, AI_DEV_DIR, 'templates', filename);
         fs.copyFileSync(src, dest);
-      }
-    });
+      });
+    }
     
-    // Copy examples folder if it exists
+    // Copy examples folder to .aidev/examples/
     log('📚 Setting up code style examples...', colors.blue);
     const examplesSource = path.join(PACKAGE_ROOT, 'templates', 'examples');
     const examplesDest = path.join(TARGET_ROOT, AI_DEV_DIR, 'examples');
-    if (fs.existsSync(examplesSource)) {
+    if (fs.existsSync(examplesSource)) 
       copyRecursive(examplesSource, examplesDest);
+    
+    // Copy templates subfolder to .aidev/templates/
+    const templatesSubfolderSource = path.join(PACKAGE_ROOT, 'templates', 'templates');
+    if (fs.existsSync(templatesSubfolderSource)) {
+      fs.readdirSync(templatesSubfolderSource).forEach(file => {
+        const src = path.join(templatesSubfolderSource, file);
+        const dest = path.join(TARGET_ROOT, AI_DEV_DIR, 'templates', file);
+        fs.copyFileSync(src, dest);
+      });
     }
     
     // Create or update CLAUDE.md
@@ -184,17 +198,17 @@ features/completed/*
     // Success message
     log('\n✅ AI-Driven Development initialized successfully!', colors.bright + colors.green);
     log('\n📚 Next steps:', colors.yellow);
-    log('   1. Add your project concept to .ai-dev/concept/', colors.reset);
-    log('   2. Customize code examples in .ai-dev/examples/', colors.reset);
+    log('   1. Add your project concept to .aidev/concept/', colors.reset);
+    log('   2. Customize code examples in .aidev/examples/', colors.reset);
     log('   3. Run /aidev-generate-project to generate features', colors.reset);
     log('   4. Run /aidev-next-task to start implementation', colors.reset);
-    log('\n💡 All AI-Dev files are in .ai-dev/ (except commands in .claude/)', colors.cyan);
+    log('\n💡 All AI-Dev files are in .aidev/ (except commands in .claude/)', colors.cyan);
     
   } catch (error) {
     log(`\n❌ Error: ${error.message}`, colors.red);
     process.exit(1);
   }
-}
+};
 
 // Parse command line arguments
 const args = process.argv.slice(2);

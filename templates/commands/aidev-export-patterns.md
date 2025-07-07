@@ -13,14 +13,14 @@ Exports all established and learned patterns into a shareable format for documen
 ### 1. Gather All Patterns
 
 #### Established Patterns
-Read from `.ai-dev/patterns/established/`:
+Read from `.aidev/patterns/established/`:
 - Component patterns
 - API patterns
 - Service patterns
 - Architecture patterns
 
 #### Learned Patterns
-Read from `.ai-dev/patterns/learned/`:
+Read from `.aidev/patterns/learned/`:
 - Style corrections
 - Architecture improvements
 - Logic enhancements
@@ -28,7 +28,7 @@ Read from `.ai-dev/patterns/learned/`:
 - Performance optimizations
 
 #### Pattern Metadata
-Read from `.ai-dev/knowledge/patterns.json`:
+Read from `.aidev/knowledge/patterns.json`:
 - Confidence levels
 - Frequency data
 - Last updated dates
@@ -56,7 +56,7 @@ High Confidence Patterns: [Count]
 ## Established Patterns
 
 ### Component Structure
-**File**: `.ai-dev/patterns/established/000-pattern-component.tsx`
+**File**: `.aidev/patterns/established/000-pattern-component.tsx`
 **Purpose**: Standard React component structure
 
 \```typescript

@@ -55,7 +55,7 @@ Traditional AI code generation lacks memory - each session starts fresh, repeati
 ## How It Works
 
 ### Phase 1: Concept Analysis
-- Human provides project vision in `/concepts/`
+- Human provides project vision in `.aidev/concept/`
 - AI analyzes and creates feature queue
 - Features are numbered for execution order
 - Pattern establishment tasks created first

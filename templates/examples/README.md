@@ -7,10 +7,9 @@ This directory contains examples demonstrating the coding patterns and conventio
 ### UserCard.tsx
 Demonstrates:
 - Arrow function component with `React.FC<Props>`
-- Readonly interface properties
-- useCallback for all event handlers
-- useMemo for computed values
-- 2-line if statements without braces
+- Clean, self-documenting code
+- Proper React patterns (hooks, memoization)
+- TypeScript best practices
 - Material-UI with sx prop
 - Proper TypeScript typing
 
@@ -60,16 +59,13 @@ Demonstrates:
 
 ## Key Patterns to Follow
 
-1. **Always use readonly** for interface properties
-2. **No return types** when TypeScript can infer
-3. **useCallback for every event handler**
-4. **useMemo for expensive computations and filtering**
-5. **2-line if statements** without braces
-6. **Minimal documentation** - code should be self-explanatory
-7. **Zod validation** in all API routes
-8. **TanStack Query** for server state, not useState
-9. **Material-UI** for all UI components
-10. **Co-locate tests** with components (when requested)
+1. **TypeScript** for all files with proper typing
+2. **React best practices** - hooks, memoization where appropriate
+3. **Clean code** - self-documenting with good naming
+4. **Zod validation** in all API routes
+5. **TanStack Query** for server state, not useState
+6. **Material-UI** for all UI components
+7. **Co-locate tests** with components (when requested)
 
 ## Technology Stack Reminders
 
@@ -82,9 +78,5 @@ Demonstrates:
 - **Testing**: Vitest (only when requested)
 
 ## Important Notes
-
-- Never import GSAP (it's manually added)
-- Only create test files when explicitly requested
-- Use provided linting commands, not direct tsc
 - Server Components by default, 'use client' only when needed
 - Always validate with Zod in API routes

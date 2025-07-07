@@ -4,7 +4,7 @@
   "description": "AI-driven development workflow with learning capabilities for Claude",
   "main": "index.js",
   "bin": {
-    "aidev": "./bin/ai-dev.js"
+    "aidev": "./bin/aidev.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -42,7 +42,7 @@
   - 1 test for edge cases
   - 1 test for error states
   - 1 test for loading states (if applicable)
-- **Run linting and type checking** after completing tasks using the provided commands.
+- **Ensure code quality** by testing your changes thoroughly.
 
 ### ✅ Task Completion
 
@@ -57,13 +57,7 @@
 - **Use strict TypeScript** settings (`strict: true` in `tsconfig.json`).
 - **Prefer functional components** with arrow functions and hooks.
 - **Use Material-UI (MUI)** as the primary UI framework with the sx prop for styling.
-- **Minimal documentation** - Keep JSDoc comments minimal, only for complex functions:
-  ```typescript
-  // Only document if code is not self-explanatory
-  function complexCalculation(data: DataType): ResultType {
-    // implementation
-  }
-  ```
+- **Write clear, self-documenting code** with meaningful variable and function names.
 
 ### 🎨 React & Next.js Best Practices
 
@@ -98,27 +92,6 @@
   - Functions: Verb-based (`fetchData`, `calculateTotal`)
   - Hooks: `use` prefix (`useAuth`, `useUsers`)
   - Types/Interfaces: `PascalCase`, no prefixes (use `interface` for objects, `type` for unions/aliases)
-- **Remove braces for 2-line if-statements**:
-  ```typescript
-  if (!origin || origin === 'center') 
-    return defaults;
-  ```
-- **Don't use return types** when TypeScript can infer them:
-  ```typescript
-  function getCurrentMaskX() {
-    return 0;
-  }
-  ```
-- **Prefer @ts-ignore over casting**:
-  ```typescript
-  // @ts-ignore
-  element.style.webkitClipPath = clipPath;
-  ```
-- **Keep function params in one line**:
-  ```typescript
-  export function initializePlugin(data: PluginData, target: HTMLElement, value: unknown, tween: gsap.core.Tween, _pluginName: string): null {
-  }
-  ```
 - **Use readonly for all interface properties**:
   ```typescript
   interface Props {
@@ -142,9 +115,8 @@
 
 ### 📚 Documentation & Explainability
 
-- **Keep documentation minimal** - code should be self-explanatory.
-- **No JSDoc comments** except for complex functions that truly need explanation.
-- **Comment non-obvious code** only when the "why" is not clear from the code itself.
+- **Write clear, self-documenting code** that explains itself through good naming and structure.
+- **Add comments for complex business logic** when the "why" is not obvious.
 - When writing complex logic, **add an inline `// Reason:` comment** explaining the why, not just the what.
 
 ### 🧠 AI Behavior Rules

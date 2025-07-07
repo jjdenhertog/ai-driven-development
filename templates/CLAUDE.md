@@ -6,25 +6,23 @@ This project uses AI-Driven Development with learning capabilities. The AI learn
 
 ### Key Directories
 
-- **`.ai-dev/`** - Main AI development workspace
+- **`.aidev/`** - Main AI development workspace
   - `concept/` - High-level project vision
   - `features/` - Feature queue and completed features
   - `patterns/` - Learned patterns and conventions
   - `learning/` - Correction analysis and improvements
-  - `sessions/` - Development session logs
-  - `prompts/` - Generated PRP prompts
+  - `sessions/` - Development session logs and auto-generated PRPs
   - `examples/` - Code style examples
+  - `template/` - Templates for prompts / prp generation
   
 - **`.claude/commands/`** - Custom Claude commands for AI workflow
 
 ### Available Commands
 
 - `/aidev-generate-project` - Break down concept into features
-- `/aidev-next-task` - Pick and implement next feature
+- `/aidev-next-task` - Pick and implement next feature (auto-generates PRP)
 - `/aidev-review-complete` - Capture corrections and learn
 - `/aidev-retry-feature` - Re-implement with learned patterns
-- `/aidev-execute-prp` - Execute production-ready implementation
-- `/aidev-generate-prp` - Generate multiple implementation plans
 - `/aidev-export-patterns` - Export learned patterns
 - `/aidev-update-project` - Update PROJECT.md documentation
 - `/aidev-check-errors` - Fix all code quality issues
@@ -33,8 +31,8 @@ This project uses AI-Driven Development with learning capabilities. The AI learn
 
 ### Workflow
 
-1. **Add Concept**: Write your project vision in `.ai-dev/concept/`
-2. **Customize Examples**: Add your code style to `.ai-dev/examples/`
+1. **Add Concept**: Write your project vision in `.aidev/concept/`
+2. **Customize Examples**: Add your code style to `.aidev/examples/`
 3. **Generate Features**: Run `/aidev-generate-project`
 4. **Implement**: Run `/aidev-next-task` to implement features
 5. **Review**: Make corrections to the PR

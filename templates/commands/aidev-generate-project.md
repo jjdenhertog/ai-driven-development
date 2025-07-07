@@ -6,12 +6,12 @@ allowed-tools: ["Read", "Write", "Glob", "Edit", "MultiEdit", "Task", "TodoRead"
 # Command: aidev-generate-project
 
 ## Purpose
-Analyzes concept documents in the `/concept/` directory and breaks them down into individual feature specifications that can be implemented incrementally.
+Analyzes concept documents in the `.aidev/concept/` directory and breaks them down into individual feature specifications that can be implemented incrementally.
 
 ## Process
 
 ### 1. Discovery Phase
-- Read all files in `/concept/` directory
+- Read all files in `.aidev/concept/` directory
 - Identify the overall project vision and goals
 - Extract feature requirements and dependencies
 
@@ -37,52 +37,19 @@ Create pattern establishment tasks numbered from 000:
 - etc.
 
 ### 4. Feature Specification Template
-Each feature specification should follow this structure:
+Use the template from `.aidev/templates/feature-specification-template.md` to create each feature specification. The template includes sections for:
+- Metadata (id, name, type, dependencies, etc.)
+- Overview and user stories
+- Technical requirements and acceptance criteria
+- Implementation notes and examples to reference
+- Documentation links and potential gotchas
 
-```yaml
----
-id: "001"
-name: "user-authentication"
-type: "feature" # or "pattern"
-dependencies: ["000-pattern-component", "000-pattern-api"]
-estimated_lines: 300
-priority: "high"
----
-
-# Feature: User Authentication
-
-## Overview
-Brief description of what this feature accomplishes.
-
-## User Stories
-- As a user, I want to...
-- As an admin, I want to...
-
-## Technical Requirements
-- OAuth2 integration with Google/GitHub
-- Session management with Redis
-- Email/password fallback option
-
-## Acceptance Criteria
-- [ ] Users can sign up with email/password
-- [ ] Users can sign in with OAuth providers
-- [ ] Sessions persist across browser restarts
-- [ ] Logout clears all session data
-
-## Implementation Notes
-- Use NextAuth for authentication
-- Store sessions in Redis
-- Follow established auth patterns from pattern files
-
-## Potential Gotchas
-- Handle OAuth callback URLs properly
-- Ensure CSRF protection is enabled
-```
+Refer to `.aidev/templates/feature-specification-example.md` for a complete example.
 
 ### 5. Output Structure
-Create files in `/features/queue/` with proper numbering:
+Create files in `.aidev/features/queue/` with proper numbering:
 ```
-features/queue/
+.aidev/features/queue/
 ├── 000-pattern-component.md
 ├── 000-pattern-api.md
 ├── 000-pattern-service.md
@@ -91,6 +58,8 @@ features/queue/
 ├── 003-dashboard.md
 └── ...
 ```
+
+Each file should follow the structure defined in `.aidev/templates/feature-specification-template.md`
 
 ## Validation Steps
 1. Ensure all concepts have been captured in features

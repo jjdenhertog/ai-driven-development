@@ -11,15 +11,15 @@ Automatically picks the next task from the feature queue, generates a PRP, execu
 ## Process
 
 ### 1. Task Selection
-- Look in `/features/queue/` for the lowest numbered task
-- Move selected task to `/features/in-progress/`
+- Look in `.aidev/features/queue/` for the lowest numbered task
+- Move selected task to `.aidev/features/in-progress/`
 - Read the task specification completely
 
 ### 2. Context Loading
-- **Check .ai-dev/examples/** for coding style and patterns
-- Load established patterns from `.ai-dev/patterns/established/`
-- Load learned patterns from `.ai-dev/patterns/learned/`
-- Read recent sessions from `.ai-dev/sessions/` for context
+- **Check .aidev/examples/** for coding style and patterns
+- Load established patterns from `.aidev/patterns/established/`
+- Load learned patterns from `.aidev/patterns/learned/`
+- Read recent sessions from `.aidev/sessions/` for context
 - Analyze existing codebase for similar implementations
 
 ### 3. Behavior Mode Detection
@@ -54,15 +54,22 @@ git checkout -b ai/[task-id]-[task-name]
 ```
 
 ### 5. PRP Generation
-Generate a PRP following the standard template but enhanced with:
-- Learned patterns section
-- Established patterns to follow
+Generate a PRP using `./.aidev/templates/automated-prp-template.md` with the following context:
+- Feature specification from the selected task
+- Learned patterns from `.aidev/patterns/learned/`
+- Established patterns from `.aidev/patterns/established/`
 - Previous corrections to avoid
-- Session context
+- Session context from recent sessions
 
-Save the PRP to:
+The template includes placeholders for:
+- ${FEATURE_OVERVIEW}, ${TASK_ID}, ${TASK_NAME}, etc.
+- ${ESTABLISHED_PATTERNS}, ${LEARNED_PATTERNS}
+- ${SESSION_CONTEXT}, ${EXAMPLE_REFERENCES}
+- Implementation mode detection (pattern vs feature)
+
+Save the generated PRP to:
 ```
-.ai-dev/sessions/[timestamp]/[task-id]-prp.md
+.aidev/sessions/[timestamp]/[task-id]-prp.md
 ```
 
 ### 6. Implementation
@@ -75,7 +82,7 @@ Execute the PRP with these requirements:
   🤖 AI Generated
   Task: 001-user-authentication
   Session: 2025-01-07-001
-  PRP: .ai-dev/sessions/2025-01-07-001/001-prp.md
+  PRP: .aidev/sessions/2025-01-07-001/001-prp.md
 
   Co-Authored-By: Claude <noreply@anthropic.com>
   ```
@@ -83,7 +90,7 @@ Execute the PRP with these requirements:
 - Document decisions in session log
 
 ### 7. Session Documentation
-Create session log at `.ai-dev/sessions/[timestamp]/log.md`:
+Create session log at `.aidev/sessions/[timestamp]/log.md`:
 ```markdown
 # Session: 2025-01-07-001
 ## Task: 001-user-authentication
@@ -142,7 +149,7 @@ EOF
 ```
 
 ### 9. Finalization
-- Move task from `/features/in-progress/` to `/features/in-review/`
+- Move task from `.aidev/features/in-progress/` to `.aidev/features/in-review/`
 - Update task file with PR number
 - Create summary of what was implemented
 

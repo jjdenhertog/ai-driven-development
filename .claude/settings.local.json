@@ -1,104 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rg:*)",
-      "Bash(grep:*)",
       "Bash(ls:*)",
-      "Bash(source:*)",
       "Bash(find:*)",
-      "Bash(mv:*)",
-      "Bash(mkdir:*)",
-      "Bash(tree:*)",
-      "Bash(touch:*)",
-      "Bash(cat:*)",
-      "Bash(rm:*)",
-      "Bash(cp:*)",
-      "Bash(echo:*)",
-      "Bash(pwd:*)",
-      "Bash(cd:*)",
-      "Bash(git:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(diff:*)",
-      "Bash(curl:*)",
-      "Bash(jq:*)",
-      "Bash(ps:*)",
-      "Bash(lsof:*)",
-      "Bash(which:*)",
-      "Bash(chmod:*)",
-      "Bash(sed:*)",
-      "Bash(wc:*)",
-      "Bash(env:*)",
-      "Bash(npm:*)",
-      "Bash(npm run:*)",
-      "Bash(npm install:*)",
-      "Bash(npm test:*)",
-      "Bash(npx:*)",
-      "Bash(yarn:*)",
-      "Bash(pnpm:*)",
-      "Bash(node:*)",
-      "Bash(tsx:*)",
-      "Bash(eslint:*)",
-      "Bash(prettier:*)",
-      "Bash(jest:*)",
-      "Bash(next:*)",
-      "Bash(next dev:*)",
-      "Bash(next build:*)",
-      "Bash(next start:*)",
-      "Bash(tsc:*)",
-      "Bash(playwright:*)",
-      "Bash(cypress:*)",
-      "WebFetch(domain:nextjs.org)",
-      "WebFetch(domain:react.dev)",
-      "WebFetch(domain:www.typescriptlang.org)",
-      "WebFetch(domain:developer.mozilla.org)",
-      "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:tailwindcss.com)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:stackoverflow.com)",
-      "Bash(./install.sh:*)",
-      "Bash(../install.sh)",
-      "Bash(bash:*)"
+      "Bash(grep:*)"
     ],
     "deny": []
-  },
-  "model": "opus",
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/smart-lint.sh"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/ntfy-notifier.sh notification"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/ntfy-notifier.sh stop"
-          }
-        ]
-      }
-    ]
-  },
-  "confirmations": {
-    "enabled": true
   }
 }
