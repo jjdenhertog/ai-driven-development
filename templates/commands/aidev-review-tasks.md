@@ -41,8 +41,14 @@ gh pr view [PR_NUMBER] --json number,title,state,mergeable,merged,mergedAt,comme
 # Get PR diff to see actual changes
 gh pr diff [PR_NUMBER]
 
-# Get comment details with authors
-gh api repos/{owner}/{repo}/issues/[PR_NUMBER]/comments
+# Get all PR comments (we'll filter AI vs human later)
+gh api repos/{owner}/{repo}/issues/[PR_NUMBER]/comments \
+  --jq '.[] | {
+    id: .id,
+    body: .body,
+    user_login: .user.login,
+    created_at: .created_at
+  }'
 ```
 
 #### B. Analyze PR State and Activity
@@ -65,14 +71,12 @@ Determine which scenario applies:
 **Detection**:
 - New comments exist on the PR
 - Comments start with @aidev mention
-- Comments are from human users (not from Claude/AI)
 - PR is still open
 
 **Action**:
 ```bash
-# Analyze @aidev comments for actionable feedback
-# Only process comments that start with @aidev
-# Ignore all other comments and bot accounts
+# Get all comments to understand full context
+# Look for comments that start with @aidev but consider all comments
 ```
 
 1. Read and categorize comments:
@@ -94,7 +98,7 @@ Determine which scenario applies:
 #### Scenario 3: New Code Commits by User (User Making Changes)
 **Detection**:
 - New commits exist after last AI commit
-- Commits are from human users
+- Commits are by users
 - No accompanying comments
 - PR still open
 
@@ -105,8 +109,8 @@ Determine which scenario applies:
 
 #### Scenario 4: New Code Commits AND Comments (Active Collaboration)
 **Detection**:
-- New commits from human users
-- New comments from human users
+- New commits from users
+- New comments from users
 - PR still open
 
 **Action**:
@@ -321,24 +325,20 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - Higher confidence patterns take precedence in conflicts
 - Document the "why" behind each correction for context
 
-### 4. Comment Filtering
-**Important**: Only process comments that start with @aidev mention:
+### 4. Comment Processing
+**Important**: The AI reads all PR comments to understand the full context and what needs to be done.
+
 ```javascript
-// Pseudo-code for filtering
-const aidevComments = comments.filter(comment => {
-  const author = comment.author.login;
-  const body = comment.body.trim();
-  
-  // First, filter out AI/bot accounts
-  const isBot = author.includes('claude') || 
-                 author.includes('bot') ||
-                 author.includes('ai') ||
-                 author.includes('[bot]') ||
-                 author === 'noreply@anthropic.com';
-  
-  // Only process human comments that start with @aidev
-  return !isBot && body.toLowerCase().startsWith('@aidev');
-});
+// Get all comments without filtering
+const allComments = await gh.api(`repos/{owner}/{repo}/issues/${prNumber}/comments`);
+
+// Group by whether they mention @aidev
+const commentGroups = {
+  aidevMentions: allComments.filter(c => c.body.trim().toLowerCase().startsWith('@aidev')),
+  otherComments: allComments.filter(c => !c.body.trim().toLowerCase().startsWith('@aidev'))
+};
+
+// AI can see full conversation context and understand what actions are needed
 ```
 
 ### 5. Task State Management
@@ -490,8 +490,8 @@ Use `aidev-review-complete` only for:
 - Debugging learning capture issues
 
 ## Important Notes
-- Only comments from human users trigger actions
-- AI-generated comments are always ignored
+- AI reads all PR comments to understand full context
+- @aidev mentions in comments trigger specific actions
 - Tasks only move to `completed` when PR is merged with main
 - Tasks stay in `queue/` throughout the entire PR lifecycle
 - Branch existence indicates task is being worked on

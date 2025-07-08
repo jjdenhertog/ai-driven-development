@@ -1,54 +1,165 @@
-# AI-Driven Development Instructions
+# AI-Dev Instructions
 
-## 🤖 AI-Dev Workflow
+## Core Workflow
+AI-Driven Development with learning capabilities. AI learns from corrections.
 
-This project uses AI-Driven Development with learning capabilities. The AI learns from your corrections and improves over time.
+## Guidelines
 
-### Key Directories
+### Context & Awareness
+- Read `.claude/PROJECT.md` at conversation start
+- Check `.claude/TODO.md` before tasks
+- Follow project conventions strictly
+- Use App Router unless specified
 
-- **`.aidev/`** - Main AI development workspace
-  - `concept/` - High-level project vision
-  - `features/` - Feature queue and completed features
-  - `patterns/` - Learned patterns and conventions
-  - `learning/` - Correction analysis and improvements
-  - `sessions/` - Development session logs and auto-generated PRPs
-  - `examples/` - Code style examples
-  - `template/` - Templates for prompts / prp generation
+### Code Structure
+- **Max 300 lines per file** - split if larger
+- **Directory structure**:
+  ```
+  src/
+  ├── components/     # UI (shared & ui/)
+  ├── features/       # Feature modules
+  ├── lib/           # Core utils (prisma, redis, auth)
+  ├── hooks/         # React hooks
+  ├── types/         # TypeScript types
+  ├── services/      # API layer (client/server)
+  ├── stores/        # Zustand stores
+  ├── schemas/       # Zod validation
+  └── utils/         # Utilities
+  app/               # App Router pages
+  ```
+- Feature-first organization in `src/features/`
+- Co-locate related files, use barrel exports
+
+### Testing (TDD)
+- **Stack**: Vitest, RTL, Playwright, MSW
+- **Co-locate**: `ComponentName.test.tsx`
+- **Coverage**: expected behavior, edge cases, errors, loading
+
+### Task Management
+- Mark tasks complete in `.claude/TODO.md`
+- Security check all code
+- Add discovered tasks to TODO
+
+### Code Style
+- TypeScript strict mode
+- ESLint + Prettier  
+- Functional components with arrow functions
+- MUI components with sx prop (primary) or CSS Modules (when needed)
+- B-prefixed custom components (BTextField, BCheckbox)
+
+### React/Next.js
+- Server Components by default
+- Loading/error boundaries
+- Next.js Image/Link components
+- **Data fetching**:
+  - Server Components: static
+  - TanStack Query: client-side
+  - Server Actions: mutations
+- **State**: 
+  - Zustand with immer/devtools/persist for global state
+  - TanStack Query for server state
+  - Context for feature-specific state
+  - useState for local component state
+
+### Naming
+- `camelCase` variables, `UPPER_SNAKE_CASE` constants
+- Plurals for collections
+- Prefixes: `is/has/should` (booleans), `on` (handlers), `use` (hooks)
+- `PascalCase` for types/interfaces
+
+### Code Patterns
+```typescript
+// Components with sx prop (PRIMARY)
+export const Component: React.FC<Props> = ({ prop }) => {
+  const styles = useMemo(() => ({
+    root: {
+      p: 2,
+      bgcolor: 'background.paper',
+      borderRadius: 1,
+    }
+  }), []);
   
-- **`.claude/commands/`** - Custom Claude commands for AI workflow
+  return <Box sx={styles.root}>{prop}</Box>;
+};
 
-### Available Commands
+// B-prefixed custom components
+export const BTextField = (props: BTextFieldProps) => {
+  const { onPressEnter, validation, ...textFieldProps } = props;
+  return <TextField {...textFieldProps} variant="outlined" size="small" />;
+};
 
-- `/aidev-generate-project` - Break down concept into features
-- `/aidev-next-task` - Pick and implement next feature (auto-generates PRP)
-- `/aidev-review-complete` - Capture corrections and learn
-- `/aidev-retry-feature` - Re-implement with learned patterns
-- `/aidev-export-patterns` - Export learned patterns
-- `/aidev-update-project` - Update PROJECT.md documentation
-- `/aidev-check-errors` - Fix all code quality issues
-- `/aidev-check-security` - Fix security vulnerabilities
-- `/aidev-check-api-database` - Optimize API and database calls
+// Zustand store with middleware
+export const useAppStore = create<AppState>()(
+  devtools(
+    persist(
+      immer((set) => ({
+        user: null,
+        setUser: (user) => set((state) => { state.user = user; }),
+      })),
+      { name: 'app-store' }
+    )
+  )
+);
 
-### Workflow
+// React Hook Form with Zod + Controller
+const schema = z.object({
+  name: z.string().min(1, 'Required'),
+  email: z.string().email()
+});
 
-1. **Add Concept**: Write your project vision in `.aidev/concept/`
-2. **Customize Examples**: Add your code style to `.aidev/examples/`
-3. **Generate Features**: Run `/aidev-generate-project`
-4. **Implement**: Run `/aidev-next-task` to implement features
-5. **Review**: Make corrections to the PR
-6. **Learn**: Run `/aidev-review-complete --pr=<number>`
-7. **Improve**: Future implementations apply learned patterns
+const { control, handleSubmit } = useForm({
+  resolver: zodResolver(schema)
+});
 
-### Learning System
+// Use Controller with MUI
+<Controller
+  name="name"
+  control={control}
+  render={({ field }) => (
+    <BTextField {...field} label="Name" />
+  )}
+/>
+```
 
-- AI commits are attributed with 🤖 marker
-- Corrections are analyzed for patterns
-- Patterns gain confidence through consistency
-- High-confidence patterns (>0.8) are automatically applied
+### AI Rules
+- Ask if uncertain
+- Verify paths/modules exist
+- Check package.json for deps
+- Never delete without instruction
+- **Tech stack**: 
+  - UI: MUI + CSS Modules (SCSS)
+  - State: Zustand (immer/devtools/persist) + TanStack Query
+  - Forms: React Hook Form + Zod + MUI Controller pattern
+  - Backend: Prisma/MySQL, Redis caching
+  - Auth: NextAuth.js
+  - Validation: Zod schemas everywhere
 
-### Best Practices
+## AI-Dev Commands
+- `/aidev-generate-project` - Break concept into features
+- `/aidev-next-task` - Implement next feature
+- `/aidev-review-complete` - Capture corrections
+- `/aidev-retry-feature` - Re-implement with patterns
+- `/aidev-export-patterns` - Export patterns
+- `/aidev-update-project` - Update docs
+- `/aidev-check-errors` - Fix quality issues
+- `/aidev-check-security` - Fix vulnerabilities
+- `/aidev-check-api-database` - Optimize API/DB
 
-- One feature = One PR = One review cycle
-- Keep features small (200-500 lines)
+## Workflow Steps
+1. Add concept to `.aidev/concept/`
+2. Add examples to `.aidev/examples/`
+3. Run `/aidev-generate-project`
+4. Run `/aidev-next-task`
+5. Make corrections
+6. Run `/aidev-review-complete --pr=<number>`
+7. AI applies learned patterns
+
+## Learning System
+- 🤖 marker for AI commits
+- Pattern confidence tracking
+- Auto-apply patterns >0.8 confidence
+
+## Best Practices
+- One feature = One PR
+- 200-500 lines per feature
 - Correct patterns, not just code
-- Use `/aidev-retry-feature` after major corrections

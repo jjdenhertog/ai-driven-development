@@ -96,6 +96,15 @@ const updateExistingProject = () => {
     if (fs.existsSync(examplesSource)) 
       copyRecursive(examplesSource, examplesDest);
     
+    // Copy preferences
+    log('🎨 Copying user preferences...', colors.blue);
+    const preferencesSource = path.join(PACKAGE_ROOT, 'templates', 'preferences');
+    const preferencesDest = path.join(TARGET_ROOT, AI_DEV_DIR, 'preferences');
+    if (fs.existsSync(preferencesSource)) {
+      ensureDir(preferencesDest);
+      copyRecursive(preferencesSource, preferencesDest);
+    }
+    
     // Update CLAUDE.md
     log('📝 Updating CLAUDE.md...', colors.blue);
     const claudeMdSource = path.join(PACKAGE_ROOT, 'templates', 'CLAUDE.md');
@@ -158,7 +167,8 @@ const init = () => {
       'sessions',
       'corrections',
       'prompts',
-      'examples'
+      'examples',
+      'preferences'
     ];
     
     dirs.forEach(dir => {
@@ -207,6 +217,15 @@ const init = () => {
     const examplesDest = path.join(TARGET_ROOT, AI_DEV_DIR, 'examples');
     if (fs.existsSync(examplesSource)) 
       copyRecursive(examplesSource, examplesDest);
+    
+    // Copy preferences folder to .aidev/preferences/
+    log('🎨 Setting up user preferences...', colors.blue);
+    const preferencesSource = path.join(PACKAGE_ROOT, 'templates', 'preferences');
+    const preferencesDest = path.join(TARGET_ROOT, AI_DEV_DIR, 'preferences');
+    if (fs.existsSync(preferencesSource)) {
+      ensureDir(preferencesDest);
+      copyRecursive(preferencesSource, preferencesDest);
+    }
     
     // Copy templates subfolder to .aidev/templates/
     const templatesSubfolderSource = path.join(PACKAGE_ROOT, 'templates', 'templates');

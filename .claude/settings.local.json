@@ -6,7 +6,8 @@
       "Bash(grep:*)",
       "Bash(rg:*)",
       "WebFetch(domain:github.com)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   }

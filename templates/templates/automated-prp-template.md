@@ -372,11 +372,17 @@ export async function PUT(
 #### Code Quality Checks
 ```bash
 # Must pass before proceeding to next file/component
-# Check with project's lint/type-check commands
+npm run lint          # ESLint with all rules
+npm run type-check    # TypeScript strict mode
+npm run format        # Prettier formatting
 ```
 - [ ] No TypeScript errors
-- [ ] No ESLint violations
+- [ ] No ESLint violations  
 - [ ] Imports are correct and resolvable
+- [ ] No `any` types without justification
+- [ ] No console.log statements in production code
+- [ ] No commented-out code blocks
+- [ ] No TODO comments without tickets
 
 #### Incremental Build Validation
 ```bash
@@ -385,6 +391,22 @@ npm run build
 ```
 - [ ] Build passes after each component/module completion
 - [ ] No new build warnings introduced
+- [ ] Bundle size within acceptable limits
+
+#### Continuous Test Execution
+```bash
+# Run tests frequently during development
+npm run test          # Run ALL tests to catch regressions early
+npm run test:watch    # If available, keep tests running
+
+# After implementing each component/function:
+# 1. Write its tests immediately
+# 2. Run ALL tests to ensure nothing broke
+# 3. Only proceed if all tests pass
+```
+- [ ] New feature tests written and passing
+- [ ] All existing tests still passing (regression check)
+- [ ] No decrease in test coverage
 
 ### Phase 2: Fresh Perspective Self-Validation
 **After completing each major component:**
@@ -425,9 +447,20 @@ npm run build
 
 ### Phase 4: Integration Testing
 ${IF_TESTS_NEEDED}
-- Create tests in co-located test files
-- Achieve minimum 80% coverage
+**CRITICAL: Tests protect your feature from future regressions!**
+
+#### Test Creation Requirements
+- Create tests in co-located test files (e.g., `Component.test.tsx` next to `Component.tsx`)
+- Achieve minimum 80% coverage for new code
 - Test happy path, edge cases, and error states
+- Tests must be deterministic (no flaky tests)
+- Tests become part of the regression suite for future features
+
+#### What to Test
+1. **Unit Tests**: Individual functions and components in isolation
+2. **Integration Tests**: Component interactions and data flow
+3. **API Tests**: Endpoint behavior and error handling
+4. **E2E Tests**: Critical user journeys (if Playwright/Cypress available)
 
 #### Test Pattern Example
 ```typescript
@@ -464,7 +497,198 @@ describe('Feature', () => {
 ```
 ${END_IF_TESTS_NEEDED}
 
-### Phase 5: Integration Points Validation
+### Phase 5: Browser-Based Testing (CRITICAL for UI Components)
+**When implementing UI components or features with visual elements:**
+
+> **🤖 AI Testing Capabilities:**
+> - ✅ Can run terminal commands (`npm run dev`, `npm test`, etc.)
+> - ✅ Can check compilation output for errors
+> - ✅ Can run Playwright/Cypress tests if configured
+> - ❌ Cannot directly interact with a browser UI
+> - ❌ Cannot visually see rendered components
+> 
+> **Therefore: Use automated tests when possible, document manual testing needs clearly**
+
+#### Development Server Testing
+```bash
+# Start the development server
+npm run dev
+
+# Monitor the output for:
+# - Compilation errors
+# - Module resolution issues
+# - TypeScript errors
+# - Missing dependencies
+```
+
+#### Manual Browser Testing Checklist
+**Document what should be tested manually by developers:**
+1. **Server Health Check**:
+   - [ ] Dev server starts without errors
+   - [ ] Clean compilation (no warnings about missing modules)
+   - [ ] No TypeScript errors in terminal output
+
+2. **Component Rendering**:
+   - [ ] Navigate to the implemented feature/page
+   - [ ] Component renders without React errors
+   - [ ] No browser console errors/warnings
+   - [ ] Proper layout and styling
+   - [ ] Responsive design works on all breakpoints
+
+3. **Functionality Testing**:
+   - [ ] All interactive elements work (buttons, forms, etc.)
+   - [ ] State changes work correctly
+   - [ ] Error states display properly (invalid inputs, network failures)
+   - [ ] Loading states display properly
+   - [ ] Form validation works as expected
+
+4. **Cross-Component Integration**:
+   - [ ] New components integrate with existing ones
+   - [ ] Navigation between pages/features works
+   - [ ] Data flow between components is correct
+   - [ ] Context/state management works properly
+
+5. **Performance Check**:
+   - [ ] No unnecessary re-renders in React DevTools
+   - [ ] No memory leaks in browser DevTools
+   - [ ] No infinite loops or excessive API calls
+   - [ ] Animations perform at 60fps
+   - [ ] Bundle size is reasonable
+
+#### Example Browser Test Session
+```markdown
+### Browser Testing Results
+- Dev server started successfully ✓
+- No compilation errors ✓
+- Component renders at /dashboard ✓
+- Console warnings: 0 ✓
+- Interactive elements tested:
+  - Submit button triggers API call ✓
+  - Form validation works ✓
+  - Error toast displays on failure ✓
+- Performance: No excessive re-renders ✓
+- Accessibility: Keyboard navigation works ✓
+```
+
+#### API Testing (for backend features)
+For features that include API routes:
+
+```bash
+# Test API endpoints using curl or similar
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "testpass123"}'
+
+# Check response format and status codes
+# Verify error handling with invalid data
+```
+
+#### Automated E2E Testing (if Playwright is configured)
+If the project has Playwright set up, create E2E tests:
+
+```typescript
+// e2e/feature.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Feature E2E Tests', () => {
+  test('should render and interact with feature', async ({ page }) => {
+    await page.goto('/feature-page');
+    
+    // Check page loads
+    await expect(page.getByRole('heading')).toBeVisible();
+    
+    // Test interactions
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await expect(page.getByText('Success')).toBeVisible();
+    
+    // Check for console errors
+    const errors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') errors.push(msg.text());
+    });
+    expect(errors).toHaveLength(0);
+  });
+});
+```
+
+Run E2E tests if available:
+```bash
+# Check if Playwright is installed
+if [ -f "playwright.config.ts" ]; then
+  npm run test:e2e
+fi
+```
+
+**Note**: If Playwright is not set up, rely on manual browser testing as described above.
+
+### Phase 6: Security Validation
+**Run comprehensive security checks:**
+
+#### Security Checklist
+1. **Frontend Security**:
+   - [ ] No API keys, secrets, or credentials in client-side code
+   - [ ] No sensitive data in localStorage/sessionStorage
+   - [ ] No direct database queries from frontend
+   - [ ] No XSS vulnerabilities through user input
+   - [ ] No dangerouslySetInnerHTML without DOMPurify
+   - [ ] All user inputs escaped before rendering
+
+2. **Backend/API Security**:
+   - [ ] All API endpoints require proper authentication
+   - [ ] All user inputs validated with schemas (Zod)
+   - [ ] All database queries use parameterized statements
+   - [ ] Error messages don't expose sensitive information
+   - [ ] Proper CORS configuration
+   - [ ] Rate limiting implemented where needed
+
+3. **Environment & Configuration**:
+   - [ ] Environment variables use NEXT_PUBLIC_ prefix correctly
+   - [ ] No hardcoded secrets or API keys
+   - [ ] .env files are in .gitignore
+   - [ ] Production builds don't include debug information
+
+```bash
+# Security scan commands
+grep -r "process.env" --include="*.tsx" --include="*.ts" | grep -v "NEXT_PUBLIC"
+grep -r "dangerouslySetInnerHTML" --include="*.tsx"
+grep -r "localStorage\|sessionStorage" --include="*.tsx" --include="*.ts"
+```
+
+### Phase 7: API & Database Optimization
+**Ensure efficient external communications:**
+
+#### API Optimization Checklist
+1. **Request Efficiency**:
+   - [ ] No duplicate API calls for same data
+   - [ ] Requests are properly cached (SWR/React Query)
+   - [ ] No sequential requests that could be batched
+   - [ ] No overfetching of unused data fields
+   - [ ] Proper pagination implemented
+
+2. **Database Query Optimization**:
+   - [ ] No N+1 query problems
+   - [ ] Queries select only needed fields
+   - [ ] Proper indexes used
+   - [ ] Connection pooling configured
+   - [ ] No raw SQL with user input
+
+3. **Performance Patterns**:
+   - [ ] Loading states during data fetching
+   - [ ] Optimistic updates where appropriate
+   - [ ] Proper error handling for failed requests
+   - [ ] Request debouncing for search/filter inputs
+   - [ ] Image optimization with next/image
+
+```typescript
+// ❌ Bad: Multiple calls
+const user = await fetch('/api/user/123');
+const posts = await fetch('/api/user/123/posts');
+
+// ✅ Good: Single batched call
+const userData = await fetch('/api/user/123?include=posts');
+```
+
+### Phase 8: Integration Points Validation
 ```yaml
 ${INTEGRATION_POINTS}
 # Examples:
@@ -486,11 +710,67 @@ ${INTEGRATION_POINTS}
 - [ ] State management works as expected
 - [ ] API endpoints properly integrated
 
-### Phase 6: Final Validation Report
+### Phase 9: Comprehensive Final Validation
+**Run ALL validation checks before declaring complete:**
+
+#### Automated Tests & Quality Checks
+```bash
+# Run the complete validation suite
+npm run lint          # Must pass with ZERO warnings
+npm run type-check    # Must pass with ZERO errors
+npm run test          # ALL tests must pass (including existing tests!)
+npm run test:coverage # Must meet coverage thresholds
+npm run build         # Must build successfully
+
+# CRITICAL: Regression Testing
+# This runs ALL tests in the codebase, not just new ones
+# If ANY existing test fails, it means the new feature broke something
+# DO NOT proceed until ALL tests pass
+```
+
+#### Regression Testing Verification
+- [ ] All existing unit tests still pass
+- [ ] All existing integration tests still pass
+- [ ] All existing E2E tests still pass (if applicable)
+- [ ] No reduction in overall test coverage
+- [ ] No performance regression in test execution time
+
+#### Manual Browser Verification
+- [ ] Start dev server: `npm run dev`
+- [ ] Test all implemented features in browser
+- [ ] Check browser console for ANY errors/warnings
+- [ ] Verify responsive design on mobile/tablet/desktop
+- [ ] Test with slow network (Chrome DevTools)
+- [ ] Test error scenarios (offline, failed API calls)
+
+#### Performance Metrics
+- [ ] Lighthouse score > 90 for all categories
+- [ ] No memory leaks detected
+- [ ] Bundle size within limits
+- [ ] First Contentful Paint < 1.8s
+- [ ] Time to Interactive < 3.9s
+
+#### Accessibility Audit
+- [ ] Keyboard navigation works for all features
+- [ ] Screen reader compatible
+- [ ] Color contrast passes WCAG AA
+- [ ] All images have alt text
+- [ ] Forms have proper labels
+- [ ] ARIA attributes used correctly
+
+### Phase 10: Final Validation Report
 
 #### Implementation Confidence
 - **Confidence Level**: [High/Medium/Low]
 - **Reasoning**: ${CONFIDENCE_REASONING}
+
+#### Quality Metrics Summary
+- **TypeScript Coverage**: 100% (no `any` types)
+- **Test Coverage**: ___% (target: >80%)
+- **Lighthouse Scores**: Performance: ___, Accessibility: ___, Best Practices: ___, SEO: ___
+- **Bundle Size**: ___KB (target: <___KB)
+- **Security Issues**: 0
+- **Console Errors/Warnings**: 0
 
 #### Risk Assessment
 - **Potential Issues**: ${RISK_ITEMS}
@@ -500,11 +780,14 @@ ${INTEGRATION_POINTS}
 - [ ] Feature works exactly as specified
 - [ ] No regression in existing functionality
 - [ ] Code follows all project conventions
-- [ ] All quality gates passed
+- [ ] All quality gates passed (lint, type-check, tests, build)
+- [ ] Browser testing completed with no issues
 - [ ] Performance metrics acceptable
 - [ ] Security best practices followed
+- [ ] API calls are optimized and efficient
 - [ ] Accessibility standards met
 - [ ] Documentation complete (if required)
+- [ ] Ready for production deployment
 
 ## 🚀 Git Workflow
 
@@ -546,11 +829,19 @@ ${CHANGES_LIST}
 ### Patterns Followed
 ${PATTERNS_FOLLOWED}
 
-### Testing
-- [ ] All tests pass
-- [ ] Linting clean
+### Testing & Validation
+- [ ] All automated tests pass
+- [ ] ESLint: Zero warnings/errors
+- [ ] TypeScript: Zero errors
 - [ ] Build successful
-- [ ] Manually tested core functionality
+- [ ] Browser testing completed:
+  - [ ] No console errors/warnings
+  - [ ] All features work as expected
+  - [ ] Responsive design verified
+  - [ ] Performance acceptable
+- [ ] Security checks passed
+- [ ] API calls optimized
+- [ ] Accessibility verified
 
 ### Session
 - Session ID: ${SESSION_ID}
@@ -595,13 +886,35 @@ Future Improvements:
 - **Time Saved by Early Detection**: ${TIME_SAVED_ESTIMATE}
 
 ### Continuous Validation Metrics
-- [ ] All 6 validation checkpoints passed
+- [ ] All 10 validation phases completed
+- [ ] All 5 implementation checkpoints passed
 - [ ] Fresh perspective review completed at least twice
 - [ ] Self-correction loop executed when needed
+- [ ] Browser testing completed with no issues
+- [ ] Security validation passed
+- [ ] API/Database optimization verified
 - [ ] No critical issues remain unresolved
 - [ ] Implementation confidence is HIGH
 
 ## ⚠️ Important Reminders
+
+### 🚨 CRITICAL: Comprehensive Testing is MANDATORY
+**You MUST complete ALL validation phases before considering the task complete:**
+1. **Automated Testing**: ESLint, TypeScript, unit tests MUST all pass with ZERO errors
+2. **Regression Testing**: ALL existing tests must continue to pass - no breaking changes!
+3. **New Test Creation**: Write tests for your feature that will catch future regressions
+4. **Browser Testing**: ALWAYS run `npm run dev` and test UI features in the browser
+5. **Security Validation**: Check for exposed secrets, XSS vulnerabilities, etc.
+6. **API Optimization**: Ensure no duplicate calls, proper caching, efficient queries
+7. **Performance Testing**: Lighthouse scores, bundle size, no memory leaks
+
+**⚠️ REGRESSION TESTING IS NON-NEGOTIABLE:**
+- Running `npm run test` executes ALL tests in the codebase
+- If ANY test fails, your changes broke existing functionality
+- You MUST fix the regression before proceeding
+- Your new tests will protect future developers from breaking YOUR feature
+
+**DO NOT declare the task complete until ALL validation phases show ✅ status!**
 
 ### Key Principles
 - Follow the project's established patterns and conventions
@@ -653,12 +966,26 @@ Track:
 
 ## 📋 Final Validation Checklist
 
-- [ ] All tests pass
-- [ ] No linting errors
-- [ ] No type errors
+### Automated Checks (MUST ALL PASS)
+- [ ] All tests pass: `npm run test`
+- [ ] No linting errors: `npm run lint`
+- [ ] No type errors: `npm run type-check`
 - [ ] Build succeeds: `npm run build`
-- [ ] No console errors in browser
+- [ ] Test coverage meets threshold: `npm run test:coverage`
+
+### Browser Testing (CRITICAL for UI features)
+- [ ] Dev server runs without errors: `npm run dev`
+- [ ] No console errors or warnings in browser
+- [ ] All interactive features work as expected
+- [ ] Forms validate and submit correctly
+- [ ] Error states display properly
+- [ ] Loading states appear during async operations
+- [ ] Responsive design works on all viewports
+
+### Quality Standards
 - [ ] Accessibility: Proper ARIA labels and semantic HTML
 - [ ] Performance: Bundle size optimized
 - [ ] SEO: Proper meta tags and structure
+- [ ] Security: No exposed secrets or vulnerabilities
+- [ ] API calls are efficient and optimized
 - [ ] Works with JavaScript disabled (if SSR)

@@ -17,6 +17,26 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
   - Stop execution immediately
   - Inform user: "❌ No concept documents found in .aidev/concept/ directory. Please create at least one .md file describing your project concept before running this command."
   - Exit without creating any tasks
+- **Read project preferences and examples**:
+  - Dynamically load all .md files in `.aidev/preferences/` directory:
+    ```bash
+    # Find and process all preference files
+    find .aidev/preferences -name "*.md" -type f | while read pref_file; do
+      echo "Loading preference: $(basename "$pref_file")"
+      # Each file may define any type of preference or convention
+    done
+    ```
+  - Preferences may include (but not limited to):
+    - Technology stack, API patterns, component patterns
+    - Styling approaches, state management, folder structure
+    - Custom conventions, coding standards, etc.
+  - New preference files can be added anytime and will be included
+  - All found preferences should be applied to task generation
+  - Scan `.aidev/examples/` directory to identify:
+    - Example components, hooks, and features
+    - Code patterns to follow
+    - Implementation approaches
+    - Framework-specific conventions
 - **Assess current project state**:
   - Check what files exist in the directory (package.json, tsconfig.json, etc.)
   - Analyze package.json dependencies if it exists
@@ -27,6 +47,7 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 - Identify the overall project vision and goals
 - Extract feature requirements and dependencies
 - **Cross-reference concept needs with current state** to determine gaps
+- **Apply preferences and examples** to guide implementation approach
 
 ### 2. Task Breakdown
 - Break down the project into discrete, implementable tasks
@@ -99,6 +120,22 @@ Use the template from `.aidev/templates/feature-specification-template.md` to cr
 - Technical requirements and acceptance criteria
 - Implementation notes and examples to reference
 - Documentation links and potential gotchas
+
+**Incorporating Preferences and Examples**:
+Each task specification should explicitly reference:
+- **Relevant preferences**: Link to any applicable preference files found
+  - E.g., "Follow API patterns from `.aidev/preferences/[any-api-related].md`"
+  - E.g., "Use component structure from `.aidev/preferences/[any-component-related].md`"
+  - E.g., "Apply styling approach from `.aidev/preferences/[any-styling-related].md`"
+  - Reference whichever preference files are relevant to the task
+- **Example code**: Reference specific example files to guide implementation
+  - E.g., "See `.aidev/examples/components/UserRegistrationForm.tsx` for form pattern"
+  - E.g., "Follow API structure in `.aidev/examples/api/products-route.ts`"
+  - E.g., "Use state management pattern from `.aidev/examples/stores/useAppStore.ts`"
+- **Implementation notes** should include:
+  - Which preferences apply to this task
+  - Which examples demonstrate the desired pattern
+  - Specific conventions from preferences to follow
 
 **Task Types**:
 - `type: "feature"` - For implementing user-facing functionality or code generation tasks
@@ -278,18 +315,31 @@ Example:
 📖 Reading concept documents...
   ✓ Found 2 concept files
 
+📚 Loading preferences and examples...
+  ✓ Found and loaded all .md files in preferences directory
+  ✓ Read 7 preference files dynamically
+  ✓ Found 8 example components
+  ✓ Found 2 API route examples
+  ✓ Found state management patterns
+
 🔍 Assessing current project state...
   - No package.json found - need to initialize project
   - No Next.js framework detected
   - No database configuration found
   - Concept requires: Next.js, NextAuth, Prisma, MUI
+  - Preferences indicate: CSS Modules styling, Zustand for state
+  - Examples show: Form validation patterns, API structure
 
 📝 Generating task specifications based on gaps...
   ✓ Created 001-setup-nextjs-project.md (no project exists)
+    → Will follow folder structure from preferences
   ✓ Created 002-install-dependencies.md (NextAuth, Prisma not installed)
+    → Includes Zustand per state management preference
   ✓ Created 003-setup-database.md (Prisma not configured)
   ✓ Created 2 pattern tasks
+    → Using component examples as reference
   ✓ Created 5 feature tasks
+    → Each references relevant examples and preferences
 
 🔍 Performing self-validation (fresh perspective)...
   - Re-reading concept requirements
@@ -435,13 +485,24 @@ Create a new Next.js 14+ project with TypeScript, App Router, ESLint, and the re
 4. Configure TypeScript for strict mode
 5. Set up project structure according to patterns
 
+## Implementation Guidelines
+
+### Preferences to Follow
+- **All Preferences**: Apply all preferences found in `.aidev/preferences/*.md` files
+- **Dynamic Loading**: Preferences are loaded dynamically from all .md files
+- **Adaptive Implementation**: Follow whichever preferences apply to this task
+
+### Example References
+- See `.aidev/examples/components/` for component structure patterns
+- Review `.aidev/examples/api/` for API route organization
+
 ## Acceptance Criteria
 - [ ] Next.js project created with TypeScript
-- [ ] App Router enabled
+- [ ] App Router enabled with folder structure matching preferences
 - [ ] ESLint configured
-- [ ] Tailwind CSS or MUI installed (based on concept)
-- [ ] Basic folder structure established
-- [ ] Package.json has all required dependencies
+- [ ] CSS Modules configured per styling preferences
+- [ ] Basic folder structure established per `.aidev/preferences/folder-structure.md`
+- [ ] Package.json includes dependencies from technology stack preferences
 - [ ] TypeScript configured with strict mode
 ```
 
@@ -544,4 +605,65 @@ Set up PM2 process manager on Windows 11 for production deployment with auto-res
 - [ ] PM2 starts automatically on Windows boot
 - [ ] Application runs under PM2 management
 - [ ] Application auto-restarts on crash
+```
+
+### Example Feature Task
+For implementing a user-facing feature:
+```markdown
+---
+id: "201"
+name: "feature-user-registration"
+type: "feature"
+dependencies: ["100-pattern-component", "101-pattern-api", "102-pattern-validation"]
+estimated_lines: 400
+priority: "high"
+---
+
+# Feature: User Registration
+
+## Overview
+Implement user registration functionality with form validation, API endpoint, and database integration.
+
+## Technical Requirements
+1. Create registration form component with validation
+2. Implement API route for user creation
+3. Add Prisma schema for User model
+4. Include proper error handling and loading states
+5. Follow established patterns for forms and API routes
+
+## Implementation Guidelines
+
+### Preferences to Follow
+- **All Applicable Preferences**: Follow all relevant preferences from `.aidev/preferences/*.md`
+- **Dynamic Preference Loading**: Apply conventions from any preference files that relate to:
+  - Component structure and patterns
+  - API design and implementation
+  - State management approaches
+  - Styling methodologies
+  - Any other aspects covered in preference files
+
+### Example References
+- **Form Pattern**: Use `.aidev/examples/components/UserRegistrationForm.tsx` as template
+  - Note the React Hook Form + Zod validation pattern
+  - Follow the BTextField component usage
+  - Apply the same error handling approach
+- **API Structure**: Follow `.aidev/examples/api/users-route.ts`
+  - Use the same error response format
+  - Apply the validation middleware pattern
+  - Follow the Prisma query patterns
+- **Component Styling**: Reference `.aidev/examples/components/UserRegistrationForm.module.scss`
+  - Use CSS Modules for complex layouts
+  - Apply MUI sx prop for simple styling
+- **State Management**: See `.aidev/examples/stores/useAppStore.ts`
+  - Use the same Zustand middleware setup
+  - Follow the action naming conventions
+
+## Acceptance Criteria
+- [ ] Registration form matches example component patterns
+- [ ] Form validation uses Zod schema as shown in examples
+- [ ] API route follows the pattern in users-route.ts example
+- [ ] Error handling matches preference guidelines
+- [ ] Loading states implemented per component examples
+- [ ] Styling follows CSS Modules pattern from examples
+- [ ] State updates use Zustand pattern from useAppStore example
 ```

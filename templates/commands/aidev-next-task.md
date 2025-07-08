@@ -13,6 +13,45 @@ Automatically picks the next task from the feature queue and implements it based
 
 ## Process
 
+### 0. Pre-Flight Safety Check
+```bash
+# CRITICAL: Check main branch status before starting any work
+echo "🔍 Performing pre-flight safety check..."
+
+# Store current branch for reference
+ORIGINAL_BRANCH=$(git branch --show-current)
+
+# Switch to main branch to check its status
+echo "Checking main branch status..."
+git checkout main 2>/dev/null || git checkout master 2>/dev/null
+
+# Pull latest changes from main
+echo "Pulling latest changes from main..."
+git pull origin main || git pull origin master
+
+# Check if main has uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+  echo "❌ ERROR: Main branch has uncommitted changes!"
+  echo "The AI cannot proceed when the main branch has uncommitted work."
+  echo "Please ask the user to:"
+  echo "  1. Commit their changes on main, OR"
+  echo "  2. Stash their changes using: git stash"
+  echo ""
+  echo "Current uncommitted files on main:"
+  git status --short
+  
+  # Return to original branch if different from main
+  if [ -n "$ORIGINAL_BRANCH" ] && [ "$ORIGINAL_BRANCH" != "main" ] && [ "$ORIGINAL_BRANCH" != "master" ]; then
+    git checkout "$ORIGINAL_BRANCH"
+  fi
+  
+  exit 1
+fi
+
+echo "✅ Main branch is clean and up-to-date"
+# Stay on main branch - we'll create feature branches from here
+```
+
 ### 1. Task Selection
 ```bash
 # Parse command arguments
@@ -80,10 +119,24 @@ fi
 
 #### Common steps:
 - Read the task specification completely from `.aidev/features/queue/`
-- Note: Task remains in queue folder (branch existence indicates in-progress/review status)
+- **CRITICAL**: Task MUST remain in queue folder throughout AI implementation
+- Branch existence indicates in-progress/review status
+- **NEVER move tasks to completed folder - this is only done when PR is merged**
 
 ### 2. Context Loading
 - **Check .aidev/examples/** for coding style and patterns
+- **Load all user preferences from .aidev/preferences/**:
+  ```bash
+  # Find and load all .md preference files dynamically
+  find .aidev/preferences -name "*.md" -type f | while read pref_file; do
+    echo "Loading preference: $(basename "$pref_file")"
+    # Process each preference file to understand patterns and conventions
+  done
+  ```
+  - Each .md file contains specific preferences and patterns
+  - Files may cover styling, technology stack, components, APIs, state management, etc.
+  - New preference files can be added at any time and will be automatically loaded
+  - All preferences should be considered when implementing features
 - Load established patterns from `.aidev/patterns/established/`
 - Load learned patterns from `.aidev/patterns/learned/`
 - Read recent sessions from `.aidev/sessions/` for context
@@ -153,7 +206,15 @@ git pull origin ai/[task-id]-[task-name]
 
 If no PR exists (new task):
 ```bash
-# Create new feature branch
+# Ensure we're on main branch before creating new branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
+  echo "Switching to main branch to create feature branch..."
+  git checkout main || git checkout master
+  git pull origin main || git pull origin master
+fi
+
+# Create new feature branch from main
 git checkout -b ai/[task-id]-[task-name]
 # Example: ai/001-user-authentication
 
@@ -254,6 +315,24 @@ Create session log at `.aidev/sessions/[timestamp]/log.md`:
 - Component structure from 000-pattern-component
 - API response format from 000-pattern-api
 
+### Validation Results
+#### Automated Tests
+- Unit tests: ✓ All passing (15/15)
+- Linting: ✓ No errors
+- Type checking: ✓ No errors
+- Build: ✓ Successful
+
+#### Browser Testing
+- Dev server: ✓ Started without errors
+- Page loads: ✓ /auth/login renders correctly
+- Console errors: ✓ None
+- Functionality tested:
+  - Login form submission ✓
+  - Validation messages display ✓
+  - Redirect after login ✓
+  - Error handling for invalid credentials ✓
+- Performance: ✓ No excessive re-renders detected
+
 ### Issues Encountered
 - None
 
@@ -282,6 +361,8 @@ Created documentation file as specified in the task.
 Before creating the pull request, ensure all changes are validated:
 
 #### For Pattern/Feature Tasks
+
+##### 8.1 Automated Testing
 ```bash
 # Run tests
 npm test
@@ -296,7 +377,76 @@ npm run type-check
 npm run build
 ```
 
-Document validation results in session log.
+##### 8.2 Browser-Based Testing (CRITICAL for UI Components)
+When implementing UI components or features with visual elements:
+
+```bash
+# Start the development server
+npm run dev
+
+# Monitor the output for:
+# - Compilation errors
+# - Module resolution issues
+# - TypeScript errors
+# - Missing dependencies
+```
+
+**Browser Testing Checklist:**
+1. **Server Health Check**:
+   - Ensure dev server starts without errors
+   - Check for clean compilation (no warnings about missing modules)
+   - Verify no TypeScript errors in terminal output
+
+2. **Component Rendering**:
+   - Navigate to the implemented feature/page
+   - Verify component renders without React errors
+   - Check browser console for errors/warnings
+   - Ensure proper layout and styling
+
+3. **Functionality Testing**:
+   - Test all interactive elements (buttons, forms, etc.)
+   - Verify state changes work correctly
+   - Test error states (invalid inputs, network failures)
+   - Check loading states display properly
+
+4. **Cross-Component Integration**:
+   - Verify new components integrate with existing ones
+   - Test navigation between pages/features
+   - Check data flow between components
+
+5. **Performance Check**:
+   - Look for unnecessary re-renders in React DevTools
+   - Check for memory leaks in browser DevTools
+   - Verify no infinite loops or excessive API calls
+
+**Example Browser Test Session:**
+```markdown
+### Browser Testing Results
+- Dev server started successfully ✓
+- No compilation errors ✓
+- Component renders at /dashboard ✓
+- Console warnings: 0 ✓
+- Interactive elements tested:
+  - Submit button triggers API call ✓
+  - Form validation works ✓
+  - Error toast displays on failure ✓
+- Performance: No excessive re-renders ✓
+```
+
+##### 8.3 API Testing (for backend features)
+For features that include API routes:
+
+```bash
+# Test API endpoints using curl or similar
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "testpass123"}'
+
+# Check response format and status codes
+# Verify error handling with invalid data
+```
+
+Document all validation results in session log.
 
 ### 9. Commit & Push
 Ensure all commits are pushed to the remote branch:
@@ -391,6 +541,9 @@ EOF
    - [ ] No security vulnerabilities introduced
    - [ ] Performance considerations addressed
    - [ ] Code is maintainable and readable
+   - [ ] Browser testing confirms UI works as expected
+   - [ ] No console errors or warnings in browser
+   - [ ] User interactions function correctly
 
 3. **Document findings in session log**:
    ```markdown
@@ -420,6 +573,9 @@ EOF
      - Run all tests again
      - Run linting again
      - Run type checking again
+     - Run dev server and re-test in browser
+     - Check for new console errors
+     - Verify fixes work in browser
      - Perform fresh analysis
      
      // Document iteration
@@ -452,6 +608,10 @@ EOF
    - No linting errors
    - No type errors
    - Implementation matches task requirements
+   - Dev server runs without errors
+   - UI components render correctly in browser
+   - No console errors or warnings
+   - User interactions work as expected
 
 ### 12. Finalization
 1. **Ensure all changes are committed and pushed to feature branch**:
@@ -468,49 +628,47 @@ EOF
    git push
    ```
 
-2. **Update task tracking on main branch**:
+2. **IMPORTANT: Task Status Management**:
    ```bash
-   # Store current PR number and task info
+   # CRITICAL: The AI must NEVER move tasks to completed folder
+   # Tasks remain in queue folder until PR is merged to main branch
+   # This ensures proper tracking of in-progress work
+   
+   echo "📌 IMPORTANT: Task remains in queue folder"
+   echo "Tasks are only moved to completed when PR is merged to main"
+   echo "Current task status: In Review (PR #${PR_NUMBER})"
+   
+   # Store PR information in session for reference
    PR_NUMBER=[pr-number-from-gh-output]
    TASK_ID=[task-id]
-   TASK_FILE=$(find .aidev/features/queue -name "${TASK_ID}-*.md")
    
-   # Switch to main branch
-   git checkout main
-   git pull origin main
-   
-   # Move task from queue to completed
-   mv "$TASK_FILE" .aidev/features/completed/
-   
-   # Add completion metadata to task file
-   COMPLETED_FILE=".aidev/features/completed/$(basename $TASK_FILE)"
-   echo -e "\n## Implementation Details" >> "$COMPLETED_FILE"
-   echo "- PR: #${PR_NUMBER}" >> "$COMPLETED_FILE"
-   echo "- Branch: ai/${TASK_ID}-[task-name]" >> "$COMPLETED_FILE"
-   echo "- Completed: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> "$COMPLETED_FILE"
-   echo "- Session: ${SESSION_ID}" >> "$COMPLETED_FILE"
-   
-   # Commit and push the state change to main
-   git add .aidev/features/
-   git commit --author="Claude AI <claude@anthropic.com>" -m "chore: complete task ${TASK_ID} - PR #${PR_NUMBER} created
-
-🤖 AI Task Management
-Task successfully implemented and PR created
-Session: ${SESSION_ID}
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-   
-   # Pull latest main changes first, then push
-   git pull origin main --rebase --no-edit
-   git push origin main
-   
-   # Note: Feature branch is kept until PR is merged
-   # Do NOT delete the branch here
+   # Log the PR details without modifying task files
+   echo "Task ${TASK_ID} - PR #${PR_NUMBER} created"
+   echo "Branch: ai/${TASK_ID}-[task-name]"
+   echo "Session: ${SESSION_ID}"
    ```
 
-3. **Create summary of what was implemented**:
-   - Document in session log
-   - Task file now contains PR reference and completion details
+3. **Return to main branch for next task**:
+   ```bash
+   # Switch back to main branch (feature work is complete)
+   git checkout main || git checkout master
+   echo "✅ Switched back to main branch"
+   echo "✅ PR #${PR_NUMBER} created and ready for review"
+   
+   # Note: Feature branch is kept until PR is merged
+   # Task file remains in queue folder
+   # Human or automated process will move to completed after merge
+   ```
+
+4. **Create summary of what was implemented**:
+   - Document in session log with PR reference
+   - Task remains in queue folder (indicates in-review status)
+   - AI is now on main branch, ready for next task
+
+**Task State Clarification**:
+- **In Queue + No Branch** = Available for work
+- **In Queue + Branch Exists** = In Progress or In Review
+- **In Completed Folder** = PR merged (only done by human or CI/CD)
 
 ## Error Handling
 If any step fails:
@@ -527,7 +685,8 @@ If any step fails:
    git push
    
    # Switch back to main
-   git checkout main
+   git checkout main || git checkout master
+   echo "Switched back to main branch after error"
    
    # Note: Task remains in queue, branch indicates work attempted
    ```
@@ -603,9 +762,15 @@ Output for instruction task:
 - Document why decisions were made
 - Include comprehensive error handling
 - Ensure all validation passes before PR creation
+- **CRITICAL for UI features**: Always run `npm run dev` and test in browser
+- Browser testing is mandatory for any component or UI changes
+- Check browser console for errors/warnings before creating PR
 - Task state is determined by:
   - **Available**: File in `queue/`, no branch exists
-  - **In Progress**: File in `queue/`, branch exists
-  - **Completed**: File in `completed/`
+  - **In Progress/Review**: File in `queue/`, branch exists
+  - **Completed**: File in `completed/` (ONLY after PR is merged - NEVER done by AI)
+- **CRITICAL RULE**: AI must NEVER move tasks from queue to completed folder
+- Tasks are moved to completed ONLY when the PR is merged to main branch
+- This ensures proper tracking and prevents premature task completion
 - Always analyze existing code to avoid duplication
 - Feature branches are kept until PR is merged
