@@ -18,6 +18,28 @@ Automatically picks the next task from the feature queue and implements it based
 # CRITICAL: Check main branch status before starting any work
 echo "🔍 Performing pre-flight safety check..."
 
+# First check if we can authenticate with the remote repository
+echo "Checking git authentication..."
+if ! git ls-remote origin &>/dev/null; then
+  echo "❌ ERROR: Cannot authenticate with remote repository!"
+  echo ""
+  echo "This usually happens when:"
+  echo "  1. You're in a development container without proper auth setup"
+  echo "  2. SSH keys are not configured or forwarded"
+  echo "  3. GitHub personal access token is not set"
+  echo "  4. Network connectivity issues"
+  echo ""
+  echo "To fix this, try:"
+  echo "  - Run: gh auth login"
+  echo "  - Set up SSH key forwarding for containers"
+  echo "  - Configure git credentials"
+  echo "  - Check your network connection"
+  echo ""
+  echo "Cannot proceed without git push access."
+  exit 1
+fi
+echo "✅ Git authentication successful"
+
 # Store current branch for reference
 ORIGINAL_BRANCH=$(git branch --show-current)
 
@@ -218,8 +240,24 @@ fi
 git checkout -b ai/[task-id]-[task-name]
 # Example: ai/001-user-authentication
 
-# Push branch immediately (marks task as in-progress/review)
-git push -u origin ai/[task-id]-[task-name]
+# Verify we can push before continuing (but don't push empty branch)
+echo "Verifying push access for new branch..."
+if ! git push --dry-run -u origin ai/[task-id]-[task-name] &>/dev/null; then
+  echo "❌ ERROR: Cannot push to remote repository!"
+  echo "Branch created locally but cannot be pushed."
+  echo "Please fix git authentication and run the command again."
+  
+  # Return to main branch
+  git checkout main || git checkout master
+  
+  # Delete the local branch we just created
+  git branch -D ai/[task-id]-[task-name]
+  
+  exit 1
+fi
+echo "✅ Push access verified - will push after first commit"
+
+# NOTE: Branch will be pushed with the first commit to avoid empty branches
 ```
 
 ### 5. PRP Generation
@@ -452,14 +490,51 @@ Document all validation results in session log.
 Ensure all commits are pushed to the remote branch:
 
 ```bash
-# Pull any existing changes first (in case user made direct commits)
-git pull origin ai/[task-id]-[task-name] --rebase --no-edit 2>/dev/null || true
+# Check if this is the first push (branch doesn't exist on remote)
+BRANCH_EXISTS_REMOTE=false
+if git ls-remote --exit-code --heads origin ai/[task-id]-[task-name] &>/dev/null; then
+  BRANCH_EXISTS_REMOTE=true
+fi
 
-# Push all commits to remote
-git push -u origin ai/[task-id]-[task-name]
+# If branch exists on remote, pull any existing changes
+if [ "$BRANCH_EXISTS_REMOTE" = true ]; then
+  echo "Pulling any remote changes..."
+  if ! git pull origin ai/[task-id]-[task-name] --rebase; then
+    echo "⚠️  Warning: Pull failed, attempting to continue..."
+  fi
+fi
+
+# Push all commits to remote with error handling
+echo "Pushing commits to remote..."
+if ! git push -u origin ai/[task-id]-[task-name]; then
+  echo "❌ ERROR: Failed to push commits to remote!"
+  echo ""
+  echo "This could be due to:"
+  echo "  - Authentication issues (most common in containers)"
+  echo "  - Network connectivity problems"
+  echo "  - Push conflicts"
+  echo ""
+  echo "Your work is saved locally. To retry pushing later:"
+  echo "  git push -u origin ai/[task-id]-[task-name]"
+  echo ""
+  echo "Cannot create PR without pushed commits."
+  exit 1
+fi
 
 # Verify all commits are pushed
+echo "✅ All commits successfully pushed"
 git status
+
+# Double-check that our commits are on the remote
+LOCAL_COMMITS=$(git rev-list origin/ai/[task-id]-[task-name]..HEAD --count 2>/dev/null || echo "0")
+if [ "$LOCAL_COMMITS" -gt 0 ]; then
+  echo "⚠️  Warning: $LOCAL_COMMITS local commits not pushed!"
+  echo "Attempting to push again..."
+  if ! git push; then
+    echo "❌ ERROR: Still cannot push remaining commits"
+    exit 1
+  fi
+fi
 ```
 
 ### 10. Pull Request Creation
@@ -624,8 +699,18 @@ EOF
    fi
    
    # Pull any user changes first, then push all commits
-   git pull origin ai/[task-id]-[task-name] --rebase --no-edit
-   git push
+   echo "Finalizing: Pulling any remote changes..."
+   if git ls-remote --exit-code --heads origin ai/[task-id]-[task-name] &>/dev/null; then
+     git pull origin ai/[task-id]-[task-name] --rebase || echo "⚠️  Warning: Pull failed, continuing..."
+   fi
+   
+   echo "Finalizing: Pushing final commits..."
+   if ! git push; then
+     echo "⚠️  Warning: Final push failed. Commits saved locally."
+     echo "You can push manually later with: git push"
+   else
+     echo "✅ All commits pushed successfully"
+   fi
    ```
 
 2. **IMPORTANT: Task Status Management**:
@@ -681,8 +766,13 @@ If any step fails:
      git commit --author="Claude AI <claude@anthropic.com>" -m "WIP: task ${TASK_ID} - error encountered"
    fi
    # Pull any user changes first, then push
-   git pull origin ai/${TASK_ID}-${TASK_NAME} --rebase --no-edit 2>/dev/null || true
-   git push
+   if git ls-remote --exit-code --heads origin ai/${TASK_ID}-${TASK_NAME} &>/dev/null; then
+     git pull origin ai/${TASK_ID}-${TASK_NAME} --rebase 2>/dev/null || true
+   fi
+   
+   if ! git push 2>/dev/null; then
+     echo "⚠️  Warning: Could not push error state. Work saved locally."
+   fi
    
    # Switch back to main
    git checkout main || git checkout master
