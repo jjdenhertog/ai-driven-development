@@ -15,8 +15,12 @@ Automatically reviews all tasks that have active pull requests by checking their
 - For each branch, check if corresponding task exists in `queue/`
 - Extract PR information for each active branch
 - Build a list of tasks to review with their associated PRs
+- **Load review state** to track what has been processed
 
 ```bash
+# Create review state directory if it doesn't exist
+mkdir -p .aidev/review-state
+
 # Get all AI task branches
 git fetch --prune
 git branch -r | grep "origin/ai/" | while read branch; do
@@ -28,6 +32,27 @@ git branch -r | grep "origin/ai/" | while read branch; do
     echo "Task $task_id has PR to review"
   fi
 done
+
+# Function to load review state
+load_review_state() {
+  local pr_number=$1
+  local state_file=".aidev/review-state/pr-${pr_number}.json"
+  
+  if [ -f "$state_file" ]; then
+    cat "$state_file"
+  else
+    echo "{}"
+  fi
+}
+
+# Function to save review state
+save_review_state() {
+  local pr_number=$1
+  local state_data=$2
+  local state_file=".aidev/review-state/pr-${pr_number}.json"
+  
+  echo "$state_data" > "$state_file"
+}
 ```
 
 ### 2. PR Analysis Loop
@@ -67,33 +92,56 @@ Determine which scenario applies:
 - Task remains in `queue/` with active branch
 - No further action needed
 
-#### Scenario 2: @aidev Comment in PR (User Feedback)
+#### Scenario 2: Comments in PR (User Feedback)
 **Detection**:
 - New comments exist on the PR
-- Comments start with @aidev mention
 - PR is still open
+- Comments indicate changes needed or questions asked
 
 **Action**:
 ```bash
 # Get all comments to understand full context
-# Look for comments that start with @aidev but consider all comments
+# Analyze all comments to determine if action is needed
+
+# Check if AI has already responded to this feedback
+gh api repos/{owner}/{repo}/issues/[PR_NUMBER]/comments \
+  --jq '.[] | select(.user.login == "github-actions[bot]" or .user.login == "app/github-actions") | 
+  select(.body | contains("AI Review Response") or contains("🤖 AI Generated Review"))'
 ```
 
-1. Read and categorize comments:
-   - Questions needing clarification
-   - Requested changes
-   - Approval comments
-   - General feedback
+1. **Check for existing AI responses**:
+   - If AI has already reviewed and responded to the current feedback, skip
+   - Track last processed comment ID to avoid reprocessing
+   - Only process new comments since last review
 
-2. If changes requested:
+2. **Analyze all new comments to understand intent**:
+   - Look for action words: "please", "could you", "fix", "change", "update", "need"
+   - Identify code suggestions or corrections
+   - Detect questions about implementation
+   - Recognize approval phrases: "LGTM", "looks good", "approved"
+   - Consider context and tone to determine if changes are requested
+
+3. If changes appear to be requested (and not already processed):
    - Document required changes in task file
    - Add PR context (number, branch, feedback)
    - Task already in `queue/`, ready for next-task pickup
    - Keep the PR and branch open for continued work
+   - **Post acknowledgment comment** (only if not already posted):
+     ```bash
+     gh pr comment [PR_NUMBER] --body "🤖 AI Review Response
+     
+     I've analyzed the feedback and documented the required changes.
+     The task will be picked up in the next AI development cycle.
+     
+     Changes to be addressed:
+     - [Summary of changes documented]
+     
+     Review ID: [timestamp]"
+     ```
 
-3. If only questions/clarifications:
+4. If only questions/clarifications or approvals:
    - Task remains in `queue/` with active branch
-   - Document questions for human to answer in task file
+   - Document status in task file but no action needed
 
 #### Scenario 3: New Code Commits by User (User Making Changes)
 **Detection**:
@@ -316,6 +364,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
    # Delete local and remote branch
    git branch -d [BRANCH_NAME]
    git push origin --delete [BRANCH_NAME]
+   
+   # Clean up review state for completed PR
+   rm -f .aidev/review-state/pr-[PR_NUMBER].json
    ```
 
 **Important Learning Rules**:
@@ -326,19 +377,88 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - Document the "why" behind each correction for context
 
 ### 4. Comment Processing
-**Important**: The AI reads all PR comments to understand the full context and what needs to be done.
+**Important**: The AI reads all PR comments to understand the full context and what needs to be done, while avoiding duplicate processing. The AI analyzes comment content to determine if action is needed, regardless of mentions.
 
 ```javascript
 // Get all comments without filtering
 const allComments = await gh.api(`repos/{owner}/{repo}/issues/${prNumber}/comments`);
 
-// Group by whether they mention @aidev
-const commentGroups = {
-  aidevMentions: allComments.filter(c => c.body.trim().toLowerCase().startsWith('@aidev')),
-  otherComments: allComments.filter(c => !c.body.trim().toLowerCase().startsWith('@aidev'))
-};
+// Load review state to check what's been processed
+const reviewState = loadReviewState(prNumber);
+const lastProcessedCommentId = reviewState.lastProcessedCommentId || 0;
 
-// AI can see full conversation context and understand what actions are needed
+// Filter out already processed comments
+const newComments = allComments.filter(c => c.id > lastProcessedCommentId);
+
+// Analyze comments to determine if changes are requested
+function analyzesCommentsForActionNeeded(comments) {
+  const actionIndicators = [
+    /please\s+(fix|change|update|modify|add|remove)/i,
+    /could\s+you\s+(fix|change|update|modify|add|remove)/i,
+    /needs?\s+(to|fixing|changes?|updates?)/i,
+    /should\s+(be|have|use)/i,
+    /wrong|incorrect|broken|issue|problem|bug/i,
+    /instead\s+of/i,
+    /suggestion:/i
+  ];
+  
+  const approvalIndicators = [
+    /LGTM/i,
+    /looks\s+good/i,
+    /approved?/i,
+    /ship\s+it/i,
+    /perfect/i
+  ];
+  
+  for (const comment of comments) {
+    // Check for explicit code suggestions
+    if (comment.body.includes('```suggestion') || comment.body.includes('```diff')) {
+      return { needsAction: true, type: 'code-suggestion' };
+    }
+    
+    // Check for action indicators
+    for (const pattern of actionIndicators) {
+      if (pattern.test(comment.body)) {
+        return { needsAction: true, type: 'change-request' };
+      }
+    }
+  }
+  
+  // Check if all comments are approvals
+  const hasApprovals = comments.some(c => 
+    approvalIndicators.some(pattern => pattern.test(c.body))
+  );
+  
+  return { needsAction: false, type: hasApprovals ? 'approval' : 'neutral' };
+}
+
+// Check if AI has already responded to these specific comments
+const existingAIResponses = allComments.filter(c => 
+  (c.user.login === 'github-actions[bot]' || c.user.login === 'app/github-actions') &&
+  c.body.includes('AI Review Response')
+);
+
+// Analyze new comments
+const analysis = analyzesCommentsForActionNeeded(newComments);
+
+// Determine if new response is needed
+const lastCommentTime = newComments.length > 0 ? 
+  newComments[newComments.length - 1].created_at : null;
+  
+const hasRecentAIResponse = existingAIResponses.some(response => 
+  lastCommentTime && response.created_at > lastCommentTime
+);
+
+// Process only if there are new comments that need action and no recent AI response
+if (newComments.length > 0 && analysis.needsAction && !hasRecentAIResponse) {
+  // Process comments and document changes
+  // ...
+  
+  // Update review state with latest processed comment
+  reviewState.lastProcessedCommentId = Math.max(...newComments.map(c => c.id));
+  reviewState.lastReviewTimestamp = new Date().toISOString();
+  saveReviewState(prNumber, reviewState);
+}
 ```
 
 ### 5. Task State Management
@@ -491,10 +611,21 @@ Use `aidev-review-complete` only for:
 
 ## Important Notes
 - AI reads all PR comments to understand full context
-- @aidev mentions in comments trigger specific actions
+- **AI analyzes comment content to determine if action is needed** (no @aidev mention required)
 - Tasks only move to `completed` when PR is merged with main
 - Tasks stay in `queue/` throughout the entire PR lifecycle
 - Branch existence indicates task is being worked on
 - User activity is monitored but not interfered with
 - Failed PRs (closed without merging) need special handling
-- The command is idempotent - safe to run multiple times
+- **The command is idempotent - safe to run multiple times**:
+  - Tracks processed comments to avoid duplicate reviews
+  - Checks for existing AI responses before posting new ones
+  - Maintains review state in `.aidev/review-state/` directory
+  - Only processes new activity since last review
+  - Won't post duplicate acknowledgment comments
+  - Review state persists across multiple runs
+- **Comment analysis looks for**:
+  - Action words: "please fix", "could you change", "needs update"
+  - Code suggestions in markdown blocks
+  - Problem indicators: "wrong", "broken", "issue"
+  - Approval phrases: "LGTM", "looks good", "approved"

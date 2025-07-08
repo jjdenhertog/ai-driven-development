@@ -30,6 +30,14 @@ npm run aidev-review-features
    - Read the concept from `.aidev/concept/`
    - Analyze existing source code and implemented features
    - Load all queued features from `.aidev/features/queue/`
+   - **Check for completed features**:
+     ```bash
+     # Check completed folder for merged tasks
+     find .aidev/features/completed -name "*.md" -type f 2>/dev/null || true
+     
+     # Also check git log for merged PRs if completed folder is missing
+     git log --grep="^feat: \|^fix: \|^docs: " --grep="Task: " --all --format="%s" | grep -oE "Task: [0-9]+-[a-zA-Z-]+" | sort -u
+     ```
    - Skip completed features (they're already in the codebase)
    - **Load all user preferences dynamically**:
      ```bash
@@ -65,6 +73,52 @@ npm run aidev-review-features
      - Expected outcomes
      - Integration points
      - Alignment with user preferences
+   - **Determine feature status**:
+     ```bash
+     # Function to check if task is completed
+     is_task_completed() {
+       local task_id=$1
+       
+       # Method 1: Check completed folder
+       if [ -f ".aidev/features/completed/${task_id}-*.md" ]; then
+         return 0  # Task is completed
+       fi
+       
+       # Method 2: Check git history for merged PRs
+       if git log --all --grep="Task: ${task_id}" --format="%s" | grep -q "Task: ${task_id}"; then
+         # Check if the commits are in main/master branch
+         if git log main --grep="Task: ${task_id}" --format="%s" 2>/dev/null | grep -q "Task: ${task_id}" || \
+            git log master --grep="Task: ${task_id}" --format="%s" 2>/dev/null | grep -q "Task: ${task_id}"; then
+           return 0  # Task is completed (merged to main)
+         fi
+       fi
+       
+       return 1  # Task is not completed
+     }
+     
+     # Function to check if task is in progress
+     is_task_in_progress() {
+       local task_id=$1
+       
+       # First check if completed
+       if is_task_completed "$task_id"; then
+         return 1  # Not in progress, it's completed
+       fi
+       
+       # Check for active branches
+       git fetch --prune >/dev/null 2>&1
+       if git branch -r | grep -q "origin/ai/${task_id}-"; then
+         return 0  # In progress
+       fi
+       
+       # Check for unmerged commits
+       if git log --all --grep="Task: ${task_id}" --format="%s" | grep -q "Task: ${task_id}"; then
+         return 0  # Has commits, likely in progress
+       fi
+       
+       return 1  # Not in progress
+     }
+     ```
 
 ### Phase 2: Deep Feature Analysis
 
@@ -163,10 +217,9 @@ For each queued feature, simulate the `aidev-next-task` execution:
    - Add clarifications to requirements
    - Update dependencies if needed
 
-2. **Document Changes**
-   - Create a review log in `.aidev/sessions/`
-   - Track all modifications made
-   - Note user decisions and clarifications
+2. **Track Changes**
+   - Keep track of all modifications made during the session
+   - Note user decisions and clarifications for context
 
 ### Phase 5: Re-verification
 
@@ -176,14 +229,14 @@ For each queued feature, simulate the `aidev-next-task` execution:
    - Ensure no new issues introduced
 
 2. **Final Outcome Prediction**
-   - Generate a comprehensive report showing:
+   - Output the analysis directly to the user showing:
      - How each feature contributes to the concept
      - The expected final product structure
      - Any remaining risks or uncertainties
 
 ## Output Format
 
-The command produces a detailed report:
+The command outputs the analysis directly to the console:
 
 ```
 📊 FEATURE REVIEW REPORT
@@ -247,6 +300,26 @@ The command produces a detailed report:
 - **Respects completed features**: Only analyzes queued features, assumes completed ones are correct
 - **Updates feature definitions**: Can modify feature files based on user input
 - **Creates audit trail**: Documents all changes and decisions
+- **Handles merged PRs**: Detects completed tasks even when branches are deleted after merge
+
+### Handling Merged PRs Without Branches
+
+When a PR is merged and the branch is deleted, the command will:
+
+1. **Check git history** for commits with the task ID in main/master branch
+2. **Move completed tasks** from queue to completed folder if detected:
+   ```bash
+   # If task is found in main branch but still in queue
+   if is_task_completed "$task_id" && [ -f ".aidev/features/queue/${task_file}" ]; then
+     # Create completed directory if it doesn't exist
+     mkdir -p .aidev/features/completed
+     
+     # Move the task file to completed
+     mv ".aidev/features/queue/${task_file}" ".aidev/features/completed/"
+     echo "✅ Moved completed task ${task_id} to completed folder"
+   fi
+   ```
+3. **Update task status** to reflect completion in the analysis
 
 ## Error Handling
 
@@ -302,6 +375,14 @@ Expected: MUI sx prop or CSS Modules
 Action: Update styling approach to match preferences
 ```
 
+### Scenario 7: Completed Task Still in Queue
+```
+Feature: user-authentication
+Status: Found in main branch (merged) but still in queue folder
+Action: Automatically move to completed folder and skip from analysis
+Message: ✅ Task 001-user-authentication detected as completed (merged to main)
+```
+
 ## Success Criteria
 
 The command succeeds when:
@@ -310,7 +391,7 @@ The command succeeds when:
 3. The predicted outcome matches the concept requirements
 4. User has confirmed or updated all unclear requirements
 5. All features comply with user preferences and examples
-6. A complete review report has been generated
+6. The complete analysis has been presented to the user
 
 ## Notes
 

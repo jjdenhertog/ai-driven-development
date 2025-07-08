@@ -87,11 +87,29 @@ fi
 1. Scan `.aidev/features/queue/` for all tasks
 2. Check if task is already in progress by looking for branches:
    ```bash
+   # Function to check if task has review feedback
+   has_review_feedback() {
+     local task_file=$1
+     grep -q "## Required Changes" "$task_file" || grep -q "## PR Context" "$task_file"
+   }
+   
    # Function to check if task is in progress
    is_task_in_progress() {
      local task_id=$1
+     local task_file=$2
      git fetch --prune  # Ensure we have latest branch info
-     git branch -r | grep -q "origin/ai/${task_id}-"
+     
+     # Check if branch exists
+     if git branch -r | grep -q "origin/ai/${task_id}-"; then
+       # Branch exists, but check if it has review feedback
+       if has_review_feedback "$task_file"; then
+         return 1  # Not in progress (has feedback, ready for work)
+       else
+         return 0  # In progress (no feedback yet)
+       fi
+     else
+       return 1  # No branch, not in progress
+     fi
    }
    ```
 3. For each task, check dependencies:
@@ -114,14 +132,20 @@ fi
    }
    ```
 4. Select the lowest numbered task that:
-   - Is not already in progress (no branch exists)
+   - Is not already in progress (no branch exists OR has review feedback)
    - Has all dependencies satisfied
 5. If no tasks are ready, show status of blocked tasks:
    ```
    ❌ No tasks ready for execution
    
-   In Progress:
+   In Progress (no feedback):
    - 002-layout-system (branch: ai/002-layout-system)
+   
+   Awaiting Review:
+   - 005-api-integration (branch: ai/005-api-integration) - PR #25
+   
+   Ready for Changes:
+   - 006-dashboard-widgets (branch: ai/006-dashboard-widgets) - Has review feedback
    
    Blocked tasks:
    - 003-api-endpoints: Waiting for [001-user-authentication]
@@ -797,6 +821,12 @@ Output when dependencies not met:
 🤖 Checking for next available task...
 ❌ No tasks ready for execution
 
+In Progress (awaiting review):
+- 001-user-authentication (PR #23)
+
+Ready for Changes:
+- 002-layout-system (PR #24) - Review feedback available
+
 Blocked tasks:
 - 003-api-endpoints: Waiting for [001-user-authentication]
 - 004-dashboard: Waiting for [002-layout-system, 003-api-endpoints]
@@ -833,6 +863,22 @@ Output for feature task (normal):
 ✅ Task complete! PR ready for review.
 ```
 
+Output for task with review feedback:
+```
+🤖 Starting next task...
+📋 Selected: 002-layout-system (with review feedback)
+🔄 Existing PR #24 found - addressing feedback
+✅ All dependencies satisfied
+🔍 Loading patterns and context...
+📝 Reading review feedback...
+🔨 Implementing requested changes...
+  ✓ Replaced Tailwind with Material-UI
+  ✓ Updated component styling
+  ✓ All tests passing
+💬 Pushing changes to existing PR #24
+✅ Review feedback addressed! PR updated.
+```
+
 Output for instruction task:
 ```
 🤖 Starting next task...
@@ -857,7 +903,8 @@ Output for instruction task:
 - Check browser console for errors/warnings before creating PR
 - Task state is determined by:
   - **Available**: File in `queue/`, no branch exists
-  - **In Progress/Review**: File in `queue/`, branch exists
+  - **In Progress/Review**: File in `queue/`, branch exists, no review feedback
+  - **Ready for Changes**: File in `queue/`, branch exists, has review feedback
   - **Completed**: File in `completed/` (ONLY after PR is merged - NEVER done by AI)
 - **CRITICAL RULE**: AI must NEVER move tasks from queue to completed folder
 - Tasks are moved to completed ONLY when the PR is merged to main branch
