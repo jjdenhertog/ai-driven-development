@@ -5,7 +5,7 @@ An intelligent development workflow that learns from your corrections and improv
 ## Quick Start
 
 ```bash
-npm install -g ai-driven-dev
+npm install -g @jjdenhertog/ai-driven-development
 cd your-project
 aidev init
 ```
@@ -66,6 +66,32 @@ Create your project concept document in `.aidev/concept/`:
 - Shopping cart and checkout
 - Order management
 - Admin dashboard
+```
+
+### 2. Generate Feature Tasks
+
+```bash
+aidev generate-project  # Breaks concept into actionable tasks
+```
+
+### 3. Execute Tasks with Automation
+
+```bash
+aidev execute           # Execute next available task
+aidev execute 001       # Execute specific task ID
+```
+
+### 4. Complete Implementation
+
+```bash
+aidev complete 001      # Commit, validate, and create PR
+```
+
+### 5. Monitor Progress
+
+```bash
+aidev status           # View all task statuses
+aidev monitor          # Watch for merged PRs and capture learning
 
 ## Technical Stack
 - Next.js with App Router

@@ -1,0 +1,11 @@
+{
+    "id": "100",
+    "name": "pattern-error-handling",
+    "type": "pattern",
+    "dependencies": [
+        "001-setup-nextjs-project"
+    ],
+    "estimated_lines": 200,
+    "priority": "high",
+    "status": "pending"
+}

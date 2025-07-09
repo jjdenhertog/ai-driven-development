@@ -125,3 +125,6 @@ pm2 monit
 - Configure reverse proxy (nginx/Apache) - see task 016
 - Set up SSL certificates - see task 017
 - Configure monitoring and alerts - see task 018
+
+## Testing Requirements
+**Note**: Instruction tasks do not require automated tests as they involve manual system configuration steps. The acceptance criteria serve as the verification checklist.

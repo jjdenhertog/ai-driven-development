@@ -1,0 +1,13 @@
+{
+    "id": "004",
+    "name": "setup-database",
+    "type": "feature",
+    "dependencies": ["003-install-dependencies", "002-setup-environment-config"],
+    "estimated_lines": 200,
+    "priority": "critical",
+    "status": "completed",
+    "branch": "004-setup-database",
+    "started_at": "2025-07-09T12:00:00Z",
+    "completed_at": "2025-07-09T12:00:00Z",
+    "pr_url": "https://github.com/aidev-ai/aidev/pull/1"
+}

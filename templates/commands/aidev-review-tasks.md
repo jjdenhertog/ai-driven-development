@@ -1,11 +1,21 @@
 ---
-description: "Reviews all tasks with active PRs and manages their lifecycle based on PR activity"
+description: "DEPRECATED: Use 'aidev monitor' command instead"
 allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task", "TodoRead", "TodoWrite"]
 ---
 
 # Command: aidev-review-tasks
 
-## Purpose
+## ⚠️ DEPRECATED
+
+**This command is deprecated.** Use the new automation command instead:
+
+```bash
+aidev monitor --auto-process
+```
+
+The automation provides the same functionality with better integration and real-time monitoring.
+
+## Legacy Purpose
 Automatically reviews all tasks that have active pull requests by checking their branches and PR status on GitHub. Manages task state transitions based on PR activity, user comments, and merge status. In the new simplified system, tasks remain in `queue/` until their PR is merged, then move to `completed/`.
 
 ## Process

@@ -1,0 +1,9 @@
+{
+    "id": "100",
+    "name": "pattern-testing",
+    "type": "pattern",
+    "dependencies": ["002-setup-testing-framework"],
+    "estimated_lines": 200,
+    "priority": "high",
+    "status": "pending"
+}

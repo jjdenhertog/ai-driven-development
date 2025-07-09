@@ -384,6 +384,46 @@ npm run format        # Prettier formatting
 - [ ] No commented-out code blocks
 - [ ] No TODO comments without tickets
 
+#### Development Toolchain Validation
+```bash
+# Test that the commit process works without errors
+echo "Validating commit process and git hooks..."
+
+# Create a simple test file that should pass all checks
+TEST_FILE=".test-commit-validation.tmp"
+cat > "$TEST_FILE" << 'EOF'
+// Test file for commit validation
+export const testValue = 42;
+EOF
+
+# Try to commit the test file
+git add "$TEST_FILE" 2>/dev/null
+
+# Attempt a test commit - this will run all hooks
+if git commit -m "test: validate commit hooks" --dry-run > /tmp/commit-test.log 2>&1; then
+  echo "✓ Commit process working correctly"
+  COMMIT_WORKS=true
+else
+  echo "❌ Commit process failed - check hooks configuration"
+  echo "Error output:"
+  cat /tmp/commit-test.log
+  COMMIT_WORKS=false
+fi
+
+# Clean up
+git reset HEAD "$TEST_FILE" 2>/dev/null
+rm -f "$TEST_FILE" /tmp/commit-test.log
+
+# Exit with error if commit process failed
+if [ "$COMMIT_WORKS" = "false" ]; then
+  echo "ERROR: Git hooks are blocking commits. Fix hook configuration before proceeding."
+  exit 1
+fi
+```
+- [ ] Commit process executes successfully
+- [ ] Git hooks don't block valid commits
+- [ ] All commit validations pass
+
 #### Incremental Build Validation
 ```bash
 npm run build
@@ -393,20 +433,27 @@ npm run build
 - [ ] No new build warnings introduced
 - [ ] Bundle size within acceptable limits
 
-#### Continuous Test Execution
+#### Continuous Test Execution (Conditional)
 ```bash
-# Run tests frequently during development
-npm run test          # Run ALL tests to catch regressions early
-npm run test:watch    # If available, keep tests running
-
-# After implementing each component/function:
-# 1. Write its tests immediately
-# 2. Run ALL tests to ensure nothing broke
-# 3. Only proceed if all tests pass
+# Check if testing is available first
+if grep -q '"test"' package.json; then
+  # Run tests frequently during development
+  npm run test          # Run ALL tests to catch regressions early
+  npm run test:watch    # If available, keep tests running
+  
+  # After implementing each component/function:
+  # 1. Write its tests immediately
+  # 2. Run ALL tests to ensure nothing broke
+  # 3. Only proceed if all tests pass
+else
+  echo "No testing infrastructure - skipping test execution"
+  # Document what tests would be created
+fi
 ```
-- [ ] New feature tests written and passing
-- [ ] All existing tests still passing (regression check)
-- [ ] No decrease in test coverage
+- [ ] New feature tests written and passing (if testing available)
+- [ ] All existing tests still passing (if testing available)
+- [ ] No decrease in test coverage (if testing available)
+- [ ] If no testing: Document test scenarios for future
 
 ### Phase 2: Fresh Perspective Self-Validation
 **After completing each major component:**
@@ -445,16 +492,18 @@ npm run test:watch    # If available, keep tests running
    - Return to Phase 2 with fresh perspective
    - Continue loop until no critical issues remain
 
-### Phase 4: Integration Testing
+### Phase 4: Integration Testing (Conditional)
 ${IF_TESTS_NEEDED}
-**CRITICAL: Tests protect your feature from future regressions!**
+**IMPORTANT: Tests protect your feature from future regressions (when available)**
 
-#### Test Creation Requirements
+#### Test Creation Requirements (if testing infrastructure exists)
 - Create tests in co-located test files (e.g., `Component.test.tsx` next to `Component.tsx`)
 - Achieve minimum 80% coverage for new code
 - Test happy path, edge cases, and error states
 - Tests must be deterministic (no flaky tests)
 - Tests become part of the regression suite for future features
+
+**Note**: If no testing infrastructure exists, document what tests should be created
 
 #### What to Test
 1. **Unit Tests**: Individual functions and components in isolation
@@ -898,23 +947,28 @@ Future Improvements:
 
 ## ⚠️ Important Reminders
 
-### 🚨 CRITICAL: Comprehensive Testing is MANDATORY
-**You MUST complete ALL validation phases before considering the task complete:**
-1. **Automated Testing**: ESLint, TypeScript, unit tests MUST all pass with ZERO errors
-2. **Regression Testing**: ALL existing tests must continue to pass - no breaking changes!
-3. **New Test Creation**: Write tests for your feature that will catch future regressions
-4. **Browser Testing**: ALWAYS run `npm run dev` and test UI features in the browser
-5. **Security Validation**: Check for exposed secrets, XSS vulnerabilities, etc.
-6. **API Optimization**: Ensure no duplicate calls, proper caching, efficient queries
-7. **Performance Testing**: Lighthouse scores, bundle size, no memory leaks
+### 🚨 CRITICAL: Test-Driven Development is MANDATORY
+**You MUST follow TDD practices for all features:**
+1. **Test Creation**: Write tests BEFORE or WITH implementation
+2. **Test Coverage**: Achieve 80%+ coverage for all new code
+3. **Test Types**: Include unit, component, integration, and E2E tests
+4. **Automated Testing**: ALL validation through automated tests
+5. **No Manual Testing**: E2E tests replace manual browser checks
+6. **Regression Prevention**: Your tests protect against future breaks
 
-**⚠️ REGRESSION TESTING IS NON-NEGOTIABLE:**
-- Running `npm run test` executes ALL tests in the codebase
-- If ANY test fails, your changes broke existing functionality
-- You MUST fix the regression before proceeding
-- Your new tests will protect future developers from breaking YOUR feature
+**⚠️ TEST-FIRST APPROACH:**
+- Create test files alongside feature files
+- Write failing tests to define behavior
+- Implement code to make tests pass
+- Refactor with confidence (tests ensure nothing breaks)
+- ALL tests must pass before task completion
 
-**DO NOT declare the task complete until ALL validation phases show ✅ status!**
+**🚀 BENEFITS:**
+- 100% confidence in code functionality
+- Faster development (less debugging)
+- Better code design (testable = modular)
+- Documentation through test examples
+- Regression protection for future changes
 
 ### Key Principles
 - Follow the project's established patterns and conventions
@@ -967,25 +1021,27 @@ Track:
 ## 📋 Final Validation Checklist
 
 ### Automated Checks (MUST ALL PASS)
-- [ ] All tests pass: `npm run test`
+- [ ] All unit/component tests pass: `npm run test`
+- [ ] All E2E tests pass: `npm run test:e2e`
+- [ ] Test coverage ≥ 80%: `npm run test:coverage`
 - [ ] No linting errors: `npm run lint`
 - [ ] No type errors: `npm run type-check`
 - [ ] Build succeeds: `npm run build`
-- [ ] Test coverage meets threshold: `npm run test:coverage`
 
-### Browser Testing (CRITICAL for UI features)
-- [ ] Dev server runs without errors: `npm run dev`
-- [ ] No console errors or warnings in browser
-- [ ] All interactive features work as expected
-- [ ] Forms validate and submit correctly
-- [ ] Error states display properly
-- [ ] Loading states appear during async operations
-- [ ] Responsive design works on all viewports
+### Test Quality Checklist
+- [ ] Tests are readable and maintainable
+- [ ] Tests focus on behavior, not implementation
+- [ ] No hardcoded values in tests
+- [ ] Proper test isolation (no shared state)
+- [ ] Good test descriptions
+- [ ] Edge cases covered
+- [ ] Error scenarios tested
 
 ### Quality Standards
-- [ ] Accessibility: Proper ARIA labels and semantic HTML
-- [ ] Performance: Bundle size optimized
-- [ ] SEO: Proper meta tags and structure
-- [ ] Security: No exposed secrets or vulnerabilities
-- [ ] API calls are efficient and optimized
-- [ ] Works with JavaScript disabled (if SSR)
+- [ ] Test-Driven: Tests written before/with code
+- [ ] Coverage: 80%+ for new code
+- [ ] Accessibility: Tested with E2E tests
+- [ ] Performance: Verified through tests
+- [ ] Security: No exposed secrets in tests or code
+- [ ] API efficiency: Tested for optimization
+- [ ] Error handling: All paths tested

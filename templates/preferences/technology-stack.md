@@ -28,7 +28,6 @@ This guide defines the technology choices and implementation patterns for Next.j
   "react-hook-form": "latest",
   "@hookform/resolvers": "latest",
   "zod": "latest",
-  "zustand": "latest",
   "redis": "latest",
   "@sentry/nextjs": "latest",
   "@types/node": "latest",
@@ -64,56 +63,86 @@ const theme = createTheme({
 })
 ```
 
-### State Management: Zustand + Server Components
-Use Zustand for client-side state management and Server Components for data fetching.
+### State Management: Context API + Server Components
+Use React Context API for client-side state management and Server Components for data fetching.
 
 ```typescript
-// stores/useAppStore.ts - Main app store
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+// contexts/AppContext.tsx - Main app context
+'use client';
+
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AppState {
-    // State
     user: User | null;
     sidebarOpen: boolean;
     theme: 'light' | 'dark';
-    
-    // Actions
+}
+
+interface AppContextType extends AppState {
     setUser: (user: User | null) => void;
     toggleSidebar: () => void;
     setTheme: (theme: 'light' | 'dark') => void;
 }
 
-export const useAppStore = create<AppState>()(
-    devtools(
-        persist(
-            immer((set) => ({
-                // Initial state
-                user: null,
-                sidebarOpen: true,
-                theme: 'dark',
-                
-                // Actions
-                setUser: (user) => set((state) => {
-                    state.user = user;
-                }),
-                
-                toggleSidebar: () => set((state) => {
-                    state.sidebarOpen = !state.sidebarOpen;
-                }),
-                
-                setTheme: (theme) => set((state) => {
-                    state.theme = theme;
-                }),
-            })),
-            {
-                name: 'app-store',
-                partialize: (state) => ({ theme: state.theme }), // Only persist theme
-            }
-        )
-    )
-);
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+    // Load persisted theme from localStorage
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark' | null;
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+    }, []);
+
+    // Persist theme changes
+    useEffect(() => {
+        localStorage.setItem('app-theme', theme);
+    }, [theme]);
+
+    const toggleSidebar = () => {
+        setSidebarOpen(prev => !prev);
+    };
+
+    const value: AppContextType = {
+        user,
+        sidebarOpen,
+        theme,
+        setUser,
+        toggleSidebar,
+        setTheme,
+    };
+
+    return (
+        <AppContext.Provider value={value}>
+            {children}
+        </AppContext.Provider>
+    );
+}
+
+export function useAppContext() {
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error('useAppContext must be used within AppProvider');
+    }
+    return context;
+}
+
+// Usage in components
+export function MyComponent() {
+    const { user, theme, toggleSidebar } = useAppContext();
+    
+    return (
+        <div>
+            <button onClick={toggleSidebar}>Toggle Sidebar</button>
+            <p>Current theme: {theme}</p>
+        </div>
+    );
+}
 ```
 
 ### Data Fetching: React Query (TanStack Query)
@@ -493,7 +522,7 @@ export async function rateLimit(
 
 When building Next.js applications, use these specific technologies:
 
-1. **State Management** - Zustand for client state, Server Components for server state
+1. **State Management** - React Context API for client state, Server Components for server state
 2. **Form Handling** - React Hook Form with Zod validation
 3. **Data Fetching** - React Query (TanStack Query) for client-side
 4. **Router** - App Router with Server Components

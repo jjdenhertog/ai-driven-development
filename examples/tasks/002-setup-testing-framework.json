@@ -1,0 +1,9 @@
+{
+    "id": "002",
+    "name": "setup-testing-framework",
+    "type": "feature",
+    "dependencies": ["001-setup-nextjs-project"],
+    "estimated_lines": 150,
+    "priority": "critical",
+    "status": "pending"
+}

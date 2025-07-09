@@ -1,11 +1,24 @@
 ---
-description: "Captures human corrections and updates AI learning patterns"
+description: "MOSTLY REPLACED by 'aidev monitor' - Manual learning capture for edge cases"
 allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task"]
 ---
 
 # Command: aidev-review-complete
 
-## Purpose
+## ⚠️ MOSTLY REPLACED
+
+**This command is mostly replaced by the new automation:**
+
+```bash
+aidev monitor --auto-process
+```
+
+The automation automatically captures learning from merged PRs. This command is now only needed for edge cases:
+- Manual learning capture for specific PRs that need re-analysis
+- Debugging automated learning capture
+- Special cases where automation failed
+
+## Legacy Purpose
 Manually analyzes the differences between AI-generated code and human corrections to capture learning patterns and improve future implementations. This command can be used for any task that has an active pull request (branch exists).
 
 **Note**: This command is typically not needed if you're using `aidev-review-tasks`, which automatically captures learning when PRs are merged. Use this command for:

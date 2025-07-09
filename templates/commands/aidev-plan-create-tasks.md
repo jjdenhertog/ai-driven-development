@@ -3,7 +3,7 @@ description: "Generates task specifications from the project concept document, i
 allowed-tools: ["Read", "Write", "Glob", "Edit", "MultiEdit", "Task", "TodoRead", "TodoWrite"]
 ---
 
-# Command: aidev-generate-project
+# Command: aidev-plan-create-tasks
 
 ## Purpose
 Analyzes concept documents in the `.aidev/concept/` directory and breaks them down into individual task specifications that can be implemented incrementally. This includes setup tasks, infrastructure patterns, and feature implementations.
@@ -29,6 +29,9 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
   - Preferences may include (but not limited to):
     - Technology stack, API patterns, component patterns
     - Styling approaches, state management, folder structure
+    - **Testing strategy and frameworks** (testing.md):
+      - If found: Use specified testing framework
+      - If not found: Default to Vitest + RTL + Playwright
     - Custom conventions, coding standards, etc.
   - New preference files can be added anytime and will be included
   - All found preferences should be applied to task generation
@@ -40,6 +43,11 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 - **Assess current project state**:
   - Check what files exist in the directory (package.json, tsconfig.json, etc.)
   - Analyze package.json dependencies if it exists
+  - **Check for testing framework**:
+    - Look for test scripts in package.json (test, test:watch, test:e2e)
+    - Check for testing config files (jest.config.js, vitest.config.js, playwright.config.ts)
+    - Scan for testing libraries in dependencies (@testing-library/*, jest, vitest, playwright)
+    - If no testing found, flag for setup task creation
   - Identify what framework/tools are already set up
   - Determine what's missing for the concept requirements
   - Make intelligent decisions about what setup tasks are needed
@@ -82,6 +90,13 @@ Organize tasks by priority and dependencies:
 - **Gap Analysis Tasks** - Based on what's missing vs what's needed:
   - Project initialization (if no package.json exists)
   - Framework setup (if concept needs Next.js but it's not installed)
+  - **Testing framework setup** (CRITICAL - if no testing detected):
+    - Install test runner (Vitest recommended for Next.js)
+    - Install React Testing Library
+    - Install Playwright for E2E testing
+    - Configure test scripts in package.json
+    - Create test configuration files
+    - Set up test utilities and helpers
   - Missing dependencies (if concept needs NextAuth but it's not in package.json)
   - Environment setup (if .env files don't exist but are needed) - **Use type: "instruction"**
   - Database setup (if concept needs database but no Prisma/DB setup found)
@@ -113,13 +128,32 @@ Organize tasks by priority and dependencies:
 - Nice-to-have features
 - **Only if explicitly mentioned in concept**
 
-### 4. Task Specification Template
-Use the template from `.aidev/templates/feature-specification-template.md` to create each task specification. The template includes sections for:
+### 4. Task Specification Creation
+For each task, create two files:
+
+#### 4.1 Task Specification (.md file)
+Use the template from `.aidev/templates/task-specification-template.md` to create each task specification. The template includes sections for:
 - Metadata (id, name, type, dependencies, etc.)
 - Overview and objectives
 - Technical requirements and acceptance criteria
 - Implementation notes and examples to reference
 - Documentation links and potential gotchas
+
+#### 4.2 Status Tracking (.json file)
+Create a corresponding JSON file for each task with the initial status:
+```json
+{
+    "id": "<extracted-from-md-frontmatter>",
+    "name": "<extracted-from-md-frontmatter>",
+    "type": "<extracted-from-md-frontmatter>",
+    "dependencies": [<extracted-from-md-frontmatter>],
+    "estimated_lines": <extracted-from-md-frontmatter>,
+    "priority": "<extracted-from-md-frontmatter>",
+    "status": "pending"
+}
+```
+
+**Important**: The JSON values must exactly match the frontmatter values from the corresponding .md file.
 
 **Incorporating Preferences and Examples**:
 Each task specification should explicitly reference:
@@ -153,10 +187,13 @@ Only create these if the concept requires them:
   - Global error boundaries
   - API error response format
   - User-friendly error messages
-- **Testing Pattern** (if TDD or complex testing needed)
-  - Test file structure
-  - Mock data patterns
-  - Integration test setup
+- **Testing Pattern** (ALWAYS create if testing framework exists or will be set up):
+  - Test file structure and co-location
+  - Component testing patterns with RTL
+  - E2E testing patterns with Playwright
+  - Mock data factories and MSW setup
+  - Test utilities and custom renders
+  - Note: Only skip if project explicitly opts out of testing
 - **Database Migration Pattern** (if using Prisma/database)
   - Migration workflow
   - Seed data approach
@@ -181,23 +218,32 @@ For setup tasks that require user input, clearly specify:
 - List all required environment variables with descriptions
 
 Refer to:
-- `.aidev/templates/feature-specification-example.md` for feature task examples
+- `.aidev/templates/task-specification-example.md` for feature task examples
 - `.aidev/templates/instruction-specification-example.md` for instruction task examples
 
 ### 5. Output Structure
-Create files in `.aidev/features/queue/` with sequential numbering:
+Create files in `.aidev/tasks/` with sequential numbering. Each task consists of two files:
+- `.md` file: The task specification
+- `.json` file: The initial status tracking
 
 **Example structure (actual numbers will vary based on project needs):**
 ```
-.aidev/features/queue/
+.aidev/tasks/
 # Only create tasks that are actually needed!
-├── 001-setup-environment.md          # If env vars needed
-├── 002-setup-database.md             # If database used
-├── 003-install-dependencies.md       # If special deps needed
-├── 100-pattern-component.md          # If creating UI
-├── 101-pattern-api.md               # If creating APIs
-├── 200-feature-user-authentication.md # Core feature
-├── 201-feature-dashboard.md          # Core feature
+├── 001-setup-environment.md          # Task specification
+├── 001-setup-environment.json        # Status tracking
+├── 002-setup-database.md             
+├── 002-setup-database.json          
+├── 003-install-dependencies.md       
+├── 003-install-dependencies.json     
+├── 100-pattern-component.md          
+├── 100-pattern-component.json        
+├── 101-pattern-api.md               
+├── 101-pattern-api.json             
+├── 200-feature-user-authentication.md 
+├── 200-feature-user-authentication.json
+├── 201-feature-dashboard.md          
+├── 201-feature-dashboard.json        
 └── ... (only what's needed)
 ```
 
@@ -207,7 +253,20 @@ Create files in `.aidev/features/queue/` with sequential numbering:
 - Include features not in the concept
 - Pad the task list unnecessarily
 
-Each file should follow the structure defined in `.aidev/templates/feature-specification-template.md`
+Each `.md` file should follow the structure defined in `.aidev/templates/task-specification-template.md`
+
+Each `.json` file should contain the initial status tracking with this structure:
+```json
+{
+    "id": "<task-id>",
+    "name": "<task-name>",
+    "type": "<task-type>",
+    "dependencies": ["<dependency-ids>"],
+    "estimated_lines": <number>,
+    "priority": "<priority-level>",
+    "status": "pending"
+}
+```
 
 **Important**: Use descriptive prefixes in task names:
 - `setup-` for environment and configuration tasks
@@ -283,7 +342,7 @@ Create a comprehensive summary showing:
 
 ## Example Usage
 ```bash
-claude /aidev-generate-project
+claude /aidev-plan-project
 ```
 
 This will:
@@ -292,9 +351,42 @@ This will:
 3. Generate ONLY necessary setup tasks
 4. Generate ONLY required pattern tasks
 5. Generate ONLY features mentioned in concept
-6. Perform self-validation with fresh perspective
-7. Self-correct any identified issues
-8. Output a comprehensive validation report
+6. Create both .md and .json files for each task in `.aidev/tasks/`
+7. Perform self-validation with fresh perspective
+8. Self-correct any identified issues
+9. Output a comprehensive validation report
+
+### Example Task Creation
+When creating a task like "001-setup-nextjs-project", the command will generate:
+
+**File 1: `.aidev/tasks/001-setup-nextjs-project.md`**
+```markdown
+---
+id: "001"
+name: "setup-nextjs-project"
+type: "feature"
+dependencies: []
+estimated_lines: 100
+priority: "critical"
+---
+
+# Setup: Initialize Next.js Project
+
+[Rest of task specification content...]
+```
+
+**File 2: `.aidev/tasks/001-setup-nextjs-project.json`**
+```json
+{
+    "id": "001",
+    "name": "setup-nextjs-project",
+    "type": "feature",
+    "dependencies": [],
+    "estimated_lines": 100,
+    "priority": "critical",
+    "status": "pending"
+}
+```
 
 ### Workflow Output Example
 
@@ -325,20 +417,27 @@ Example:
 🔍 Assessing current project state...
   - No package.json found - need to initialize project
   - No Next.js framework detected
+  - No testing framework detected - will set up Vitest + RTL + Playwright
   - No database configuration found
   - Concept requires: Next.js, NextAuth, Prisma, MUI
-  - Preferences indicate: CSS Modules styling, Zustand for state
+  - Preferences indicate: CSS Modules styling, Zustand for state, TDD approach
   - Examples show: Form validation patterns, API structure
 
 📝 Generating task specifications based on gaps...
-  ✓ Created 001-setup-nextjs-project.md (no project exists)
+  ✓ Created 001-setup-nextjs-project.md and .json (no project exists)
     → Will follow folder structure from preferences
-  ✓ Created 002-install-dependencies.md (NextAuth, Prisma not installed)
+  ✓ Created 002-setup-testing-framework.md and .json (no testing detected)
+    → Vitest + React Testing Library + Playwright
+    → Includes test scripts and configuration
+  ✓ Created 003-install-dependencies.md and .json (NextAuth, Prisma not installed)
     → Includes Zustand per state management preference
-  ✓ Created 003-setup-database.md (Prisma not configured)
-  ✓ Created 2 pattern tasks
+  ✓ Created 004-setup-database.md and .json (Prisma not configured)
+  ✓ Created 100-pattern-testing.md and .json (test patterns)
+    → Test structure, utilities, mock strategies
+  ✓ Created 2 other pattern tasks (both .md and .json files)
     → Using component examples as reference
-  ✓ Created 5 feature tasks
+  ✓ Created 5 feature tasks (both .md and .json files)
+    → Each includes specific test requirements
     → Each references relevant examples and preferences
 
 🔍 Performing self-validation (fresh perspective)...
@@ -352,9 +451,10 @@ Example:
   - Incorrect: 002-setup-environment-config.md has type "feature" but should be "instruction"
 
 🔧 Self-correcting (Iteration 1)...
-  ✓ Added 001-setup-database-migrations.md
+  ✓ Added 001-setup-database-migrations.md and .json
   ✓ Reordered auth pattern before user features
   ✓ Changed 002-setup-environment-config.md from type "feature" to "instruction"
+  ✓ Updated 002-setup-environment-config.json with correct type
 
 🔍 Re-validating after corrections...
   - Checking all tasks again
@@ -365,7 +465,7 @@ Example:
   - Missing: Error boundary pattern for frontend
 
 🔧 Self-correcting (Iteration 2)...
-  ✓ Added 103-pattern-error-boundary.md
+  ✓ Added 103-pattern-error-boundary.md and .json
 
 🔍 Re-validating after corrections...
   - All requirements met
@@ -378,16 +478,18 @@ Example:
 ═══════════════════════════════════════════
 Total Tasks: 12 (minimal, focused set)
 
-Prerequisites & Setup (4 tasks):
+Prerequisites & Setup (5 tasks):
   • 001-setup-environment.md - Required for configuration
-  • 002-setup-database-migrations.md - Added during validation
-  • 003-setup-authentication.md - NextAuth configuration
-  • 004-install-dependencies.md - Special packages needed
+  • 002-setup-testing-framework.md - Vitest + RTL + Playwright setup
+  • 003-setup-database-migrations.md - Added during validation
+  • 004-setup-authentication.md - NextAuth configuration
+  • 005-install-dependencies.md - Special packages needed
 
-Infrastructure & Patterns (3 tasks):
-  • 100-pattern-component.md - UI component structure
-  • 101-pattern-api.md - API endpoint patterns
-  • 102-pattern-auth.md - Authentication patterns
+Infrastructure & Patterns (4 tasks):
+  • 100-pattern-testing.md - Test structure and utilities
+  • 101-pattern-component.md - UI component structure
+  • 102-pattern-api.md - API endpoint patterns
+  • 103-pattern-auth.md - Authentication patterns
 
 Features & Functionality (5 tasks):
   • 200-feature-user-registration.md - Core auth feature
@@ -412,27 +514,19 @@ Risk Assessment: Low - all dependencies identified and ordered correctly.
 - Pattern files should come after basic setup but before features
 - Tasks with dependencies should be numbered after their dependencies
 - Keep tasks focused - if too large, split into sub-tasks
-- The term "features" in the directory name includes ALL tasks, not just user-facing features
+- All tasks remain in the `.aidev/tasks/` directory regardless of status
 
 ## Intelligent Project Assessment
 The command performs smart gap analysis by:
 - **Checking existing files**: package.json, tsconfig.json, .env files, etc.
 - **Analyzing dependencies**: What's already installed vs what concept needs
+- **Detecting testing setup**: Test scripts, testing frameworks, test configurations
 - **Detecting frameworks**: Is this already a Next.js project? React? Something else?
-- **Finding configurations**: Database setup, auth setup, build tools
-- **Creating only needed tasks**: If NextAuth exists, don't create "install NextAuth" task
-- **Proper sequencing**: If no project exists, first task creates it; if project exists but lacks dependencies, first task installs them
+- **Finding configurations**: Database setup, auth setup, build tools, test runners
+- **Creating only needed tasks**: For example: If Vitest exists, don't create "setup testing" task
+- **Proper sequencing**: If no project exists, first task creates it; if project exists but lacks testing, early task sets it up
 
 This ensures tasks are always appropriate for the current state, not based on assumptions.
-
-## Relationship to Check Commands
-This command focuses on **establishing patterns proactively**. The check commands handle **fixing issues reactively**:
-- `aidev-generate-project`: Creates pattern tasks for error handling, testing, etc. if needed
-- `aidev-check-errors`: Fixes linting, TypeScript, test failures after implementation
-- `aidev-check-security`: Fixes security vulnerabilities after implementation
-- `aidev-check-api-database`: Optimizes API/database usage after implementation
-
-**Philosophy**: It's better to establish critical patterns upfront than to retrofit them later.
 
 ## Task Creation Guidelines
 **CRITICAL**: Only create tasks that are:
@@ -458,212 +552,3 @@ This command focuses on **establishing patterns proactively**. The check command
 - Document what each credential is for
 - Include links to obtain real credentials
 - Mark sensitive fields clearly
-
-## Example Task Content
-
-### Example Project Initialization Task
-For starting from an empty directory:
-```markdown
----
-id: "001"
-name: "setup-nextjs-project"
-type: "feature"
-dependencies: []
-estimated_lines: 50
-priority: "critical"
----
-
-# Setup: Initialize Next.js Project
-
-## Overview
-Create a new Next.js 14+ project with TypeScript, App Router, ESLint, and the required UI framework.
-
-## Technical Requirements
-1. Run Next.js create command with appropriate flags
-2. Select TypeScript, ESLint, App Router options
-3. Install additional dependencies (Prisma, NextAuth, etc.)
-4. Configure TypeScript for strict mode
-5. Set up project structure according to patterns
-
-## Implementation Guidelines
-
-### Preferences to Follow
-- **All Preferences**: Apply all preferences found in `.aidev/preferences/*.md` files
-- **Dynamic Loading**: Preferences are loaded dynamically from all .md files
-- **Adaptive Implementation**: Follow whichever preferences apply to this task
-
-### Example References
-- See `.aidev/examples/components/` for component structure patterns
-- Review `.aidev/examples/api/` for API route organization
-
-## Acceptance Criteria
-- [ ] Next.js project created with TypeScript
-- [ ] App Router enabled with folder structure matching preferences
-- [ ] ESLint configured
-- [ ] CSS Modules configured per styling preferences
-- [ ] Basic folder structure established per `.aidev/preferences/folder-structure.md`
-- [ ] Package.json includes dependencies from technology stack preferences
-- [ ] TypeScript configured with strict mode
-```
-
-### Example Environment Configuration Task (Instruction)
-For tasks requiring user configuration, use `type: "instruction"`:
-```markdown
----
-id: "002"
-name: "setup-environment-config"
-type: "instruction"
-dependencies: ["001-setup-nextjs-project"]
-estimated_lines: 0
-priority: "critical"
----
-
-# Setup: Environment Configuration
-
-## Overview
-Create environment configuration files with placeholders for all required secrets and configuration values.
-
-## Technical Requirements
-1. Create `.env.local` file with the following variables:
-   ```
-   # Database Configuration
-   DATABASE_URL="<YOUR_DATABASE_CONNECTION_STRING>"
-   # Example: postgresql://user:password@localhost:5432/dbname
-   
-   # Authentication Secrets
-   NEXTAUTH_SECRET="<GENERATE_RANDOM_SECRET>"
-   # Generate with: openssl rand -base64 32
-   
-   # OAuth Providers (if applicable)
-   GOOGLE_CLIENT_ID="<YOUR_GOOGLE_CLIENT_ID>"
-   GOOGLE_CLIENT_SECRET="<YOUR_GOOGLE_CLIENT_SECRET>"
-   # Obtain from: https://console.cloud.google.com/
-   ```
-
-2. Document each variable in a README or setup guide
-3. Add `.env.local` to `.gitignore` if not already present
-4. Create `.env.example` with the same structure but placeholder values
-```
-
-### Example Instruction Task
-For tasks requiring user to perform system-level setup:
-```markdown
----
-id: "015"
-name: "configure-pm2-windows"
-type: "instruction"
-dependencies: ["004-install-dependencies"]
-estimated_lines: 0
-priority: "high"
----
-
-# Configure PM2 for Windows Production
-
-## Overview
-Set up PM2 process manager on Windows 11 for production deployment with auto-restart capabilities.
-
-## User Actions Required
-1. Install PM2 globally:
-   ```powershell
-   npm install -g pm2
-   npm install -g pm2-windows-startup
-   ```
-
-2. Configure PM2 startup on Windows:
-   ```powershell
-   pm2-startup install
-   ```
-
-3. Create ecosystem config file `ecosystem.config.js`:
-   ```javascript
-   module.exports = {
-     apps: [{
-       name: 'nextjs-app',
-       script: 'npm',
-       args: 'start',
-       cwd: '<PROJECT_DIRECTORY>',
-       instances: 1,
-       autorestart: true,
-       watch: false,
-       max_memory_restart: '1G',
-       env: {
-         NODE_ENV: 'production',
-         PORT: 3000
-       }
-     }]
-   };
-   ```
-
-4. Start the application:
-   ```powershell
-   pm2 start ecosystem.config.js
-   pm2 save
-   ```
-
-## Acceptance Criteria
-- [ ] PM2 is installed globally
-- [ ] PM2 starts automatically on Windows boot
-- [ ] Application runs under PM2 management
-- [ ] Application auto-restarts on crash
-```
-
-### Example Feature Task
-For implementing a user-facing feature:
-```markdown
----
-id: "201"
-name: "feature-user-registration"
-type: "feature"
-dependencies: ["100-pattern-component", "101-pattern-api", "102-pattern-validation"]
-estimated_lines: 400
-priority: "high"
----
-
-# Feature: User Registration
-
-## Overview
-Implement user registration functionality with form validation, API endpoint, and database integration.
-
-## Technical Requirements
-1. Create registration form component with validation
-2. Implement API route for user creation
-3. Add Prisma schema for User model
-4. Include proper error handling and loading states
-5. Follow established patterns for forms and API routes
-
-## Implementation Guidelines
-
-### Preferences to Follow
-- **All Applicable Preferences**: Follow all relevant preferences from `.aidev/preferences/*.md`
-- **Dynamic Preference Loading**: Apply conventions from any preference files that relate to:
-  - Component structure and patterns
-  - API design and implementation
-  - State management approaches
-  - Styling methodologies
-  - Any other aspects covered in preference files
-
-### Example References
-- **Form Pattern**: Use `.aidev/examples/components/UserRegistrationForm.tsx` as template
-  - Note the React Hook Form + Zod validation pattern
-  - Follow the BTextField component usage
-  - Apply the same error handling approach
-- **API Structure**: Follow `.aidev/examples/api/users-route.ts`
-  - Use the same error response format
-  - Apply the validation middleware pattern
-  - Follow the Prisma query patterns
-- **Component Styling**: Reference `.aidev/examples/components/UserRegistrationForm.module.scss`
-  - Use CSS Modules for complex layouts
-  - Apply MUI sx prop for simple styling
-- **State Management**: See `.aidev/examples/stores/useAppStore.ts`
-  - Use the same Zustand middleware setup
-  - Follow the action naming conventions
-
-## Acceptance Criteria
-- [ ] Registration form matches example component patterns
-- [ ] Form validation uses Zod schema as shown in examples
-- [ ] API route follows the pattern in users-route.ts example
-- [ ] Error handling matches preference guidelines
-- [ ] Loading states implemented per component examples
-- [ ] Styling follows CSS Modules pattern from examples
-- [ ] State updates use Zustand pattern from useAppStore example
-```
