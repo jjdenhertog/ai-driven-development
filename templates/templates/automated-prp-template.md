@@ -1,8 +1,16 @@
+---
 name: "Automated PRP Template for Next-Task"
 description: |
-  Template used by aidev-next-task to automatically generate PRPs from feature specifications.
+  Template used by aidev-code-task to automatically generate PRPs from feature specifications.
   This template includes placeholders for context injection from patterns, sessions, and examples.
 ---
+
+<!-- CRITICAL: After using this template to create the PRP:
+1. Save the generated PRP to: .aidev/logs/[taskid]/prp.md
+2. Create PR message and save to: .aidev/logs/[taskid]/last_result.md
+3. Update task status to "review" in JSON file
+4. Commit the status change
+-->
 
 ## 🎯 Goal
 
@@ -173,6 +181,18 @@ ${IF_FEATURE_MODE}
 - Add loading and error states
 - Write production-ready code
 ${END_IF_FEATURE_MODE}
+
+### Instruction Mode Implementation
+${IF_INSTRUCTION_MODE}
+**Creating documentation or configuration: Focus on clarity and completeness**
+- Create comprehensive documentation following project standards
+- Include all required sections as specified in the task
+- Use clear, concise language appropriate for the target audience
+- Follow existing documentation patterns and structure
+- Ensure technical accuracy and completeness
+- Add examples where appropriate
+- Consider future maintainability
+${END_IF_INSTRUCTION_MODE}
 
 ## 📂 Files to Create/Modify
 
@@ -491,6 +511,28 @@ fi
 3. **Re-validate**:
    - Return to Phase 2 with fresh perspective
    - Continue loop until no critical issues remain
+
+### Phase 4: Documentation Validation (Instruction Tasks)
+${IF_INSTRUCTION_MODE}
+**For instruction tasks, validate documentation quality:**
+
+#### Documentation Checklist
+- [ ] All required sections included as per task specification
+- [ ] Technical accuracy verified
+- [ ] Examples are clear and working
+- [ ] Formatting is consistent with project standards
+- [ ] Links and references are valid
+- [ ] Code snippets are syntactically correct
+- [ ] No spelling or grammar errors
+- [ ] Appropriate for target audience (developers/users/etc.)
+
+#### Documentation Structure Validation
+- [ ] Clear hierarchy with proper headings
+- [ ] Table of contents if document is long
+- [ ] Logical flow from introduction to advanced topics
+- [ ] Cross-references to related documentation
+- [ ] Version/update information if applicable
+${END_IF_INSTRUCTION_MODE}
 
 ### Phase 4: Integration Testing (Conditional)
 ${IF_TESTS_NEEDED}
@@ -947,28 +989,19 @@ Future Improvements:
 
 ## ⚠️ Important Reminders
 
-### 🚨 CRITICAL: Test-Driven Development is MANDATORY
-**You MUST follow TDD practices for all features:**
-1. **Test Creation**: Write tests BEFORE or WITH implementation
-2. **Test Coverage**: Achieve 80%+ coverage for all new code
-3. **Test Types**: Include unit, component, integration, and E2E tests
-4. **Automated Testing**: ALL validation through automated tests
-5. **No Manual Testing**: E2E tests replace manual browser checks
-6. **Regression Prevention**: Your tests protect against future breaks
+### 🚨 CRITICAL: Status Update and PR Creation
+After implementation is complete:
+1. **Create PR Message**: Save to `.aidev/logs/[taskid]/last_result.md`
+2. **Verify PR Message**: Ensure file exists and has content
+3. **Update Status**: Change task status to "review" in JSON
+4. **Commit Status**: Commit the status change
 
-**⚠️ TEST-FIRST APPROACH:**
-- Create test files alongside feature files
-- Write failing tests to define behavior
-- Implement code to make tests pass
-- Refactor with confidence (tests ensure nothing breaks)
-- ALL tests must pass before task completion
-
-**🚀 BENEFITS:**
-- 100% confidence in code functionality
-- Faster development (less debugging)
-- Better code design (testable = modular)
-- Documentation through test examples
-- Regression protection for future changes
+### Test-Driven Development (When Testing Available)
+**Follow TDD practices if testing infrastructure exists:**
+- Write tests alongside implementation
+- Achieve 80%+ coverage for new code
+- Include unit, component, and E2E tests
+- All tests must pass before completion
 
 ### Key Principles
 - Follow the project's established patterns and conventions
@@ -1018,30 +1051,76 @@ Track:
 - ❌ Don't hardcode values that should be environment variables
 - ❌ Don't forget loading and error states
 
-## 📋 Final Validation Checklist
+## 📋 Final Steps
 
-### Automated Checks (MUST ALL PASS)
-- [ ] All unit/component tests pass: `npm run test`
-- [ ] All E2E tests pass: `npm run test:e2e`
-- [ ] Test coverage ≥ 80%: `npm run test:coverage`
-- [ ] No linting errors: `npm run lint`
-- [ ] No type errors: `npm run type-check`
-- [ ] Build succeeds: `npm run build`
+### After Implementation
+1. **Save Generated PRP**: `.aidev/logs/[taskid]/prp.md`
+2. **Create PR Message**: `.aidev/logs/[taskid]/last_result.md`
+3. **Run Validation**:
+   - `npm run lint`
+   - `npm run type-check`
+   - `npm run build`
+   - `npm test` (if available)
+4. **Update Task Status**: Set to "review"
+5. **Commit Status Change**: Include in git
 
-### Test Quality Checklist
-- [ ] Tests are readable and maintainable
-- [ ] Tests focus on behavior, not implementation
-- [ ] No hardcoded values in tests
-- [ ] Proper test isolation (no shared state)
-- [ ] Good test descriptions
-- [ ] Edge cases covered
-- [ ] Error scenarios tested
+### PR Message Template
 
-### Quality Standards
-- [ ] Test-Driven: Tests written before/with code
-- [ ] Coverage: 80%+ for new code
-- [ ] Accessibility: Tested with E2E tests
-- [ ] Performance: Verified through tests
-- [ ] Security: No exposed secrets in tests or code
-- [ ] API efficiency: Tested for optimization
-- [ ] Error handling: All paths tested
+#### For Pattern/Feature Tasks
+```markdown
+## 🤖 AI Generated Implementation
+
+### Task
+${TASK_ID}: ${TASK_NAME}
+
+### Summary
+${IMPLEMENTATION_SUMMARY}
+
+### Changes
+${CHANGES_LIST}
+
+### Validation
+- [ ] All tests pass (if testing exists)
+- [ ] Linting clean
+- [ ] Build successful
+
+### Session
+- Session ID: ${SESSION_ID}
+- PRP: ${PRP_PATH}
+- Commits: ${COMMIT_COUNT}
+
+---
+Generated by Claude AI
+Review corrections will be captured for learning
+```
+
+#### For Instruction Tasks
+```markdown
+## 🤖 AI Generated Documentation
+
+### Task
+${TASK_ID}: ${TASK_NAME}
+Type: Instruction
+
+### Summary
+${DOCUMENTATION_SUMMARY}
+
+### Files Created/Modified
+${FILES_LIST}
+
+### Documentation Validation
+- [ ] All required sections included
+- [ ] Technical accuracy verified
+- [ ] Examples tested and working
+- [ ] Formatting consistent with standards
+- [ ] No spelling/grammar errors
+
+### Session
+- Session ID: ${SESSION_ID}
+- PRP: ${PRP_PATH}
+- Commits: ${COMMIT_COUNT}
+
+---
+Generated by Claude AI
+Review corrections will be captured for learning
+```

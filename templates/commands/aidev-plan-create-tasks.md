@@ -8,6 +8,10 @@ allowed-tools: ["Read", "Write", "Glob", "Edit", "MultiEdit", "Task", "TodoRead"
 ## Purpose
 Analyzes concept documents in the `.aidev/concept/` directory and breaks them down into individual task specifications that can be implemented incrementally. This includes setup tasks, infrastructure patterns, and feature implementations.
 
+**IMPORTANT OUTPUT FORMAT**: This command creates TWO files per task:
+1. A detailed `.md` file with full task specification (description, criteria, notes, etc.)
+2. A minimal `.json` file with only 7 tracking fields (id, name, type, dependencies, estimated_lines, priority, status)
+
 ## Process
 
 ### 1. Discovery Phase
@@ -133,11 +137,18 @@ For each task, create two files:
 
 #### 4.1 Task Specification (.md file)
 Use the template from `.aidev/templates/task-specification-template.md` to create each task specification. The template includes sections for:
-- Metadata (id, name, type, dependencies, etc.)
+- Metadata (id, name, type, dependencies, etc.) in frontmatter
 - Overview and objectives
 - Technical requirements and acceptance criteria
 - Implementation notes and examples to reference
 - Documentation links and potential gotchas
+
+**Note**: The .md file contains ALL the detailed information about the task including:
+- Full description and context
+- Acceptance criteria list
+- Technical notes and implementation details
+- Estimated hours, tags, and other metadata
+These details go in the markdown content, NOT in the JSON file.
 
 #### 4.2 Status Tracking (.json file)
 Create a corresponding JSON file for each task with the initial status:
@@ -152,6 +163,11 @@ Create a corresponding JSON file for each task with the initial status:
     "status": "pending"
 }
 ```
+
+**CRITICAL**: The JSON file should ONLY contain these 7 fields. Do NOT include:
+- title, description, acceptanceCriteria, technicalNotes
+- estimatedHours, tags, or any other fields
+- These detailed fields belong in the .md file content, NOT in the .json
 
 **Important**: The JSON values must exactly match the frontmatter values from the corresponding .md file.
 
@@ -372,7 +388,34 @@ priority: "critical"
 
 # Setup: Initialize Next.js Project
 
-[Rest of task specification content...]
+## Description
+Initialize a new Next.js project with TypeScript, App Router, and essential configuration
+
+## Acceptance Criteria
+- [ ] Next.js project initialized with TypeScript
+- [ ] App Router configured
+- [ ] Strict TypeScript configuration
+- [ ] ESLint and Prettier configured
+- [ ] MUI installed and theme provider setup
+- [ ] Project structure created with all required directories
+- [ ] Path aliases configured
+
+## Technical Notes
+- Use Next.js 14+ with App Router
+- Enable TypeScript strict mode
+- Configure path aliases in tsconfig.json
+- Setup MUI with emotion for styling
+
+## Implementation Steps
+[Detailed implementation steps...]
+
+## Tags
+- setup
+- nextjs
+- typescript
+- configuration
+
+## Estimated Hours: 1
 ```
 
 **File 2: `.aidev/tasks/001-setup-nextjs-project.json`**
@@ -388,123 +431,17 @@ priority: "critical"
 }
 ```
 
-### Workflow Output Example
+**IMPORTANT**: Notice how all the detailed information (description, acceptance criteria, technical notes, tags, estimated hours) is in the .md file content, while the .json file only contains the minimal tracking fields.
 
-**When no concept files exist:**
-```
-📖 Checking for concept documents...
-❌ No concept documents found in .aidev/concept/ directory.
+### Expected Behavior
 
-Please create at least one .md file describing your project concept before running this command.
-
-Example:
-  mkdir -p .aidev/concept
-  echo "# My Project Concept" > .aidev/concept/project-overview.md
-```
-
-**When concept files are found:**
-```
-📖 Reading concept documents...
-  ✓ Found 2 concept files
-
-📚 Loading preferences and examples...
-  ✓ Found and loaded all .md files in preferences directory
-  ✓ Read 7 preference files dynamically
-  ✓ Found 8 example components
-  ✓ Found 2 API route examples
-  ✓ Found state management patterns
-
-🔍 Assessing current project state...
-  - No package.json found - need to initialize project
-  - No Next.js framework detected
-  - No testing framework detected - will set up Vitest + RTL + Playwright
-  - No database configuration found
-  - Concept requires: Next.js, NextAuth, Prisma, MUI
-  - Preferences indicate: CSS Modules styling, Zustand for state, TDD approach
-  - Examples show: Form validation patterns, API structure
-
-📝 Generating task specifications based on gaps...
-  ✓ Created 001-setup-nextjs-project.md and .json (no project exists)
-    → Will follow folder structure from preferences
-  ✓ Created 002-setup-testing-framework.md and .json (no testing detected)
-    → Vitest + React Testing Library + Playwright
-    → Includes test scripts and configuration
-  ✓ Created 003-install-dependencies.md and .json (NextAuth, Prisma not installed)
-    → Includes Zustand per state management preference
-  ✓ Created 004-setup-database.md and .json (Prisma not configured)
-  ✓ Created 100-pattern-testing.md and .json (test patterns)
-    → Test structure, utilities, mock strategies
-  ✓ Created 2 other pattern tasks (both .md and .json files)
-    → Using component examples as reference
-  ✓ Created 5 feature tasks (both .md and .json files)
-    → Each includes specific test requirements
-    → Each references relevant examples and preferences
-
-🔍 Performing self-validation (fresh perspective)...
-  - Re-reading concept requirements
-  - Simulating task execution flow
-  - Checking goal achievement
-
-⚠️ Validation identified issues:
-  - Missing: Database migration setup
-  - Dependency: Auth pattern needed before user feature
-  - Incorrect: 002-setup-environment-config.md has type "feature" but should be "instruction"
-
-🔧 Self-correcting (Iteration 1)...
-  ✓ Added 001-setup-database-migrations.md and .json
-  ✓ Reordered auth pattern before user features
-  ✓ Changed 002-setup-environment-config.md from type "feature" to "instruction"
-  ✓ Updated 002-setup-environment-config.json with correct type
-
-🔍 Re-validating after corrections...
-  - Checking all tasks again
-  - Verifying dependency order
-  - Ensuring completeness
-
-⚠️ New issue found:
-  - Missing: Error boundary pattern for frontend
-
-🔧 Self-correcting (Iteration 2)...
-  ✓ Added 103-pattern-error-boundary.md and .json
-
-🔍 Re-validating after corrections...
-  - All requirements met
-  - Dependencies properly ordered
-  - No gaps identified
-
-✅ Final validation complete!
-
-📊 Validation Report:
-═══════════════════════════════════════════
-Total Tasks: 12 (minimal, focused set)
-
-Prerequisites & Setup (5 tasks):
-  • 001-setup-environment.md - Required for configuration
-  • 002-setup-testing-framework.md - Vitest + RTL + Playwright setup
-  • 003-setup-database-migrations.md - Added during validation
-  • 004-setup-authentication.md - NextAuth configuration
-  • 005-install-dependencies.md - Special packages needed
-
-Infrastructure & Patterns (4 tasks):
-  • 100-pattern-testing.md - Test structure and utilities
-  • 101-pattern-component.md - UI component structure
-  • 102-pattern-api.md - API endpoint patterns
-  • 103-pattern-auth.md - Authentication patterns
-
-Features & Functionality (5 tasks):
-  • 200-feature-user-registration.md - Core auth feature
-  • 201-feature-user-login.md - Core auth feature
-  • 202-feature-dashboard.md - Main user interface
-  • 203-feature-profile.md - User management
-  • 204-feature-data-export.md - Requested feature
-
-Validation Confidence: HIGH ✓
-Expected Outcome: Fully functional web app with user authentication,
-dashboard, and data export capabilities matching the concept.
-
-Risk Assessment: Low - all dependencies identified and ordered correctly.
-═══════════════════════════════════════════
-```
+1. **If no concept files exist**: Stop immediately and inform the user
+2. **If concept files exist**: 
+   - Analyze concept, preferences, examples, and current project state
+   - Generate minimal set of tasks based on actual gaps
+   - Create two files per task (.md with details, .json with tracking)
+   - Perform self-validation and corrections
+   - Output summary of tasks created
 
 ## Important Notes
 - Tasks use 100-number blocks: 001-099 (setup), 100-199 (patterns), 200+ (features)

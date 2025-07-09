@@ -39,12 +39,14 @@ program
     .description('Execute a specific task by ID')
     .option('--dry-run', 'Show what would be executed without making changes')
     .option('--force', 'Force execution even if task is already in progress')
+    .option('--dangoursly-skip-permission', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
         try {
             await executeTaskCommand({
                 taskId,
                 dryRun: !!cmdObject.dryRun,
-                force: !!cmdObject.force
+                force: !!cmdObject.force,
+                dangourslySkipPermission: !!cmdObject.dangourslySkipPermission
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -61,11 +63,13 @@ program
     .description('Find and execute the next available pending task')
     .option('--dry-run', 'Show what would be executed without making changes')
     .option('--force', 'Force execution even if task is already in progress')
+    .option('--dangoursly-skip-permission', 'Skip permission checks of Claude Code')
     .action(async (cmdObject) => {
         try {
             await executeNextTaskCommand({
                 dryRun: !!cmdObject.dryRun,
-                force: !!cmdObject.force
+                force: !!cmdObject.force,
+                dangourslySkipPermission: !!cmdObject.dangourslySkipPermission
             })
         } catch (error) {
             if (error instanceof Error) {
