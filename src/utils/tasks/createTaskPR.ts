@@ -5,11 +5,29 @@ import { getPRContent } from './getPRContent';
 import { Task } from '../taskManager';
 
 export function createTaskPR(task: Task, branchName: string): void {
-    log('Committing changes...', 'info');
+    log('Checking for changes to commit...', 'info');
 
     try {
         // Stage all changes
         execSync('git add -A', { stdio: 'pipe' });
+
+        // Check if there are any changes to commit
+        try {
+            const diffStatus = execSync('git diff --cached --quiet', { stdio: 'pipe' });
+        } catch (error) {
+            // git diff --cached --quiet returns non-zero exit code if there are changes
+            // So we proceed with commit
+        }
+
+        // Check if there are staged changes
+        const stagedChanges = execSync('git diff --cached --name-only', { stdio: 'pipe', encoding: 'utf8' }).trim();
+        
+        if (!stagedChanges) {
+            log('No changes to commit. Skipping PR creation.', 'warn');
+            return;
+        }
+
+        log('Committing changes...', 'info');
 
         // Create commit message from task with AI identifier
         const commitMessage = `feat: complete task ${task.id} - ${task.name} (AI-generated)`;

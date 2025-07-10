@@ -61,50 +61,46 @@ fi
 </abort-conditions>
 </pre-flight-validation>
 
-### 1. Update Task Status
-- Update task status to "in-progress" in JSON file
-- Commit the status change
+### 1. Context Loading
 
-### 2. Context Loading
-
-#### 2.1 Check Testing Availability
+#### 1.1 Check Testing Availability
 - Check if package.json has test scripts
 - Set TESTING_AVAILABLE flag accordingly
 - Load testing preferences if available
 
-#### 2.2 Analyze Related Tasks
+#### 1.2 Analyze Related Tasks
 - Analyze pending tasks to make future-compatible decisions
 - Identify shared components and APIs needed by multiple tasks
 - Design with extensibility in mind for future requirements
 
-#### 2.3 Load Project Context
+#### 1.3 Load Project Context
 - Load preferences from `.aidev/preferences/`
 - Load patterns from `.aidev/patterns/established/` and `.aidev/patterns/learned/`
 - Analyze existing codebase for reusable components and patterns
 - Identify existing utilities and APIs to avoid duplication
 
-### 3. Check for Feedback
+### 2. Check for Feedback
 - If task has "feedback" field, process it as primary context
 - Address each feedback item in the implementation
 
-### 4. Determine Task Type
+### 3. Determine Task Type
 
 - **Pattern tasks**: Create minimal exemplar implementation (50-100 lines)
 - **Feature tasks**: Full production implementation following patterns
 - **Instruction tasks**: Documentation only
 
-### 5. Generate PRP (All Task Types)
+### 4. Generate PRP (All Task Types)
 
 **🛑 CRITICAL: PRP GENERATION IS MANDATORY - THE COMMAND WILL ABORT IF PRP IS NOT CREATED**
 
 For all task types (pattern, feature, and instruction):
 
-#### 5.1 Read the PRP Template
+#### 4.1 Read the PRP Template
 - Read the template from `.aidev/templates/automated-prp-template.md`
 - This template contains placeholder variables like `${FEATURE_OVERVIEW}`, `${TASK_NAME}`, etc.
 - **ABORT if template not found**: "ERROR: PRP template not found at .aidev/templates/automated-prp-template.md"
 
-#### 5.2 Gather Context for Template Variables
+#### 4.2 Gather Context for Template Variables
 Collect information to replace each placeholder:
 - `${TASK_ID}`: From the task JSON
 - `${TASK_NAME}`: From the task JSON
@@ -123,7 +119,7 @@ Collect information to replace each placeholder:
 - `${PROJECT_ANALYSIS}`: Analysis of existing utilities, components, APIs
 - And all other variables in the template...
 
-#### 5.3 Generate the PRP Document
+#### 4.3 Generate the PRP Document
 
 <prp-generation-constraints>
 <variable-replacement>
@@ -143,7 +139,7 @@ Collect information to replace each placeholder:
 </section-requirements>
 </prp-generation-constraints>
 
-#### 5.4 Save the Generated PRP
+#### 4.4 Save the Generated PRP
 - Create directory: `.aidev/logs/[taskid]/`
 - Save the completed PRP to: `.aidev/logs/[taskid]/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
@@ -180,7 +176,7 @@ fi
 echo "✅ PRP validation passed - proceeding with implementation"
 ```
 
-#### 5.5 Follow the Generated PRP
+#### 4.5 Follow the Generated PRP
 - Use the generated PRP as your implementation guide
 - The PRP contains specific validation checkpoints - follow them
 - Design with future tasks in mind for extensibility
@@ -218,7 +214,7 @@ This feature will add complete user authentication to the application, including
 
 **NOTE**: The generated PRP must have NO placeholder variables (no ${...} syntax) remaining.
 
-### 6. Implementation
+### 5. Implementation
 
 **🛑 PRE-IMPLEMENTATION CHECKPOINT - VERIFY PRP EXISTS:**
 ```bash
@@ -275,7 +271,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 </instruction-tasks>
 </implementation-rules>
 
-### 7. Validation
+### 6. Validation
 
 <validation-requirements>
 <automated-checks>
@@ -307,7 +303,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 </failure-handling>
 </validation-requirements>
 
-### 8. Create PR Message
+### 7. Create PR Message
 
 **CRITICAL**: Save PR message to `.aidev/logs/[taskid]/last_result.md`
 
@@ -352,7 +348,7 @@ Created documentation as specified
 - [Path to file]
 ```
 
-### 9. Quality Review
+### 8. Quality Review
 
 #### For Pattern/Feature Tasks:
 - Verify implementation meets all requirements
@@ -366,7 +362,7 @@ Created documentation as specified
 - Check that formatting is consistent
 - Review for clarity and target audience appropriateness
 
-### 10. Finalization
+### 9. Finalization
 
 **CRITICAL**: Verify both PRP and PR message were created before updating status
 
@@ -437,7 +433,7 @@ echo "📋 Task status updated to: review"
 </final-verification>
 
 - **Task Isolation**: Only modify the specified task
-- **Status Updates**: Update task JSON status (pending → in-progress → review)
+- **Status Updates**: Update task JSON status only at completion (pending → review)
 - **PR Message**: MUST create `last_result.md` before marking as review
 - **Testing**: Only create tests if testing infrastructure exists
 - **Patterns**: Follow established patterns from `.aidev/patterns/`

@@ -114,14 +114,17 @@ export async function executeTaskCommand(options: Options) {
     ///////////////////////////////////////////////////////////
     const finalTask = getTaskById(task.id);
     if (finalTask) {
-        // Enforce review status
-        if (finalTask.status !== 'review') {
-            updateTaskFile(task.path, {
-                status: 'review'
-            });
-        }
+
+        if((finalTask.status !== 'review'))
+            return;
 
         // Create PR
-        createTaskPR(task, branchName);
+        try {
+            createTaskPR(task, branchName);
+        } catch (error) {
+            log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+            // Don't throw here - the task execution itself was successful
+            // The PR creation failure is a separate concern
+        }
     }
 }
