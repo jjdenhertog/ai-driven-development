@@ -51,6 +51,8 @@ program
     .option('--force', 'Force execution even if task is already in progress')
     .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
+        
+        console.log(" cmdObject:", cmdObject)
         try {
             await executeTaskCommand({
                 taskId,
@@ -103,6 +105,8 @@ program
         
         log('Starting continuous task execution loop...', 'info');
         log('Press Ctrl+C to stop', 'info');
+        
+        console.log(" cmdObject:", cmdObject)
         
         // eslint-disable-next-line no-constant-condition
         while (true) {
