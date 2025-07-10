@@ -5,6 +5,10 @@ allowed-tools: ["Read", "Write", "Bash", "Edit", "MultiEdit", "Glob", "Task", "T
 
 # aidev-plan-review-tasks
 
+<role-context>
+You are a senior engineer reviewing the implementation plan. You have deep knowledge of the codebase and can predict implementation challenges. You verify everything and never assume.
+</role-context>
+
 This command performs a thorough analysis of the concept and all tasks to predict the outcome of implementing them. It simulates running the comprehensive implementation process for each task to determine if the implementation will successfully produce the desired concept.
 
 **Note**: This command is still useful with the new automation workflow to review and refine tasks before implementation.
@@ -65,35 +69,52 @@ This command performs a thorough analysis of the concept and all tasks to predic
 
 ### Phase 2: Deep Task Analysis
 
-For each task, analyze what would need to be implemented by comparing with the current project state:
+<implementation-simulation>
+<for-each-task>
+  <step-1>List exact files that would be created/modified</step-1>
+  <step-2>Show specific imports that would be added</step-2>
+  <step-3>Identify functions/components that would be exported</step-3>
+  <step-4>Check if all dependencies exist in package.json</step-4>
+  <step-5>Verify patterns exist at claimed locations (with quotes)</step-5>
+</for-each-task>
 
-1. **Context Simulation**
-   - Analyze what code and patterns already exist in the project
-   - Check if dependencies are already implemented
-   - Evaluate available libraries and tools in package.json
-   - Check alignment with user's preferred patterns
-   - Determine what still needs to be implemented
+<failure-detection>
+  If import not in package.json → FLAG as "Missing dependency: [package]"
+  If pattern file not found → FLAG as "Pattern not found: [path]"
+  If dependency task not complete → BLOCK with "Depends on incomplete task: [id]"
+</failure-detection>
+</implementation-simulation>
 
-2. **Implementation Prediction**
-   - Predict the code structure that would be generated
-   - Identify required imports and dependencies
-   - Determine integration points with existing code
-   - Assess potential side effects
-   - Verify adherence to user's coding conventions
+**Additional Analysis Steps:**
 
-3. **Preference Compliance Check**
-   - **Apply dynamically loaded preferences from Phase 1**:
-     - Check against all .md files found in `.aidev/preferences/`
-     - Verify patterns match those defined in preference files
-     - Ensure implementation follows user-defined conventions
-   - **Validate against examples**:
-     - Compare with code patterns in `.aidev/examples/`
-     - Ensure consistent approach with example implementations
-     - Check naming conventions match examples
-   - **No hardcoded assumptions**:
-     - All checks based on discovered preferences
-     - Adapt validation to whatever preferences exist
-     - Support any custom patterns defined by user
+1. **Context Simulation** - Compare task requirements with existing project state
+2. **Implementation Prediction** - Identify specific code structure and dependencies
+3. **Preference Compliance Check** - Validate against loaded preferences and examples
+
+<preference-validation>
+<component-check>
+  Found preference: [file:line with quote]
+  Task approach: [specific planned implementation]
+  Match: YES/NO (with specific evidence)
+</component-check>
+
+<naming-check>
+  Example pattern: <quote from example file>
+  Task naming plan: [planned component/function names]
+  Match: YES/NO (show direct comparison)
+</naming-check>
+
+<style-check>
+  Preference style: <quote from preference>
+  Task style plan: [how task will implement]
+  Match: YES/NO (with justification)
+</style-check>
+</preference-validation>
+
+**Preference Application:**
+- Apply all dynamically loaded preferences from `.aidev/preferences/`
+- Validate against code examples in `.aidev/examples/`
+- Support any custom patterns without hardcoded assumptions
 
 4. **Gap Detection**
    - **Missing Information**:
@@ -128,7 +149,7 @@ For each task, analyze what would need to be implemented by comparing with the c
    🔍 Task Review Analysis
    
    ✅ Tasks that appear complete: [count]
-   ⚠️  Tasks with issues: [count]
+    Tasks with issues: [count]
    ❌ Tasks with blocking issues: [count]
    🎨 Tasks not matching preferences: [count]
    
@@ -174,12 +195,45 @@ For each task, analyze what would need to be implemented by comparing with the c
    - Ensure no new issues introduced
 
 2. **Final Outcome Prediction**
+
+<outcome-prediction>
+<success-criteria>
+  □ All concept features mapped to tasks (with evidence)
+  □ All task dependencies satisfied (show chain)
+  □ All patterns have consumers (list usage)
+  □ Testing covers all features (if testing exists)
+</success-criteria>
+
+<red-flags>
+  Circular dependencies detected: [show cycle]
+  Features without test tasks: [list features]
+  Patterns without usage: [list orphans]
+  Missing error handling: [list gaps]
+</red-flags>
+</outcome-prediction>
+
    - Output the analysis directly to the user showing:
      - How each task contributes to the concept
      - The expected final product structure
      - Any remaining risks or uncertainties
 
 ## Output Format
+
+<uncertainty-handling>
+<permission-to-stop>
+  You MUST stop and request clarification when:
+  - Task references undefined API or service
+  - Multiple implementation paths possible
+  - Preference file contradicts task approach
+  - Dependency not found in package.json
+</permission-to-stop>
+
+<required-clarity>
+  "Cannot simulate because [specific reason]" is required
+  "Task assumes [X] which is not defined" must be flagged
+  "Preference conflicts with task approach" needs resolution
+</required-clarity>
+</uncertainty-handling>
 
 The command outputs the analysis directly to the console:
 
@@ -214,7 +268,7 @@ The command outputs the analysis directly to the console:
   - Found in: [location in project]
   - Alignment: [matches/differs from task spec]
 
-### ⚠️  Needs Clarification ([count])
+###  Needs Clarification ([count])
 - [task-3]: [issue description]
   - Missing: [what's missing]
   - Impact: [how this affects implementation]

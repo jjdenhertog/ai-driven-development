@@ -5,6 +5,10 @@ allowed-tools: ["Read", "Write", "Glob", "Edit", "MultiEdit", "Task", "TodoRead"
 
 # Command: aidev-plan-create-tasks
 
+<role-context>
+You are a senior engineer who has worked on this codebase for 2 years. You know every pattern, every convention, every preference. You never guess - you verify or ask.
+</role-context>
+
 ## Purpose
 Analyzes concept documents in the `.aidev/concept/` directory and breaks them down into individual task specifications that can be implemented incrementally. This includes setup tasks, infrastructure patterns, and feature implementations.
 
@@ -15,12 +19,32 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 ## Process
 
 ### 1. Discovery Phase
+
+<discovery-checklist>
+<required-checks>
+  □ Concept directory exists at `.aidev/concept/`
+  □ At least one .md file found in concept directory
+  □ Concept file contains minimum 100 words
+  □ package.json exists (record all dependencies)
+  □ Testing setup detected (quote test script if found)
+  □ Framework identified (name and version)
+  □ Each concept requirement mapped (with line reference)
+</required-checks>
+
+<stop-conditions>
+  STOP if no concept directory exists
+  STOP if no .md files in concept directory  
+  STOP if concept file < 100 words with error: "Concept too vague - please add more detail"
+  ASK user if concept mentions technology not found in package.json
+</stop-conditions>
+</discovery-checklist>
+
+**Implementation Steps:**
 - Check if `.aidev/concept/` directory exists
 - Look for concept documents (*.md files) in the directory
-- **If no concept files found**: 
-  - Stop execution immediately
-  - Inform user: "❌ No concept documents found in .aidev/concept/ directory. Please create at least one .md file describing your project concept before running this command."
-  - Exit without creating any tasks
+- Verify concept has sufficient detail (100+ words)
+- If requirements not met, stop with appropriate error message
+
 - **Read project preferences and examples**:
   - Dynamically load all .md files in `.aidev/preferences/` directory:
     ```bash
@@ -62,17 +86,48 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 - **Apply preferences and examples** to guide implementation approach
 
 ### 2. Task Breakdown
-- Break down the project into discrete, implementable tasks
-- Tasks can be:
-  - **Setup tasks**: Environment configuration, dependency installation, initial scaffolding
-  - **Infrastructure tasks**: Database setup, authentication configuration, API structure
-  - **Feature tasks**: Actual user-facing features and functionality
-  - **Instruction tasks**: System-level setup that requires user action (PM2, server config, etc.)
-- Each task should be:
-  - Self-contained (can be implemented independently)
-  - Testable (has clear acceptance criteria)
-  - Reviewable (reasonable PR size: 200-500 lines)
-  - Sequentially numbered (001-task-name.md, 002-task-name.md, etc.)
+
+<task-creation-rules>
+<before-creating-any-task>
+  MUST cite specific line from concept file:
+  "Creating task because concept states at line [X]: <quote>...</quote>"
+  
+  If cannot quote requirement, MUST NOT create task
+</before-creating-any-task>
+
+<pattern-task-verification>
+  For each pattern task, MUST find 3+ places it will be used:
+  "Pattern needed at: [file:line], [file:line], [file:line]"
+  
+  If cannot find 3 uses, downgrade to optional or skip
+</pattern-task-verification>
+
+<task-limits>
+  <hard-limits>
+    Setup tasks: MAX 5 (each must quote specific need from concept)
+    Pattern tasks: MAX 3 (each must show 3+ usage sites)
+    Feature tasks: EXACTLY what's in concept (no additions)
+  </hard-limits>
+  
+  <justification-required>
+    For task count > 10: List each with concept quote
+    For patterns > 3: Show usage analysis for each
+    For setup > 5: Explain why standard setup insufficient
+  </justification-required>
+</task-limits>
+</task-creation-rules>
+
+**Task Categories:**
+- **Setup tasks**: Environment configuration, dependency installation, initial scaffolding
+- **Infrastructure tasks**: Database setup, authentication configuration, API structure
+- **Feature tasks**: Actual user-facing features and functionality
+- **Instruction tasks**: System-level setup that requires user action (PM2, server config, etc.)
+
+**Task Requirements:**
+- Self-contained (can be implemented independently)
+- Testable (has clear acceptance criteria)
+- Reviewable (reasonable PR size: 200-500 lines)
+- Sequentially numbered (001-task-name.md, 002-task-name.md, etc.)
 
 #### When to Create Instruction Tasks
 Create instruction tasks instead of implementation tasks when:
@@ -295,18 +350,41 @@ Each `.json` file should contain the initial status tracking with this structure
 
 ## Validation Steps
 
+<uncertainty-handling>
+<permission-to-stop>
+  You MUST stop and ask when:
+  - Concept requirement unclear or ambiguous
+  - Multiple valid implementation approaches exist
+  - Required technology not in package.json
+  - Pattern usage unclear (< 3 use cases)
+</permission-to-stop>
+
+<required-admissions>
+  "I cannot determine the specific requirement" is preferred over guessing
+  "Multiple approaches possible for [feature]" requires user choice
+  "Pattern [name] not found in existing code" stops pattern task creation
+</required-admissions>
+</uncertainty-handling>
+
 ### Phase 1: Initial Generation & Validation
-1. **Verify gap analysis was thorough**:
-   - Did we check current project state?
-   - Are setup tasks based on actual gaps, not assumptions?
-   - Do tasks build logically from current state to desired state?
-2. Ensure all setup tasks come first (especially those requiring user input)
-3. Verify all concepts have been captured in tasks
-4. Check dependencies are correctly mapped and ordered
-5. Confirm pattern establishment comes before feature implementation
-6. Verify task sizes are manageable (not too large)
-7. **Verify no unnecessary tasks were created**
-8. **Ensure task count matches project scope**
+
+<grounded-validation>
+<task-evidence-check>
+  For EACH created task, verify:
+  □ Concept quote exists (line number + text)
+  □ Gap analysis shows need (current vs required)
+  □ Dependencies are in package.json
+  □ Pattern usage count >= 3 (for patterns)
+  □ No duplicate functionality
+</task-evidence-check>
+</grounded-validation>
+
+**Additional Validation Steps:**
+1. Ensure proper task ordering (setup → patterns → features)
+2. Verify all concept requirements have corresponding tasks
+3. Check task dependencies form valid DAG (no cycles)
+4. Confirm task sizes are reasonable (200-500 lines)
+5. Validate no tasks were created without concept justification
 
 ### Phase 2: Self-Validation (Fresh Perspective)
 After initial generation, perform a "clean context" validation:
@@ -347,10 +425,30 @@ If validation identifies issues:
    - Only proceed when validation passes completely
 
 ### Phase 4: Final Validation Report
+
+<output-verification>
+<task-file-verification>
+  For EACH task created:
+  □ Both .md and .json files exist
+  □ JSON has exactly 7 fields
+  □ MD file quotes concept requirement
+  □ No placeholder text remains
+  □ Dependencies reference real task IDs
+</task-file-verification>
+
+<final-checklist>
+  □ Task count justified by concept size
+  □ All concept features have tasks
+  □ No invented features added
+  □ Patterns have proven usage
+  □ Setup tasks address real gaps
+</final-checklist>
+</output-verification>
+
 Create a comprehensive summary showing:
 - Total tasks created (should be minimal)
 - Prerequisites & Setup (X tasks) - with justification
-- Infrastructure & Patterns (Y tasks) - with justification
+- Infrastructure & Patterns (Y tasks) - with justification  
 - Features & Functionality (Z tasks) - with justification
 - **Validation confidence**: High/Medium/Low
 - **Expected outcome**: Brief description of what the system will be after all tasks are completed

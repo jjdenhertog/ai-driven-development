@@ -5,12 +5,28 @@ description: |
   This template includes placeholders for context injection from patterns, sessions, and examples.
 ---
 
-<!-- CRITICAL: After using this template to create the PRP:
-1. Save the generated PRP to: .aidev/logs/[taskid]/prp.md
-2. Create PR message and save to: .aidev/logs/[taskid]/last_result.md
-3. Update task status to "review" in JSON file
-4. Commit the status change
--->
+<role-context>
+You are implementing a specific task with deep knowledge of the codebase. You follow patterns exactly, verify everything, and never guess. Your PRP must be actionable and grounded in evidence.
+</role-context>
+
+<prp-requirements>
+<mandatory-elements>
+  □ ALL ${PLACEHOLDERS} must be replaced with actual values
+  □ NO placeholder syntax ${...} can remain in final document
+  □ Each section must contain concrete, actionable information
+  □ All code examples must reference real files with line numbers
+  □ All patterns must be quoted from actual source files
+</mandatory-elements>
+
+<post-generation-validation>
+  After generating this PRP:
+  1. Save to: .aidev/logs/[taskid]/prp.md
+  2. Verify NO placeholders remain: grep -c '${' should return 0
+  3. Create PR message: .aidev/logs/[taskid]/last_result.md
+  4. Update task status to "review" in JSON
+  5. Commit the status change
+</post-generation-validation>
+</prp-requirements>
 
 ## 🎯 Goal
 
@@ -30,50 +46,55 @@ ${EXECUTIVE_SUMMARY}
 
 ## 📚 Research Phase
 
-### Codebase Analysis
-${CODEBASE_ANALYSIS}
-- [ ] Analyzed existing patterns
-- [ ] Identified dependencies
-- [ ] Reviewed similar implementations
-- [ ] Checked for potential conflicts
-- [ ] Scanned for reusable utilities and helpers
-- [ ] Mapped existing API endpoints
-- [ ] Identified components to extend or reuse
+<research-requirements>
+<codebase-analysis>
+  For ${CODEBASE_ANALYSIS}, MUST include:
+  □ Quote existing patterns with file:line references
+  □ List specific dependencies found in package.json
+  □ Name actual files reviewed with their purposes
+  □ Identify exact conflicts if any exist
+  □ List reusable functions by name and location
+  □ Document existing API endpoints with paths
+  □ Name components that can be extended
+</codebase-analysis>
 
-### External Research
-${EXTERNAL_RESEARCH}
-- [ ] Reviewed relevant documentation
-- [ ] Identified best practices
-- [ ] Considered security implications
-- [ ] Evaluated performance impacts
+<external-research>
+  For ${EXTERNAL_RESEARCH}, MUST include:
+  □ Link specific documentation pages reviewed
+  □ Quote relevant best practices found
+  □ List concrete security considerations
+  □ Measure actual performance impacts
+</external-research>
+</research-requirements>
 
 ## 🎨 Context Injection
 
-### Established Patterns
-${ESTABLISHED_PATTERNS}
+<pattern-requirements>
+<established-patterns>
+  For ${ESTABLISHED_PATTERNS}, MUST quote:
+  □ Exact pattern with file path and line numbers
+  □ Why this pattern applies to current task
+  □ How to implement it correctly
+</established-patterns>
 
-### Learned Patterns
-${LEARNED_PATTERNS}
+<example-usage>
+  For ${EXAMPLE_REFERENCES}, MUST include:
+  □ Full path to example file
+  □ Relevant code snippet with line numbers
+  □ Explanation of how to adapt for current task
+</example-usage>
 
-### Previous Session Context
-${SESSION_CONTEXT}
-
-### Example References
-${EXAMPLE_REFERENCES}
-
-### Existing Project Resources
-${PROJECT_ANALYSIS}
-- **Reusable Utilities**: ${EXISTING_UTILS}
-- **Available Components**: ${REUSABLE_COMPONENTS}
-- **Existing API Endpoints**: ${EXISTING_APIS}
-- **Current Patterns**: ${CURRENT_PATTERNS}
-
-### Duplication Prevention
-${DUPLICATION_CHECK}
-- **Functions to reuse instead of recreating**: ${REUSABLE_FUNCTIONS}
-- **Components to extend**: ${EXTENDABLE_COMPONENTS}
-- **Patterns to follow**: ${ESTABLISHED_CONVENTIONS}
-- **AVOID recreating**: ${AVOID_RECREATING}
+<duplication-prevention>
+  CRITICAL: Before creating ANY new function/component:
+  □ Search for existing implementation
+  □ If found, document: "REUSE: [function] from [file:line]"
+  □ If not found, document: "NEW: No existing [type] found"
+  
+  For ${REUSABLE_FUNCTIONS}: List each with signature and location
+  For ${EXTENDABLE_COMPONENTS}: Show inheritance approach
+  For ${AVOID_RECREATING}: List with "USE [existing] INSTEAD"
+</duplication-prevention>
+</pattern-requirements>
 
 ### Documentation & References
 ```yaml
@@ -115,30 +136,31 @@ ${ACCEPTANCE_CRITERIA}
 
 ## 🛠️ Implementation Plan with Validation Checkpoints
 
+<implementation-constraints>
+<type-safety-requirements>
+  For ${TYPE_DEFINITIONS}, MUST:
+  □ Define concrete types (no placeholders)
+  □ Include ALL types needed for implementation
+  □ Show Zod schemas for runtime validation
+  □ Mark immutable properties as readonly
+  □ NO any types without explicit justification
+</type-safety-requirements>
+
+<validation-gates>
+  STOP and verify before proceeding if:
+  □ Any type is unclear or ambiguous
+  □ Zod schema doesn't match TypeScript type
+  □ Using 'any' without clear reason
+  □ Missing types for any component/function
+</validation-gates>
+</implementation-constraints>
+
 ### 🔍 Checkpoint 1: Type Safety Foundation
-### TypeScript Types and Interfaces
 ```typescript
 ${TYPE_DEFINITIONS}
-// Define all types first for type safety and clarity
-// Example structure:
-// interface FeatureProps {
-//   readonly id: string;
-//   readonly name: string;
-//   readonly onChange?: (value: string) => void;
-// }
-// 
-// // Zod schemas for runtime validation (ALWAYS use in API routes)
-// const featureSchema = z.object({
-//   name: z.string().min(1, 'Name is required'),
-//   email: z.string().email('Invalid email'),
-// });
+// ALL types must be defined here before any implementation
+// Example: If creating UserProfile component, define UserProfileProps, UserData, etc.
 ```
-
-**Validation Checkpoint 1:**
-- [ ] All types defined before implementation
-- [ ] Zod schemas match TypeScript types
-- [ ] No `any` types used
-- [ ] All properties marked `readonly` where appropriate
 
 ### 🔍 Checkpoint 2: Architecture Validation
 ### Component Hierarchy & Architecture
@@ -162,48 +184,64 @@ ${COMPONENT_HIERARCHY}
 - [ ] No client-only features in Server Components
 - [ ] File structure follows conventions
 
-### Pattern Mode Implementation
+<task-type-implementation>
+<pattern-mode-rules>
 ${IF_PATTERN_MODE}
-**Creating a new pattern: Focus on establishing conventions**
-- Create minimal, exemplar implementation (50-100 lines)
-- Include clear comments explaining architectural choices
-- Establish naming conventions and file structure
-- Create reusable components/utilities
-- Document the pattern for future use
+STRICT REQUIREMENTS for Pattern Tasks:
+□ Implementation MUST be 50-100 lines (verify with wc -l)
+□ Include inline comments explaining EVERY design decision
+□ Export pattern for reuse by other components
+□ Create accompanying usage example
+□ Document naming conventions established
+□ NO external dependencies or complex logic
 ${END_IF_PATTERN_MODE}
+</pattern-mode-rules>
 
-### Feature Mode Implementation
+<feature-mode-rules>
 ${IF_FEATURE_MODE}
-**Implementing production feature: Follow established patterns**
-- Strictly follow patterns from: ${PATTERN_DEPENDENCIES}
-- Implement complete functionality with error handling
-- Include comprehensive TypeScript types
-- Add loading and error states
-- Write production-ready code
+STRICT REQUIREMENTS for Feature Tasks:
+□ Follow patterns from ${PATTERN_DEPENDENCIES} EXACTLY
+□ Quote pattern source: "Following pattern from [file:line]"
+□ Include ALL error handling (network, validation, edge cases)
+□ Implement loading states for EVERY async operation
+□ Add TypeScript types for EVERY function/component
+□ Production-ready: no console.logs, no commented code
 ${END_IF_FEATURE_MODE}
+</feature-mode-rules>
 
-### Instruction Mode Implementation
+<instruction-mode-rules>
 ${IF_INSTRUCTION_MODE}
-**Creating documentation or configuration: Focus on clarity and completeness**
-- Create comprehensive documentation following project standards
-- Include all required sections as specified in the task
-- Use clear, concise language appropriate for the target audience
-- Follow existing documentation patterns and structure
-- Ensure technical accuracy and completeness
-- Add examples where appropriate
-- Consider future maintainability
+STRICT REQUIREMENTS for Instruction Tasks:
+□ Create ONLY documentation files (no code files)
+□ Include ALL sections from task specification
+□ Verify technical accuracy of EVERY statement
+□ Test ALL code examples before including
+□ Follow existing doc structure from similar files
+□ Target audience: ${TARGET_AUDIENCE}
 ${END_IF_INSTRUCTION_MODE}
+</instruction-mode-rules>
+</task-type-implementation>
 
 ## 📂 Files to Create/Modify
 
+<file-structure-requirements>
+For ${FILE_STRUCTURE}, MUST specify:
+□ EXACT file paths (no ambiguity)
+□ Whether file is NEW or MODIFY existing
+□ Purpose of each file in one sentence
+□ Dependencies between files
+□ Order of implementation
+</file-structure-requirements>
+
 ${FILE_STRUCTURE}
 
-### 🔍 Checkpoint 3: Pre-Implementation Review
-**Before starting implementation:**
-- [ ] All file paths are correct and follow project structure
-- [ ] No duplicate functionality being created
-- [ ] Dependencies are available and imported correctly
-- [ ] Implementation order makes logical sense
+<pre-implementation-gate>
+STOP if ANY condition is true:
+□ File already exists with same functionality
+□ Import not available in package.json
+□ Path doesn't follow project structure
+□ Creating utility that already exists
+</pre-implementation-gate>
 
 ## 💻 Implementation Steps
 
@@ -386,23 +424,29 @@ export async function PUT(
 
 ## ✅ Multi-Phase Validation Process
 
+<validation-enforcement>
+<continuous-validation>
+  MANDATORY: Run after EVERY file save:
+  □ npm run lint (MUST pass)
+  □ npm run type-check (MUST pass)
+  □ npm run build (MUST succeed)
+  
+  STOP implementing if ANY check fails
+  Fix immediately before continuing
+</continuous-validation>
+
+<quality-gates>
+  BLOCK progress if:
+  □ TypeScript error exists
+  □ ESLint error exists
+  □ Import cannot resolve
+  □ Build fails
+  □ Test fails (if exists)
+</quality-gates>
+</validation-enforcement>
+
 ### Phase 1: Continuous Implementation Validation
 **Run after each major code change:**
-
-#### Code Quality Checks
-```bash
-# Must pass before proceeding to next file/component
-npm run lint          # ESLint with all rules
-npm run type-check    # TypeScript strict mode
-npm run format        # Prettier formatting
-```
-- [ ] No TypeScript errors
-- [ ] No ESLint violations  
-- [ ] Imports are correct and resolvable
-- [ ] No `any` types without justification
-- [ ] No console.log statements in production code
-- [ ] No commented-out code blocks
-- [ ] No TODO comments without tickets
 
 #### Development Toolchain Validation
 ```bash
@@ -476,21 +520,27 @@ fi
 - [ ] If no testing: Document test scenarios for future
 
 ### Phase 2: Fresh Perspective Self-Validation
-**After completing each major component:**
 
-1. **Mental Reset**: Step back and re-read the feature specification
-2. **Implementation Review**: Review the code as if seeing it for the first time
-3. **Simulate User Journey**:
-   - [ ] Does the implementation match the specification?
-   - [ ] Are all user flows properly handled?
-   - [ ] Is the code intuitive and maintainable?
-   
-4. **Identify Gaps**:
-   - [ ] Missing error handling
-   - [ ] Incomplete edge cases
-   - [ ] Accessibility concerns
-   - [ ] Performance bottlenecks
-   - [ ] Security vulnerabilities
+<fresh-review-protocol>
+<mandatory-pause>
+  After implementing each component:
+  1. STOP coding for 60 seconds
+  2. Clear mental context
+  3. Re-read original task specification
+  4. Review implementation with fresh eyes
+</mandatory-pause>
+
+<validation-questions>
+  Answer honestly:
+  □ Does implementation match spec EXACTLY?
+  □ Would another developer understand this?
+  □ Are ALL edge cases handled?
+  □ Is error handling complete?
+  □ Any security concerns?
+  
+  If ANY answer is "no" → Return to implementation
+</validation-questions>
+</fresh-review-protocol>
 
 ### Phase 3: Self-Correction Loop
 **If issues identified in Phase 2:**
@@ -589,16 +639,28 @@ describe('Feature', () => {
 ${END_IF_TESTS_NEEDED}
 
 ### Phase 5: Browser-Based Testing (CRITICAL for UI Components)
-**When implementing UI components or features with visual elements:**
 
-> **🤖 AI Testing Capabilities:**
-> - ✅ Can run terminal commands (`npm run dev`, `npm test`, etc.)
-> - ✅ Can check compilation output for errors
-> - ✅ Can run Playwright/Cypress tests if configured
-> - ❌ Cannot directly interact with a browser UI
-> - ❌ Cannot visually see rendered components
-> 
-> **Therefore: Use automated tests when possible, document manual testing needs clearly**
+<testing-reality-check>
+<ai-limitations>
+  AI CAN:
+  ✅ Run terminal commands
+  ✅ Execute automated tests
+  ✅ Check compilation output
+  
+  AI CANNOT:
+  ❌ See rendered UI
+  ❌ Click buttons in browser
+  ❌ Verify visual appearance
+</ai-limitations>
+
+<testing-strategy>
+  Therefore, MUST:
+  □ Run ALL automated tests available
+  □ Document EXACTLY what needs manual testing
+  □ List specific user interactions to verify
+  □ Note visual elements to check
+</testing-strategy>
+</testing-reality-check>
 
 #### Development Server Testing
 ```bash
@@ -713,24 +775,31 @@ fi
 **Note**: If Playwright is not set up, rely on manual browser testing as described above.
 
 ### Phase 6: Security Validation
-**Run comprehensive security checks:**
 
-#### Security Checklist
-1. **Frontend Security**:
-   - [ ] No API keys, secrets, or credentials in client-side code
-   - [ ] No sensitive data in localStorage/sessionStorage
-   - [ ] No direct database queries from frontend
-   - [ ] No XSS vulnerabilities through user input
-   - [ ] No dangerouslySetInnerHTML without DOMPurify
-   - [ ] All user inputs escaped before rendering
+<security-requirements>
+<mandatory-checks>
+  Run these grep commands - ALL must return empty:
+  ```bash
+  # Check for exposed secrets
+  grep -r "api[_-]?key\|secret\|password" --include="*.tsx" --include="*.ts" | grep -v "process.env"
+  
+  # Check for dangerous HTML
+  grep -r "dangerouslySetInnerHTML" --include="*.tsx"
+  
+  # Check for direct DB access in frontend
+  grep -r "prisma\." app/ --include="*.tsx" | grep -v "server"
+  ```
+</mandatory-checks>
 
-2. **Backend/API Security**:
-   - [ ] All API endpoints require proper authentication
-   - [ ] All user inputs validated with schemas (Zod)
-   - [ ] All database queries use parameterized statements
-   - [ ] Error messages don't expose sensitive information
-   - [ ] Proper CORS configuration
-   - [ ] Rate limiting implemented where needed
+<security-gates>
+  BLOCK deployment if:
+  □ Any hardcoded secret found
+  □ User input not validated with Zod
+  □ API endpoint missing auth check
+  □ Error exposes system details
+  □ XSS vulnerability possible
+</security-gates>
+</security-requirements>
 
 3. **Environment & Configuration**:
    - [ ] Environment variables use NEXT_PUBLIC_ prefix correctly
@@ -802,22 +871,30 @@ ${INTEGRATION_POINTS}
 - [ ] API endpoints properly integrated
 
 ### Phase 9: Comprehensive Final Validation
-**Run ALL validation checks before declaring complete:**
 
-#### Automated Tests & Quality Checks
-```bash
-# Run the complete validation suite
-npm run lint          # Must pass with ZERO warnings
-npm run type-check    # Must pass with ZERO errors
-npm run test          # ALL tests must pass (including existing tests!)
-npm run test:coverage # Must meet coverage thresholds
-npm run build         # Must build successfully
+<final-validation-protocol>
+<no-exceptions-policy>
+  These checks are MANDATORY - NO EXCEPTIONS:
+  
+  ```bash
+  npm run lint          # MUST: 0 errors, 0 warnings
+  npm run type-check    # MUST: 0 errors
+  npm run test          # MUST: ALL pass (new + existing)
+  npm run build         # MUST: succeed with 0 errors
+  ```
+  
+  If ANY check fails → DO NOT mark task complete
+  Fix ALL issues before proceeding
+</no-exceptions-policy>
 
-# CRITICAL: Regression Testing
-# This runs ALL tests in the codebase, not just new ones
-# If ANY existing test fails, it means the new feature broke something
-# DO NOT proceed until ALL tests pass
-```
+<regression-prevention>
+  CRITICAL: You MUST verify:
+  □ No existing tests were broken
+  □ No existing features were affected
+  □ No performance degradation
+  □ No new console errors
+</regression-prevention>
+</final-validation-protocol>
 
 #### Regression Testing Verification
 - [ ] All existing unit tests still pass
@@ -986,6 +1063,20 @@ Future Improvements:
 - [ ] API/Database optimization verified
 - [ ] No critical issues remain unresolved
 - [ ] Implementation confidence is HIGH
+
+<placeholder-replacement-critical>
+<before-using-this-template>
+  CRITICAL: This is a TEMPLATE with ${PLACEHOLDERS}
+  
+  You MUST:
+  □ Replace EVERY ${PLACEHOLDER} with actual values
+  □ Remove ALL ${IF_*} and ${END_IF_*} conditional markers
+  □ Verify with grep: grep -c '${' prp.md → MUST return 0
+  □ Ensure all sections have concrete, actionable content
+  
+  NEVER leave placeholders in the final PRP!
+</before-using-this-template>
+</placeholder-replacement-critical>
 
 ## ⚠️ Important Reminders
 

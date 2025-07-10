@@ -5,7 +5,17 @@ allowed-tools: ["*"]
 
 # Command: aidev-code-task
 
-**CRITICAL: This command REQUIRES a task ID argument. If no argument is provided ($ARGUMENTS is empty), immediately stop with an error message.**
+<role-context>
+You are a senior engineer implementing a specific task. You have deep knowledge of this codebase, follow all established patterns religiously, and never create code that doesn't align with existing conventions. You verify everything before proceeding.
+</role-context>
+
+**CRITICAL: This command REQUIRES a task ID argument. If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.**
+
+**IMMEDIATE VALIDATION:**
+If #$ARGUMENTS is empty or not provided:
+1. Output: "ERROR: No task ID provided. This command requires a task ID."
+2. Output: "Usage: /aidev-code-task <task-id>"
+3. STOP EXECUTION - Do not proceed with any other steps
 
 ## Purpose
 Implements the task based on task type:
@@ -19,18 +29,34 @@ Implements the task based on task type:
 
 ### 0. Pre-Flight Check
 
-- Check if task argument was provided:
-  ```bash
-  if [ -z "$ARGUMENTS" ]; then
-    echo "ERROR: No task ID provided. Usage: claude /aidev-code-task <task-id>"
-    exit 1
-  fi
-  ```
-- Read the task JSON file from `.aidev/tasks/$ARGUMENTS.json`
-- If task not found, stop with error: "Task not found: $ARGUMENTS"
-- Check task status - must be "pending" to proceed
-- Read task specification from `.aidev/tasks/$ARGUMENTS.md`
-- Extract log path from task JSON for saving results
+**FIRST: Check if task ID was provided**
+```bash
+if [ -z "#$ARGUMENTS" ]; then
+  echo "ERROR: No task ID provided. This command requires a task ID."
+  echo "Usage: /aidev-code-task <task-id>"
+  exit 1
+fi
+```
+
+<pre-flight-validation>
+<mandatory-checks>
+  □ Task argument provided (MUST CHECK: #$ARGUMENTS is not empty)
+  □ Task JSON file exists at `.aidev/tasks/#$ARGUMENTS.json`
+  □ Task MD file exists at `.aidev/tasks/#$ARGUMENTS.md`
+  □ Task status == "pending" (quote from JSON)
+  □ All task dependencies completed (verify each by ID)
+  □ Required patterns exist (quote file:line for each)
+  □ Example files found (list exact paths)
+</mandatory-checks>
+
+<abort-conditions>
+  ABORT IMMEDIATELY if no task argument: "ERROR: No task ID provided. Usage: /aidev-code-task <task-id>"
+  ABORT if task file missing: "Task not found: #$ARGUMENTS"
+  ABORT if status != "pending": "Task #$ARGUMENTS status is [status], not pending"
+  ABORT if dependency incomplete: "Dependency [id] is not completed"
+  ASK if pattern not found: "Pattern [name] referenced but not found"
+</abort-conditions>
+</pre-flight-validation>
 
 ### 1. Update Task Status
 - Update task status to "in-progress" in JSON file
@@ -92,11 +118,24 @@ Collect information to replace each placeholder:
 - And all other variables in the template...
 
 #### 5.3 Generate the PRP Document
-- Replace ALL placeholder variables in the template with actual content
-- For conditional sections (${IF_PATTERN_MODE}, ${IF_FEATURE_MODE}, ${IF_INSTRUCTION_MODE}):
-  - Include only the relevant section based on task type
-  - Remove the conditional markers
-- Ensure no placeholders remain in the final document
+
+<prp-generation-constraints>
+<variable-replacement>
+  For each ${VARIABLE} in template:
+  1. Show source: "Found ${VARIABLE} in [location]: <value>"
+  2. If not found: "DEFAULT for ${VARIABLE}: [value] (reason: [why this default])"
+  3. After completion, verify with regex: /\$\{[^}]+\}/ must return NO matches
+</variable-replacement>
+
+<section-requirements>
+  MUST include:
+  □ Dependency check results (all verified as complete)
+  □ Quote 3+ relevant code examples with file:line
+  □ List ALL files to create/modify (exact paths)
+  □ Show test plan if testing available
+  □ Reference specific patterns with quotes
+</section-requirements>
+</prp-generation-constraints>
 
 #### 5.4 Save the Generated PRP
 - Create directory: `.aidev/logs/[taskid]/`
@@ -142,38 +181,80 @@ This feature will add complete user authentication to the application, including
 
 ### 6. Implementation
 
-#### Pattern/Feature Tasks:
-- Create tests alongside implementation (if testing available)
-- Implement following the PRP
-- Make atomic commits with AI attribution
-- Include task ID and session info in commits
+<implementation-rules>
+<pattern-tasks>
+  Requirements:
+  □ Implementation EXACTLY 50-100 lines (count required)
+  □ Include working usage example (mandatory)
+  □ Self-contained with no external dependencies
+  □ Match existing pattern from preferences (quote source)
+  □ Export pattern for use by other code
+  
+  Verification after creation:
+  □ Line count: wc -l [file] must show 50-100
+  □ Pattern matches preference: side-by-side comparison
+  □ Usage example runs without errors
+</pattern-tasks>
 
-#### Instruction Tasks:
-- **CRITICAL**: Only create the documentation file specified in the task
-- **DO NOT**: Install any packages, create utility files, or modify existing code
-- **DO NOT**: Create example files, test files, or any supporting files
-- Create documentation file as specified
-- Single commit with appropriate message
-- If the instruction mentions packages or dependencies, document them but DO NOT install
+<feature-tasks>
+  Requirements:
+  □ Follow PRP file list EXACTLY (no extra files)
+  □ Import only packages found in package.json
+  □ Create tests FIRST if testing available
+  □ Make atomic commits after each component
+  □ Include task ID in every commit message
+  
+  Verification:
+  □ All PRP-listed files created
+  □ No unlisted files created
+  □ All imports resolve
+</feature-tasks>
+
+<instruction-tasks>
+  Strict boundaries:
+  □ Create ONLY the .md file specified
+  □ NO package installations (no npm/yarn commands)
+  □ NO code file creation (.js, .ts, etc.)
+  □ NO modification of existing files
+  
+  Verification:
+  □ Run: git status | grep -v ".md$"
+  □ Above command MUST return empty
+  □ Only the specified .md file should exist
+</instruction-tasks>
+</implementation-rules>
 
 ### 7. Validation
 
-#### For Pattern/Feature Tasks:
-- Run tests if available: `npm test`
-- Run linting: `npm run lint`
-- Run type checking: `npm run type-check`
-- Build project: `npm run build`
-- Run E2E tests if available
+<validation-requirements>
+<automated-checks>
+  Pattern/Feature Tasks:
+  □ npm test → MUST pass (show output)
+  □ npm run lint → MUST pass (show output)
+  □ npm run type-check → MUST succeed
+  □ npm run build → MUST complete without errors
+  □ git status → should be clean after commits
+  
+  Instruction Tasks:
+  □ git status → ONLY shows .md file
+  □ git diff package.json → NO changes
+  □ find . -name "*.ts" -o -name "*.js" -newer [start_time] → EMPTY
+</automated-checks>
 
-#### For Instruction Tasks:
-- **CRITICAL**: Verify ONLY documentation files were created
-- **CRITICAL**: Ensure NO packages were installed (check git status)
-- **CRITICAL**: Confirm NO code files or utilities were created
-- Verify all required sections are included
-- Check technical accuracy
-- Validate code examples (if any)
-- Ensure formatting follows project standards
-- Review for clarity and completeness
+<self-verification>
+  □ Every PRP requirement implemented? (check each)
+  □ All tests passing? (paste test output)
+  □ Matches patterns? (quote comparison)
+  □ PR message created at correct path? (cat file)
+</self-verification>
+
+<failure-handling>
+  If tests fail 2x → STOP with error details
+  If build fails → STOP and document issue
+  If lint fails 3x → STOP, likely pattern mismatch
+  If type-check fails → STOP, fix before proceeding
+</failure-handling>
+</validation-requirements>
 
 ### 8. Create PR Message
 
@@ -246,25 +327,51 @@ if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
 fi
 
 # Update task status to review
-TASK_JSON=$(cat .aidev/tasks/$ARGUMENTS.json)
+TASK_JSON=$(cat .aidev/tasks/#$ARGUMENTS.json)
 UPDATED_JSON=$(echo "$TASK_JSON" | jq '.status = "review"')
-echo "$UPDATED_JSON" > .aidev/tasks/$ARGUMENTS.json
+echo "$UPDATED_JSON" > .aidev/tasks/#$ARGUMENTS.json
 
 # Commit status change
-git add .aidev/tasks/$ARGUMENTS.json
-git commit -m "chore: mark task $ARGUMENTS as ready for review"
+git add .aidev/tasks/#$ARGUMENTS.json
+git commit -m "chore: mark task #$ARGUMENTS as ready for review"
 
-echo "✅ Task $ARGUMENTS completed successfully"
+echo "✅ Task #$ARGUMENTS completed successfully"
 echo "📝 PR message saved to: $LAST_RESULT_PATH"
 echo "📋 Task status updated to: review"
 ```
 
 ## Error Handling
-- Document errors clearly
-- Exit with appropriate error message
-- Provide recovery instructions when possible
+
+<uncertainty-handling>
+<permission-to-stop>
+  You MUST stop and ask when:
+  - Pattern file referenced but not found
+  - Import needed but not in package.json
+  - Multiple valid implementation approaches
+  - Task specification ambiguous
+  - Example contradicts preference
+</permission-to-stop>
+
+<required-admissions>
+  "Cannot find pattern [name] at specified location"
+  "Package [name] not in dependencies"
+  "Task specifies [X] but preference shows [Y]"
+  "Multiple approaches possible - need clarification"
+</required-admissions>
+</uncertainty-handling>
 
 ## Key Requirements
+
+<final-verification>
+<before-marking-complete>
+  □ All validation checks passed
+  □ PR message exists and has content
+  □ Task achieves stated goals
+  □ No placeholder text remains
+  □ Follows ALL patterns exactly
+</before-marking-complete>
+</final-verification>
+
 - **Task Isolation**: Only modify the specified task
 - **Status Updates**: Update task JSON status (pending → in-progress → review)
 - **PR Message**: MUST create `last_result.md` before marking as review
