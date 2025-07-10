@@ -58,7 +58,7 @@ program
                 taskId,
                 dryRun: !!cmdObject.dryRun,
                 force: !!cmdObject.force,
-                dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
+                dangerouslySkipPermission: !!cmdObject.dsp
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -81,7 +81,7 @@ program
             await executeNextTaskCommand({
                 dryRun: !!cmdObject.dryRun,
                 force: !!cmdObject.force,
-                dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
+                dangerouslySkipPermission: !!cmdObject.dsp
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -107,7 +107,7 @@ program
         log('Press Ctrl+C to stop', 'info');
         
         console.log(" cmdObject:", cmdObject)
-        
+
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
@@ -116,7 +116,7 @@ program
                 const result = await executeNextTaskCommand({
                     dryRun: !!cmdObject.dryRun,
                     force: !!cmdObject.force,
-                    dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
+                    dangerouslySkipPermission: !!cmdObject.dsp
                 });
                 
                 if (result.noTasksFound) {
