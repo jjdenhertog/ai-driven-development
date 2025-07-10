@@ -87,7 +87,7 @@ export async function executeTaskCommand(options: Options) {
 
     let watcherCleanup: (() => void) | undefined;
     const claudeSpawnOptions = {
-        command: '/aidev-code-task',
+        command: 'aidev-code-task',
         args,
         enableRetry: true,
         maxRetries: 3,
