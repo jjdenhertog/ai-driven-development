@@ -9,12 +9,12 @@ allowed-tools: ["*"]
 You are a senior engineer implementing a specific task. You have deep knowledge of this codebase, follow all established patterns religiously, and never create code that doesn't align with existing conventions. You verify everything before proceeding.
 </role-context>
 
-**CRITICAL: This command REQUIRES a task ID argument. If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.**
+**CRITICAL: This command REQUIRES a task filename argument (format: taskId-taskName). If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.**
 
 **IMMEDIATE VALIDATION:**
 If #$ARGUMENTS is empty or not provided:
-1. Output: "ERROR: No task ID provided. This command requires a task ID."
-2. Output: "Usage: /aidev-code-task <task-id>"
+1. Output: "ERROR: No task filename provided. This command requires a task filename."
+2. Output: "Usage: /aidev-code-task <taskId-taskName>"
 3. STOP EXECUTION - Do not proceed with any other steps
 
 ## Purpose
@@ -29,19 +29,61 @@ Implements the task based on task type:
 
 ### 0. Pre-Flight Check
 
-**FIRST: Check if task ID was provided**
+**FIRST: Check if task filename was provided**
 ```bash
 if [ -z "#$ARGUMENTS" ]; then
-  echo "ERROR: No task ID provided. This command requires a task ID."
-  echo "Usage: /aidev-code-task <task-id>"
+  echo "ERROR: No task filename provided. This command requires a task filename."
+  echo "Usage: /aidev-code-task <taskId-taskName>"
   exit 1
 fi
+```
+
+**SECOND: Check if task files exist and can be loaded**
+```bash
+# Check if task JSON exists
+if [ ! -f ".aidev/tasks/#$ARGUMENTS.json" ]; then
+  echo "ERROR: Task not found: #$ARGUMENTS"
+  echo "Task file does not exist at: .aidev/tasks/#$ARGUMENTS.json"
+  exit 1
+fi
+
+# Check if task MD exists
+if [ ! -f ".aidev/tasks/#$ARGUMENTS.md" ]; then
+  echo "ERROR: Task specification not found: #$ARGUMENTS"
+  echo "Task specification file does not exist at: .aidev/tasks/#$ARGUMENTS.md"
+  exit 1
+fi
+
+# Try to load and parse the task JSON
+TASK_JSON=$(cat .aidev/tasks/#$ARGUMENTS.json 2>/dev/null)
+if [ $? -ne 0 ]; then
+  echo "ERROR: Failed to read task file: #$ARGUMENTS"
+  exit 1
+fi
+
+# Verify JSON is valid
+echo "$TASK_JSON" | jq . >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "ERROR: Task file contains invalid JSON: #$ARGUMENTS"
+  exit 1
+fi
+
+# Extract task ID from the JSON
+TASK_ID=$(echo "$TASK_JSON" | jq -r '.id')
+if [ -z "$TASK_ID" ] || [ "$TASK_ID" = "null" ]; then
+  echo "ERROR: Task JSON does not contain a valid 'id' field"
+  exit 1
+fi
+
+echo "✅ Task #$ARGUMENTS found and loaded successfully"
+echo "📋 Task ID: $TASK_ID"
 ```
 
 <pre-flight-validation>
 <mandatory-checks>
   □ Task argument provided (MUST CHECK: #$ARGUMENTS is not empty)
   □ Task JSON file exists at `.aidev/tasks/#$ARGUMENTS.json`
+  □ Task JSON is valid and can be parsed
   □ Task MD file exists at `.aidev/tasks/#$ARGUMENTS.md`
   □ Task status == "pending" (quote from JSON)
   □ All task dependencies completed (verify each by ID)
@@ -50,8 +92,11 @@ fi
 </mandatory-checks>
 
 <abort-conditions>
-  ABORT IMMEDIATELY if no task argument: "ERROR: No task ID provided. Usage: /aidev-code-task <task-id>"
-  ABORT if task file missing: "Task not found: #$ARGUMENTS"
+  ABORT IMMEDIATELY if no task argument: "ERROR: No task filename provided. Usage: /aidev-code-task <taskId-taskName>"
+  ABORT if task JSON missing: "ERROR: Task not found: #$ARGUMENTS"
+  ABORT if task MD missing: "ERROR: Task specification not found: #$ARGUMENTS"
+  ABORT if JSON cannot be read: "ERROR: Failed to read task file: #$ARGUMENTS"
+  ABORT if JSON is invalid: "ERROR: Task file contains invalid JSON: #$ARGUMENTS"
   ABORT if status != "pending": "Task #$ARGUMENTS status is [status], not pending"
   ABORT if dependency incomplete: "Dependency [id] is not completed"
   ABORT if PRP not created: "FATAL: PRP document was not generated - cannot proceed"
@@ -102,7 +147,7 @@ For all task types (pattern, feature, and instruction):
 
 #### 4.2 Gather Context for Template Variables
 Collect information to replace each placeholder:
-- `${TASK_ID}`: From the task JSON
+- `${TASK_ID}`: Extract from the task JSON using jq (stored in $TASK_ID variable)
 - `${TASK_NAME}`: From the task JSON
 - `${TASK_TYPE}`: Pattern/Feature/Instruction from task JSON
 - `${FEATURE_OVERVIEW}`: Extract from task specification markdown
@@ -140,14 +185,14 @@ Collect information to replace each placeholder:
 </prp-generation-constraints>
 
 #### 4.4 Save the Generated PRP
-- Create directory: `.aidev/logs/[taskid]/`
-- Save the completed PRP to: `.aidev/logs/[taskid]/prp.md`
+- Create directory: `.aidev/logs/$TASK_ID/` (using the ID extracted from JSON)
+- Save the completed PRP to: `.aidev/logs/$TASK_ID/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
 
 **🛑 CRITICAL VALIDATION - MUST VERIFY PRP EXISTS:**
 ```bash
-# Verify PRP was created
-PRP_PATH=".aidev/logs/#$ARGUMENTS/prp.md"
+# Verify PRP was created (using extracted task ID)
+PRP_PATH=".aidev/logs/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL ERROR: PRP was not created at $PRP_PATH"
   echo "The PRP document is MANDATORY for all task types."
@@ -218,8 +263,8 @@ This feature will add complete user authentication to the application, including
 
 **🛑 PRE-IMPLEMENTATION CHECKPOINT - VERIFY PRP EXISTS:**
 ```bash
-# Final PRP check before implementation
-if [ ! -f ".aidev/logs/#$ARGUMENTS/prp.md" ]; then
+# Final PRP check before implementation (using extracted task ID)
+if [ ! -f ".aidev/logs/$TASK_ID/prp.md" ]; then
   echo "❌ CANNOT PROCEED: No PRP document found"
   echo "Implementation is blocked until PRP is generated"
   echo "This is a mandatory requirement for ALL task types"
@@ -305,7 +350,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 
 ### 7. Create PR Message
 
-**CRITICAL**: Save PR message to `.aidev/logs/[taskid]/last_result.md`
+**CRITICAL**: Save PR message to `.aidev/logs/$TASK_ID/last_result.md` (using the ID extracted from JSON)
 
 #### Pattern/Feature Tasks:
 ```markdown
@@ -367,16 +412,16 @@ Created documentation as specified
 **CRITICAL**: Verify both PRP and PR message were created before updating status
 
 ```bash
-# Verify PRP exists (final check)
-PRP_PATH=".aidev/logs/#$ARGUMENTS/prp.md"
+# Verify PRP exists (final check - using extracted task ID)
+PRP_PATH=".aidev/logs/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL: Cannot finalize - PRP document is missing"
   echo "The PRP is a mandatory deliverable for all tasks"
   exit 1
 fi
 
-# Verify last_result.md exists and has content
-LAST_RESULT_PATH=".aidev/logs/#$ARGUMENTS/last_result.md"
+# Verify last_result.md exists and has content (using extracted task ID)
+LAST_RESULT_PATH=".aidev/logs/$TASK_ID/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   echo "ERROR: PR message (last_result.md) was not created or is empty!"
   exit 1

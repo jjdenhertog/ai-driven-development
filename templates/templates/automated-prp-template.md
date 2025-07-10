@@ -1,5 +1,5 @@
 ---
-name: "Automated PRP Template for Next-Task"
+name: "Automated PRP Template for Code-Task"
 description: |
   Template used by aidev-code-task to automatically generate PRPs from feature specifications.
   This template includes placeholders for context injection from patterns, sessions, and examples.

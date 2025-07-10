@@ -79,7 +79,9 @@ export async function executeTaskCommand(options: Options) {
     ///////////////////////////////////////////////////////////
     // Starting Claude Code
     ///////////////////////////////////////////////////////////
-    const args = [task.id];
+    const taskFileName = `${task.id}-${task.name}`
+    const args = [taskFileName];
+
     if (dangourslySkipPermission)
         args.push('--dangoursly-skip-permission');
 
