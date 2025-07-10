@@ -106,8 +106,6 @@ program
         log('Starting continuous task execution loop...', 'info');
         log('Press Ctrl+C to stop', 'info');
         
-        console.log(" cmdObject:", cmdObject)
-
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {

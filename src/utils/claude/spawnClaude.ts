@@ -10,17 +10,17 @@ export function spawnClaude(options: ClaudeSpawnOptions): ChildProcess {
     const fullArgs = [...commandArray, ...args];
     
     // Log the exact command being executed
-    const fullCommand = `claude ${fullArgs.join(' ')}`;
+    const fullCommand = `claude ${fullArgs.map(arg => arg.toString().trim()).join(' ')}`;
     log(`Executing command: ${fullCommand}`, 'info');
     
     // Default spawn options
     const defaultOptions = {
         stdio: 'inherit' as const,
-        shell: true
+        shell: false
     };
     
-    // When using shell: true, pass the command as a single string
-    return spawn(fullCommand, [], {
+    // Pass command and args separately without shell
+    return spawn('claude', fullArgs, {
         ...defaultOptions,
         ...spawnOptions
     });

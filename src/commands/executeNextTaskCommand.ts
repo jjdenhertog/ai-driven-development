@@ -31,7 +31,6 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
         throw new Error('Git authentication required');
     }
 
-    console.log(options)
     if(dangerouslySkipPermission)
         log('Dangerously skipping permission checks', 'warn');
 
