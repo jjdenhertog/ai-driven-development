@@ -9,11 +9,15 @@ export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watche
     let cooldownTimeout: NodeJS.Timeout | undefined;
 
     try {
+        const previousStatus = task.status;
+        log(`Watching if task file changes from ${previousStatus} to review`)
+
         watcher = watch(task.path, (eventType) => {
+
             if (eventType === 'change') {
                 // Re-read the task to check status
                 const updatedTask = getTaskById(task.id);
-                if (updatedTask && updatedTask.status !== 'in-progress') {
+                if (updatedTask && updatedTask.status != previousStatus) {
                     log('Task moved not in progress anymore. Waiting 60 seconds before terminating Claude...', 'info');
 
                     // Clear any existing timeout
@@ -39,6 +43,7 @@ export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watche
         if (watcher) {
             watcher.close();
         }
+        
         if (cooldownTimeout) {
             clearTimeout(cooldownTimeout);
         }
