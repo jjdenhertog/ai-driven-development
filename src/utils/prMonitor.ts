@@ -67,6 +67,7 @@ export async function checkAllPRs(targetRoot: string): Promise<PRStatus> {
                 if (prDetail.mergeCommit?.oid) {
                     prInfo.mergeCommit = prDetail.mergeCommit.oid;
                 }
+                
                 status.merged.push(prInfo);
             } else if (prDetail.state === 'CLOSED') {
                 status.failed.push(prInfo);
