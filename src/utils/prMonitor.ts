@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import { join } from "node:path";
 
 import { ensureDir } from "./filesystem";
+import { updateTaskWithMergeInfo } from "./tasks/updateTaskWithMergeInfo";
 
 type PRStatus = {
     merged: PRInfo[]
@@ -17,6 +18,7 @@ type PRInfo = {
     title: string
     state: string
     action?: string
+    mergeCommit?: string
 }
 
 type ProcessResult = {
@@ -53,14 +55,18 @@ export async function checkAllPRs(targetRoot: string): Promise<PRStatus> {
                 state: pr.state
             };
             
-            // Get detailed PR info
-            const prDetailJson = execSync(`gh pr view ${pr.number} --json state,mergeable,reviews`, {
+            // Get detailed PR info including merge commit
+            const prDetailJson = execSync(`gh pr view ${pr.number} --json state,mergeable,reviews,mergeCommit`, {
                 cwd: targetRoot
             }).toString();
             
             const prDetail = JSON.parse(prDetailJson);
             
             if (prDetail.state === 'MERGED') {
+                // Add merge commit info if available
+                if (prDetail.mergeCommit?.oid) {
+                    prInfo.mergeCommit = prDetail.mergeCommit.oid;
+                }
                 status.merged.push(prInfo);
             } else if (prDetail.state === 'CLOSED') {
                 status.failed.push(prInfo);
@@ -83,6 +89,11 @@ export async function checkAllPRs(targetRoot: string): Promise<PRStatus> {
 
 export async function processMergedPR(pr: PRInfo, targetRoot: string): Promise<ProcessResult> {
     try {
+        // First, update the task with merge information
+        if (pr.mergeCommit) {
+            updateTaskWithMergeInfo(pr.taskId, pr.number, pr.mergeCommit);
+        }
+        
         const tasksDir = join(targetRoot, 'ai-dev', 'tasks');
         const pendingPath = join(tasksDir, 'pending');
         const inProgressPath = join(tasksDir, 'in_progress');

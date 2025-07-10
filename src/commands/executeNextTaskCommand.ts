@@ -2,7 +2,7 @@ import { checkGitAuth } from '../utils/git/checkGitAuth';
 import { getMainBranch } from '../utils/git/getMainBranch';
 import { validateBranchState } from '../utils/git/validateBranchState';
 import { getBranchName } from '../utils/tasks/getBranchName';
-import { log } from "node:console";
+import { log } from "../utils/logger";
 import { executeTaskCommand } from "./executeTaskCommand";
 import { branchExists } from '../utils/git/branchExists';
 import { getCurrentBranch } from '../utils/git/getCurrentBranch';
@@ -17,7 +17,12 @@ type Options = {
     dangourslySkipPermission: boolean
 }
 
-export async function executeNextTaskCommand(options: Options) {
+type ExecuteNextTaskResult = {
+    taskExecuted: boolean;
+    noTasksFound: boolean;
+}
+
+export async function executeNextTaskCommand(options: Options): Promise<ExecuteNextTaskResult> {
     const { dryRun, force, dangourslySkipPermission } = options;
 
     // Ensure git auth
@@ -49,7 +54,7 @@ export async function executeNextTaskCommand(options: Options) {
         if (pendingTasks.length === 0) {
             log('No pending tasks found', 'warn');
 
-            return;
+            return { taskExecuted: false, noTasksFound: true };
         }
 
         log(`Found ${pendingTasks.length} pending tasks`, 'info');
@@ -79,7 +84,7 @@ export async function executeNextTaskCommand(options: Options) {
                     dangourslySkipPermission
                 });
 
-                return;
+                return { taskExecuted: true, noTasksFound: false };
             }
 
             // Branch exists, need to check task status in that branch
@@ -109,7 +114,7 @@ export async function executeNextTaskCommand(options: Options) {
                     });
                 }
 
-                return;
+                return { taskExecuted: !dryRun, noTasksFound: false };
             }
 
             log(`Task is ${taskInBranch?.status || 'not found'} in branch, skipping`, 'warn');
@@ -118,6 +123,8 @@ export async function executeNextTaskCommand(options: Options) {
 
         log('No executable tasks found', 'warn');
         log('All pending tasks either have unresolved dependencies or are already in progress', 'info');
+        
+        return { taskExecuted: false, noTasksFound: false };
 
     } catch (error) {
         // Try to return to original branch on error

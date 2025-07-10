@@ -54,6 +54,9 @@ fi
   ABORT if task file missing: "Task not found: #$ARGUMENTS"
   ABORT if status != "pending": "Task #$ARGUMENTS status is [status], not pending"
   ABORT if dependency incomplete: "Dependency [id] is not completed"
+  ABORT if PRP not created: "FATAL: PRP document was not generated - cannot proceed"
+  ABORT if PRP is empty: "FATAL: PRP document exists but is empty"
+  ABORT if PRP has placeholders: "FATAL: PRP contains unresolved ${...} placeholders"
   ASK if pattern not found: "Pattern [name] referenced but not found"
 </abort-conditions>
 </pre-flight-validation>
@@ -92,11 +95,14 @@ fi
 
 ### 5. Generate PRP (All Task Types)
 
+**🛑 CRITICAL: PRP GENERATION IS MANDATORY - THE COMMAND WILL ABORT IF PRP IS NOT CREATED**
+
 For all task types (pattern, feature, and instruction):
 
 #### 5.1 Read the PRP Template
 - Read the template from `.aidev/templates/automated-prp-template.md`
 - This template contains placeholder variables like `${FEATURE_OVERVIEW}`, `${TASK_NAME}`, etc.
+- **ABORT if template not found**: "ERROR: PRP template not found at .aidev/templates/automated-prp-template.md"
 
 #### 5.2 Gather Context for Template Variables
 Collect information to replace each placeholder:
@@ -142,11 +148,44 @@ Collect information to replace each placeholder:
 - Save the completed PRP to: `.aidev/logs/[taskid]/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
 
+**🛑 CRITICAL VALIDATION - MUST VERIFY PRP EXISTS:**
+```bash
+# Verify PRP was created
+PRP_PATH=".aidev/logs/#$ARGUMENTS/prp.md"
+if [ ! -f "$PRP_PATH" ]; then
+  echo "❌ FATAL ERROR: PRP was not created at $PRP_PATH"
+  echo "The PRP document is MANDATORY for all task types."
+  echo "Aborting task execution."
+  exit 1
+fi
+
+# Verify PRP has content
+if [ ! -s "$PRP_PATH" ]; then
+  echo "❌ FATAL ERROR: PRP file exists but is empty"
+  echo "The PRP document must contain the implementation plan."
+  echo "Aborting task execution."
+  exit 1
+fi
+
+# Verify no placeholders remain
+if grep -q '\${[^}]*}' "$PRP_PATH"; then
+  echo "❌ FATAL ERROR: PRP contains unresolved placeholders"
+  echo "All template variables must be replaced with actual values."
+  echo "Found placeholders:"
+  grep -o '\${[^}]*}' "$PRP_PATH" | head -5
+  echo "Aborting task execution."
+  exit 1
+fi
+
+echo "✅ PRP validation passed - proceeding with implementation"
+```
+
 #### 5.5 Follow the Generated PRP
 - Use the generated PRP as your implementation guide
 - The PRP contains specific validation checkpoints - follow them
 - Design with future tasks in mind for extensibility
 - For instruction tasks, focus on documentation structure and completeness
+- **NEVER proceed without a valid PRP document**
 
 #### Example of a Properly Generated PRP
 After replacing all placeholders, the PRP should look like this (partial example):
@@ -180,6 +219,18 @@ This feature will add complete user authentication to the application, including
 **NOTE**: The generated PRP must have NO placeholder variables (no ${...} syntax) remaining.
 
 ### 6. Implementation
+
+**🛑 PRE-IMPLEMENTATION CHECKPOINT - VERIFY PRP EXISTS:**
+```bash
+# Final PRP check before implementation
+if [ ! -f ".aidev/logs/#$ARGUMENTS/prp.md" ]; then
+  echo "❌ CANNOT PROCEED: No PRP document found"
+  echo "Implementation is blocked until PRP is generated"
+  echo "This is a mandatory requirement for ALL task types"
+  exit 1
+fi
+echo "✅ PRP document verified - proceeding with implementation"
+```
 
 <implementation-rules>
 <pattern-tasks>
@@ -317,10 +368,19 @@ Created documentation as specified
 
 ### 10. Finalization
 
-**CRITICAL**: Verify PR message was created before updating status
+**CRITICAL**: Verify both PRP and PR message were created before updating status
 
 ```bash
+# Verify PRP exists (final check)
+PRP_PATH=".aidev/logs/#$ARGUMENTS/prp.md"
+if [ ! -f "$PRP_PATH" ]; then
+  echo "❌ FATAL: Cannot finalize - PRP document is missing"
+  echo "The PRP is a mandatory deliverable for all tasks"
+  exit 1
+fi
+
 # Verify last_result.md exists and has content
+LAST_RESULT_PATH=".aidev/logs/#$ARGUMENTS/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   echo "ERROR: PR message (last_result.md) was not created or is empty!"
   exit 1
@@ -350,6 +410,8 @@ echo "📋 Task status updated to: review"
   - Multiple valid implementation approaches
   - Task specification ambiguous
   - Example contradicts preference
+  - PRP template cannot be found or read
+  - Unable to generate PRP for any reason
 </permission-to-stop>
 
 <required-admissions>
@@ -357,6 +419,8 @@ echo "📋 Task status updated to: review"
   "Package [name] not in dependencies"
   "Task specifies [X] but preference shows [Y]"
   "Multiple approaches possible - need clarification"
+  "Cannot generate PRP - [specific reason]"
+  "PRP validation failed - [specific error]"
 </required-admissions>
 </uncertainty-handling>
 
