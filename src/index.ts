@@ -8,6 +8,13 @@ import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
 import { learningCommand } from "./commands/learningCommand";
 import { log } from "node:console";
 import { sleep } from "./utils/sleep";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+// Read version from package.json
+const packageJsonPath = join(__dirname, '..', 'package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const version = packageJson.version;
 
 const program = new Command();
 
@@ -15,7 +22,7 @@ const program = new Command();
 program
     .name('aidev')
     .description('AI-Driven Development CLI - Automated workflow management for Claude')
-    .version('0.2.0');
+    .version(version);
 
 // Init command
 program
