@@ -31,6 +31,9 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
         throw new Error('Git authentication required');
     }
 
+    if(dangerouslySkipPermission)
+        log('Dangerously skipping permission checks', 'warn');
+
     // Validate git state
     const gitState = validateBranchState();
     if ('error' in gitState) {

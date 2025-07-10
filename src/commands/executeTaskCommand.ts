@@ -21,7 +21,7 @@ type Options = {
 }
 
 export async function executeTaskCommand(options: Options) {
-    const { taskId, dryRun, force, dangerouslySkipPermission = false } = options;
+    const { taskId, dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth
     if (!checkGitAuth()) {
