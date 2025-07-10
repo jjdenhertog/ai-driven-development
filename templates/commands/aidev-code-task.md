@@ -293,8 +293,7 @@ echo "✅ PRP document verified - proceeding with implementation"
   □ Follow PRP file list EXACTLY (no extra files)
   □ Import only packages found in package.json
   □ Create tests FIRST if testing available
-  □ Make atomic commits after each component
-  □ Include task ID in every commit message
+  □ Save all changes without committing
   
   Verification:
   □ All PRP-listed files created
@@ -325,7 +324,7 @@ echo "✅ PRP document verified - proceeding with implementation"
   □ npm run lint → MUST pass (show output)
   □ npm run type-check → MUST succeed
   □ npm run build → MUST complete without errors
-  □ git status → should be clean after commits
+  □ git status → shows all changes ready for review
   
   Instruction Tasks:
   □ git status → ONLY shows .md file
@@ -432,9 +431,8 @@ TASK_JSON=$(cat .aidev/tasks/#$ARGUMENTS.json)
 UPDATED_JSON=$(echo "$TASK_JSON" | jq '.status = "review"')
 echo "$UPDATED_JSON" > .aidev/tasks/#$ARGUMENTS.json
 
-# Commit status change
+# Stage status change (but don't commit)
 git add .aidev/tasks/#$ARGUMENTS.json
-git commit -m "chore: mark task #$ARGUMENTS as ready for review"
 
 echo "✅ Task #$ARGUMENTS completed successfully"
 echo "📝 PR message saved to: $LAST_RESULT_PATH"
@@ -482,4 +480,4 @@ echo "📋 Task status updated to: review"
 - **PR Message**: MUST create `last_result.md` before marking as review
 - **Testing**: Only create tests if testing infrastructure exists
 - **Patterns**: Follow established patterns from `.aidev/patterns/`
-- **Commits**: Use AI attribution in commit messages
+- **Changes**: Stage all changes but don't commit

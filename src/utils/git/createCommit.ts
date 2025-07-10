@@ -1,27 +1,32 @@
 import { CommitResult } from '../../types/git/CommitResult';
-import { execSync } from "node:child_process";
+import { execSync } from 'node:child_process';
 
 
 
-export function createCommit(message: string, options: { prefix?: string; all?: boolean; body?: string; }): CommitResult {
+export function createCommit(message: string, options: { prefix?: string; all?: boolean; body?: string; } = {}): CommitResult {
     try {
-        // Stage changes
-        if (options.all) 
-            execSync('git add -A', { cwd: process.cwd() });
-
+        const cwd = process.cwd();
+        
+        // Stage changes if requested
+        if (options.all) {
+            execSync('git add -A', { cwd });
+        }
+        
         // Build commit message
         let fullMessage = options.prefix ? `${options.prefix}: ${message}` : message;
-        if (options.body) 
+        if (options.body) {
             fullMessage += `\n\n${options.body}`;
-
-        // Create commit
-        execSync(`git commit -m "${fullMessage}"`, { cwd: process.cwd() });
-
-        // Get commit hash
-        const commitHash = execSync('git rev-parse HEAD', { cwd: process.cwd() })
+        }
+        
+        // Execute commit with AI author
+        const commitCommand = `git commit --author="AI <noreply@anthropic.com>" -m "${fullMessage}"`;
+        execSync(commitCommand, { cwd });
+        
+        // Get the commit hash
+        const commitHash = execSync('git rev-parse HEAD', { cwd })
             .toString()
             .trim();
-
+            
         return { success: true, commitHash };
     } catch (error) {
         return {

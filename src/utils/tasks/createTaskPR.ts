@@ -4,6 +4,7 @@ import { log } from '../logger';
 import { updateTaskFile } from './updateTaskFile';
 import { getPRContent } from './getPRContent';
 import { Task } from '../taskManager';
+import { createCommit } from '../git/createCommit';
 
 export function createTaskPR(task: Task, branchName: string): void {
     log('Preparing to create pull request...', 'info');
@@ -18,8 +19,13 @@ export function createTaskPR(task: Task, branchName: string): void {
         if (stagedChanges) {
             log('Committing changes...', 'info');
             // Create commit message from task with AI identifier
-            const commitMessage = `feat: complete task ${task.id} - ${task.name} (AI-generated)`;
-            execSync(`git commit -m "${commitMessage}"`, { stdio: 'pipe' });
+            const commitResult = createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
+                prefix: 'feat'
+            });
+            
+            if (!commitResult.success) {
+                throw new Error(`Failed to commit: ${commitResult.error}`);
+            }
         }
 
         // Check if there are unpushed commits
@@ -65,8 +71,8 @@ export function createTaskPR(task: Task, branchName: string): void {
         const prTitle = `[${task.id}] ${task.name}`;
         const prBody = prContent;
 
-        // Create PR using GitHub CLI
-        const prCommand = `gh pr create --title "${prTitle}" --body "${prBody}" --base master`;
+        // Create PR using GitHub CLI with explicit head branch
+        const prCommand = `gh pr create --title "${prTitle}" --body "${prBody}" --base master --head ${branchName}`;
         const prOutput = execSync(prCommand, { stdio: 'pipe', encoding: 'utf8' });
 
         log(`Pull request created: ${prOutput.trim()}`, 'success');

@@ -22,7 +22,9 @@
       "Bash(cp:*)",
       "Bash(touch:*)",
       "Bash(chmod:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(true)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }

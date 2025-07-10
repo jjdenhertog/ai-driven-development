@@ -1,11 +1,13 @@
+/* eslint-disable max-depth */
 import { checkGitAuth } from '../utils/git/checkGitAuth';
 import { switchToBranch } from '../utils/git/switchToBranch';
 import { getMainBranch } from '../utils/git/getMainBranch';
 import { getTasks } from '../utils/tasks/getTasks';
-import { createTaskWatcher } from '../utils/tasks/watchTaskFiles';
 import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
+import { Task } from '../utils/taskManager';
+import { readFileSync } from 'fs-extra';
 
 export async function learningCommand() {
     // Ensure git auth
@@ -15,12 +17,16 @@ export async function learningCommand() {
     }
 
     // Switch to main branch
-    if (!switchToBranch(getMainBranch(), { pull: true })) 
+    if (!switchToBranch(getMainBranch(), { pull: true, force: true }))
         throw new Error('Failed to switch to main branch');
 
     log('Learning command started. Monitoring for completed tasks...', 'success');
 
-    let cleanupWatcher: (() => void) | null = null;
+
+    let tasks = getTasks().filter(task => task.status != 'archived');
+
+    const iterationAfterFullReload = 30;
+    let iteration = 0;
 
     try {
         // eslint-disable-next-line no-constant-condition
@@ -28,39 +34,42 @@ export async function learningCommand() {
             // Pull latest changes
             switchToBranch(getMainBranch(), { pull: true });
 
-            // Clean up previous watcher if exists
-            if (cleanupWatcher) {
-                cleanupWatcher();
-                cleanupWatcher = null;
+            // Reload the tasks
+            if (iteration && iteration == iterationAfterFullReload) {
+                iteration = 0;
+                tasks = getTasks().filter(task => task.status != 'archived');
             }
 
-            // Get all pending tasks
-            const pendingTasks = getTasks('pending');
-            
-            if (pendingTasks.length > 0) {
-                log(`Found ${pendingTasks.length} pending tasks`, 'info');
-                
-                // Start watching pending tasks
-                cleanupWatcher = createTaskWatcher(pendingTasks, (task, previousStatus) => {
-                    if (task.status === 'completed' && previousStatus !== 'completed') {
-                        processCompletedTask(task).catch((error: unknown) => {
-                            log(`Error processing task: ${String(error)}`, 'error');
-                        });
+            // Check for completed tasks
+            const taskDatas: Task[] = []
+
+            // Reload the JSON
+            for (const task of tasks) {
+                const taskData: Task = JSON.parse(readFileSync(task.path, 'utf8'));
+                taskDatas.push(taskData);
+            }
+
+            const completedTasks = taskDatas.filter(task => task.status === 'completed');
+            if (completedTasks.length > 0) {
+                log(`Found ${completedTasks.length} completed tasks to process`, 'info');
+
+                // Process each completed task sequentially
+                for (const task of completedTasks) {
+                    try {
+                        await processCompletedTask(task);
+                    } catch (error) {
+
+                        log(`Error processing task ${task.id}: ${String(error)}`, 'error');
                     }
-                });
-            } else {
-                log('No pending tasks found', 'info');
+                }
             }
 
-            // Sleep for 60 seconds before next check
-            await sleep(60_000);
+            // Sleep for 30 seconds before next check
+            iteration++;
+            await sleep(300_000);
         }
     } catch (error) {
         log(`Learning command error: ${String(error)}`, 'error');
-        if (cleanupWatcher) {
-            cleanupWatcher();
-        }
-        
         throw error;
     }
 }

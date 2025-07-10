@@ -141,6 +141,10 @@ export async function executeTaskCommand(options: Options) {
 
         // Create PR
         try {
+            updateTaskFile(task.path, {
+                status: 'completed'
+            });
+            
             createTaskPR(task, branchName);
             switchToBranch(getMainBranch(), { pull: true, cleanIgnored: true, force: true });
         } catch (error) {
