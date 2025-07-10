@@ -5,14 +5,36 @@ import { log } from '../logger';
 export function spawnClaude(options: ClaudeSpawnOptions): ChildProcess {
     const { command, args = [], spawnOptions = {} } = options;
     
-    // Build the full command including arguments as a single string
-    // This is needed for Claude to properly process template variables like #$ARGUMENTS
-    const commandArray = Array.isArray(command) ? command : [command];
-    const argsString = args.length > 0 ? ` ${args.map(arg => arg.toString().trim()).join(' ')}` : '';
-    const fullCommand = `${commandArray.join(' ')}${argsString}`;
+    // Build the spawn arguments array
+    const spawnArgs: string[] = [];
+    
+    // Handle command (can be string or array)
+    const commandParts = Array.isArray(command) ? command : [command];
+    
+    // Separate into flags and regular args
+    const regularArgs = [...commandParts];
+    const flags: string[] = [];
+    
+    // Process additional arguments
+    args.forEach(arg => {
+        const argStr = arg.toString().trim();
+        if (argStr.startsWith('-')) {
+            flags.push(argStr);
+        } else {
+            regularArgs.push(argStr);
+        }
+    });
+    
+    // First element: concatenated regular arguments
+    if (regularArgs.length > 0) {
+        spawnArgs.push(regularArgs.join(' '));
+    }
+    
+    // Add flags as separate elements
+    spawnArgs.push(...flags);
     
     // Log the exact command being executed
-    log(`Executing command: claude ${fullCommand}`, 'info');
+    log(`Executing command: claude ${spawnArgs.join(' ')}`, 'info');
     
     // Default spawn options
     const defaultOptions = {
@@ -20,9 +42,8 @@ export function spawnClaude(options: ClaudeSpawnOptions): ChildProcess {
         shell: false
     };
     
-    // Pass the full command as a single argument to Claude
-    // This ensures Claude's template system can access arguments via #$ARGUMENTS
-    return spawn('claude', [fullCommand], {
+    // Pass arguments to spawn with proper separation
+    return spawn('claude', spawnArgs, {
         ...defaultOptions,
         ...spawnOptions
     });
