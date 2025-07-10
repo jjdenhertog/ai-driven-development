@@ -4,9 +4,10 @@ import { log } from '../logger';
 import { getTaskById } from './getTaskById';
 import { Task } from '../taskManager';
 
-export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watcher?: FSWatcher; cleanup: () => void } {
+export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watcher?: FSWatcher; cleanup: () => void; setDisableRetry: (callback: () => void) => void } {
     let watcher: FSWatcher | undefined;
     let cooldownTimeout: NodeJS.Timeout | undefined;
+    let disableRetryCallback: (() => void) | undefined;
 
     try {
         const previousStatus = task.status;
@@ -28,6 +29,10 @@ export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watche
                     // Wait 60 seconds then kill the process
                     cooldownTimeout = setTimeout(() => {
                         if (!claudeProcess.killed) {
+                            // Call the disable retry callback before killing
+                            if (disableRetryCallback) 
+                                disableRetryCallback();
+                            
                             claudeProcess.kill('SIGTERM');
                             log('Claude process terminated after review cooldown', 'success');
                         }
@@ -49,5 +54,9 @@ export function watchTaskFile(task: Task, claudeProcess: ChildProcess): { watche
         }
     };
 
-    return { watcher, cleanup };
+    const setDisableRetry = (callback: () => void) => {
+        disableRetryCallback = callback;
+    };
+
+    return { watcher, cleanup, setDisableRetry };
 }

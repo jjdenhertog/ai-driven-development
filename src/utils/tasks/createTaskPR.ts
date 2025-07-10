@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-regexp-exec */
 import { execSync } from 'node:child_process';
 import { log } from '../logger';
 import { updateTaskFile } from './updateTaskFile';
@@ -5,38 +6,55 @@ import { getPRContent } from './getPRContent';
 import { Task } from '../taskManager';
 
 export function createTaskPR(task: Task, branchName: string): void {
-    log('Checking for changes to commit...', 'info');
+    log('Preparing to create pull request...', 'info');
 
     try {
         // Stage all changes
         execSync('git add -A', { stdio: 'pipe' });
 
-        // Check if there are any changes to commit
-        try {
-            const diffStatus = execSync('git diff --cached --quiet', { stdio: 'pipe' });
-        } catch (error) {
-            // git diff --cached --quiet returns non-zero exit code if there are changes
-            // So we proceed with commit
-        }
-
         // Check if there are staged changes
         const stagedChanges = execSync('git diff --cached --name-only', { stdio: 'pipe', encoding: 'utf8' }).trim();
         
-        if (!stagedChanges) {
-            log('No changes to commit. Skipping PR creation.', 'warn');
-            return;
+        if (stagedChanges) {
+            log('Committing changes...', 'info');
+            // Create commit message from task with AI identifier
+            const commitMessage = `feat: complete task ${task.id} - ${task.name} (AI-generated)`;
+            execSync(`git commit -m "${commitMessage}"`, { stdio: 'pipe' });
         }
 
-        log('Committing changes...', 'info');
+        // Check if there are unpushed commits
+        let hasUnpushedCommits = false;
+        try {
+            const unpushedCommits = execSync(`git log origin/${branchName}..${branchName} --oneline`, { 
+                stdio: 'pipe', 
+                encoding: 'utf8' 
+            }).trim();
+            hasUnpushedCommits = unpushedCommits.length > 0;
+        } catch (_error) {
+            // Branch might not exist on remote yet
+            hasUnpushedCommits = true;
+        }
 
-        // Create commit message from task with AI identifier
-        const commitMessage = `feat: complete task ${task.id} - ${task.name} (AI-generated)`;
-        execSync(`git commit -m "${commitMessage}"`, { stdio: 'pipe' });
+        if (hasUnpushedCommits) {
+            log('Pushing changes to remote...', 'info');
+            execSync(`git push -u origin ${branchName}`, { stdio: 'pipe' });
+        }
 
-        log('Pushing changes to remote...', 'info');
+        // Check if PR already exists
+        try {
+            const existingPR = execSync(`gh pr view ${branchName} --json url`, { 
+                stdio: 'pipe', 
+                encoding: 'utf8' 
+            });
+            const prData = JSON.parse(existingPR);
+            if (prData.url) {
+                log(`Pull request already exists: ${prData.url}`, 'info');
 
-        // Push the branch
-        execSync(`git push -u origin ${branchName}`, { stdio: 'pipe' });
+                return;
+            }
+        } catch (_error) {
+            // No existing PR, continue to create one
+        }
 
         log('Creating pull request...', 'info');
 
@@ -68,7 +86,7 @@ export function createTaskPR(task: Task, branchName: string): void {
         }
 
     } catch (error) {
-        log(`Failed to commit/push/create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+        log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
         throw error;
     }
 }

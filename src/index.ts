@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable unicorn/prefer-module */
 
 import { Command } from "commander";
 import { initCommand } from "./commands/initCommand";
@@ -10,11 +11,12 @@ import { log } from "node:console";
 import { sleep } from "./utils/sleep";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { switchToBranch } from "./utils/git/switchToBranch";
+import { getMainBranch } from "./utils/git/getMainBranch";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', 'package.json');
-const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-const version = packageJson.version;
+const { version } = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 const program = new Command();
 
@@ -52,7 +54,6 @@ program
     .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
         
-        console.log(" cmdObject:", cmdObject)
         try {
             await executeTaskCommand({
                 taskId,
@@ -109,6 +110,15 @@ program
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
+                // Ensure we start each iteration from a clean main branch
+                if (!switchToBranch(getMainBranch(), { force: true, cleanIgnored: true, pull: true })) {
+                    logError('Failed to switch to clean main branch');
+                    
+                    log(`Waiting ${TASK_EXECUTION_DELAY / 1000} seconds before retrying...`, 'info');
+                    await sleep(TASK_EXECUTION_DELAY);
+                    continue;
+                }
+                
                 log('Looking for next task...', 'info');
                 
                 const result = await executeNextTaskCommand({

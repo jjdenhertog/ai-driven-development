@@ -12,6 +12,8 @@ import { executeClaudeWithHooks } from '../utils/claude/executeClaudeWithHooks';
 import { watchTaskFile } from '../utils/tasks/watchTaskFile';
 import { log } from "../utils/logger";
 import { ChildProcess } from 'node:child_process';
+import { switchToBranch } from '../utils/git/switchToBranch';
+import { getMainBranch } from '../utils/git/getMainBranch';
 
 type Options = {
     taskId: string
@@ -86,6 +88,8 @@ export async function executeTaskCommand(options: Options) {
         args.push('--dangerously-skip-permissions');
 
     let watcherCleanup: (() => void) | undefined;
+    let shouldRetry = true;
+    
     const claudeSpawnOptions = {
         command: '/aidev-code-task',
         args,
@@ -94,17 +98,32 @@ export async function executeTaskCommand(options: Options) {
         retryDelay: 5000,
         retryOnExitCodes: [143]
     };
+    
     const onClaudeStart = (claudeProcess: ChildProcess) => {
-        const { cleanup } = watchTaskFile(task, claudeProcess);
+        const { cleanup, setDisableRetry } = watchTaskFile(task, claudeProcess);
         watcherCleanup = cleanup;
+        
+        // When timeout kill is triggered, disable retries
+        setDisableRetry(() => {
+            shouldRetry = false;
+        });
     };
+    
     const onClaudeCleanup = () => {
         if (watcherCleanup) {
             watcherCleanup();   
         }
     };
+    
+    const onClaudeExit = (code: number | null, _signal: NodeJS.Signals | null) => {
+        // Override retry behavior if timeout kill was triggered
+        if (!shouldRetry && code === 143) {
+            return { preventRetry: true };
+        }
+    };
+    
     const result = await executeClaudeWithHooks(claudeSpawnOptions,
-        { onStart: onClaudeStart, cleanup: onClaudeCleanup }
+        { onStart: onClaudeStart, cleanup: onClaudeCleanup, onExit: onClaudeExit }
     );
 
     // Only proceed if Claude ran successfully or after retries
@@ -123,6 +142,7 @@ export async function executeTaskCommand(options: Options) {
         // Create PR
         try {
             createTaskPR(task, branchName);
+            switchToBranch(getMainBranch(), { pull: true, cleanIgnored: true, force: true });
         } catch (error) {
             log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
             // Don't throw here - the task execution itself was successful

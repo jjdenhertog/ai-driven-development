@@ -1,12 +1,11 @@
-import { execSync } from 'node:child_process';
 import { checkGitAuth } from '../utils/git/checkGitAuth';
-import { switchToMainBranch } from '../utils/git/switchToMainBranch';
+import { switchToBranch } from '../utils/git/switchToBranch';
+import { getMainBranch } from '../utils/git/getMainBranch';
 import { getTasks } from '../utils/tasks/getTasks';
 import { createTaskWatcher } from '../utils/tasks/watchTaskFiles';
 import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
-import { getMainBranch } from '../utils/git/getMainBranch';
 
 export async function learningCommand() {
     // Ensure git auth
@@ -16,7 +15,7 @@ export async function learningCommand() {
     }
 
     // Switch to main branch
-    if (!switchToMainBranch()) 
+    if (!switchToBranch(getMainBranch(), { pull: true })) 
         throw new Error('Failed to switch to main branch');
 
     log('Learning command started. Monitoring for completed tasks...', 'success');
@@ -27,12 +26,7 @@ export async function learningCommand() {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             // Pull latest changes
-            try {
-                execSync(`git pull origin ${getMainBranch()}`, { stdio: 'pipe' });
-                log('Pulled latest changes from remote', 'info');
-            } catch (error) {
-                log(`Failed to pull latest changes: ${String(error)}`, 'warn');
-            }
+            switchToBranch(getMainBranch(), { pull: true });
 
             // Clean up previous watcher if exists
             if (cleanupWatcher) {

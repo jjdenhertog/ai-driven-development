@@ -34,7 +34,7 @@ export async function executeClaudeWithHooks(
         }
 
         // Wait for process to complete
-        const result = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+        const result = await new Promise<{ code: number | null; signal: NodeJS.Signals | null; preventRetry?: boolean }>((resolve) => {
             claudeProcess.on('exit', (code, signal) => {
                 if (signal) {
                     log(`Claude process terminated by signal: ${signal}`, 'info');
@@ -45,16 +45,19 @@ export async function executeClaudeWithHooks(
                 }
 
                 // Call onExit hook
+                let preventRetry = false;
                 if (hooks.onExit) {
                     const result = hooks.onExit(code, signal);
-                    if (result instanceof Promise) {
+                    if (result && typeof result === 'object' && 'preventRetry' in result) {
+                        preventRetry = result.preventRetry || false;
+                    } else if (result instanceof Promise) {
                         result.catch((error: unknown) => {
                             log(`Error in onExit hook: ${error instanceof Error ? error.message : 'Unknown error'}`, 'warn');
                         });
                     }
                 }
 
-                resolve({ code, signal });
+                resolve({ code, signal, preventRetry });
             });
 
             claudeProcess.on('error', (error) => {
@@ -70,7 +73,7 @@ export async function executeClaudeWithHooks(
                     }
                 }
                 
-                resolve({ code: null, signal: null });
+                resolve({ code: null, signal: null, preventRetry: false });
             });
         });
 
@@ -85,7 +88,8 @@ export async function executeClaudeWithHooks(
         if (enableRetry && 
             exitCode !== null && 
             retryOnExitCodes.includes(exitCode) && 
-            retryCount < maxRetries - 1) {
+            retryCount < maxRetries - 1 &&
+            !result.preventRetry) {
             retryCount++;
             log(`Claude exited with code ${exitCode}. Will retry...`, 'warn');
             continue;
