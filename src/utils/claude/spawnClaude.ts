@@ -19,7 +19,8 @@ export function spawnClaude(options: ClaudeSpawnOptions): ChildProcess {
         shell: true
     };
     
-    return spawn('claude', fullArgs, {
+    // When using shell: true, pass the command as a single string
+    return spawn(fullCommand, [], {
         ...defaultOptions,
         ...spawnOptions
     });
