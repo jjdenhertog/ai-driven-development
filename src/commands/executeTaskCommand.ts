@@ -17,11 +17,11 @@ type Options = {
     taskId: string
     dryRun: boolean
     force: boolean
-    dangourslySkipPermission: boolean
+    dangerouslySkipPermission: boolean
 }
 
 export async function executeTaskCommand(options: Options) {
-    const { taskId, dryRun, force, dangourslySkipPermission = false } = options;
+    const { taskId, dryRun, force, dangerouslySkipPermission = false } = options;
 
     // Ensure git auth
     if (!checkGitAuth()) {
@@ -82,8 +82,8 @@ export async function executeTaskCommand(options: Options) {
     const taskFileName = `${task.id}-${task.name}`
     const args = [taskFileName];
 
-    if (dangourslySkipPermission)
-        args.push('--dangoursly-skip-permission');
+    if (dangerouslySkipPermission)   
+        args.push('--dangerously-skip-permissions');
 
     let watcherCleanup: (() => void) | undefined;
     const claudeSpawnOptions = {

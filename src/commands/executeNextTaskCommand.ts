@@ -14,7 +14,7 @@ import { getTasks } from '../utils/tasks/getTasks';
 type Options = {
     dryRun: boolean
     force: boolean
-    dangourslySkipPermission: boolean
+    dangerouslySkipPermission: boolean
 }
 
 type ExecuteNextTaskResult = {
@@ -23,7 +23,7 @@ type ExecuteNextTaskResult = {
 }
 
 export async function executeNextTaskCommand(options: Options): Promise<ExecuteNextTaskResult> {
-    const { dryRun, force, dangourslySkipPermission } = options;
+    const { dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth
     if (!checkGitAuth()) {
@@ -81,7 +81,7 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
                     taskId: task.id,
                     dryRun,
                     force,
-                    dangourslySkipPermission
+                    dangerouslySkipPermission
                 });
 
                 return { taskExecuted: true, noTasksFound: false };
@@ -108,7 +108,7 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
                     // Execute the task using the existing command
                     await executeTaskCommand({
                         taskId: task.id,
-                        dangourslySkipPermission,
+                        dangerouslySkipPermission,
                         dryRun,
                         force
                     });

@@ -49,14 +49,14 @@ program
     .description('Execute a specific task by ID')
     .option('--dry-run', 'Show what would be executed without making changes')
     .option('--force', 'Force execution even if task is already in progress')
-    .option('--dangoursly-skip-permission', 'Skip permission checks of Claude Code')
+    .option('--dangerously-skip-permissions', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
         try {
             await executeTaskCommand({
                 taskId,
                 dryRun: !!cmdObject.dryRun,
                 force: !!cmdObject.force,
-                dangourslySkipPermission: !!cmdObject.dangourslySkipPermission
+                dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -73,13 +73,13 @@ program
     .description('Find and execute the next available pending task')
     .option('--dry-run', 'Show what would be executed without making changes')
     .option('--force', 'Force execution even if task is already in progress')
-    .option('--dangoursly-skip-permission', 'Skip permission checks of Claude Code')
+    .option('--dangerously-skip-permissions', 'Skip permission checks of Claude Code')
     .action(async (cmdObject) => {
         try {
             await executeNextTaskCommand({
                 dryRun: !!cmdObject.dryRun,
                 force: !!cmdObject.force,
-                dangourslySkipPermission: !!cmdObject.dangourslySkipPermission
+                dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -96,7 +96,7 @@ program
     .description('Continuously find and execute pending tasks')
     .option('--dry-run', 'Show what would be executed without making changes')
     .option('--force', 'Force execution even if task is already in progress')
-    .option('--dangoursly-skip-permission', 'Skip permission checks of Claude Code')
+    .option('--dangerously-skip-permissions', 'Skip permission checks of Claude Code')
     .action(async (cmdObject) => {
         const TASK_EXECUTION_DELAY = 60 * 1000; // 60 seconds
         const NO_TASKS_DELAY = 5 * 60 * 1000; // 5 minutes
@@ -112,7 +112,7 @@ program
                 const result = await executeNextTaskCommand({
                     dryRun: !!cmdObject.dryRun,
                     force: !!cmdObject.force,
-                    dangourslySkipPermission: !!cmdObject.dangourslySkipPermission
+                    dangerouslySkipPermission: !!cmdObject.dangerouslySkipPermission
                 });
                 
                 if (result.noTasksFound) {
