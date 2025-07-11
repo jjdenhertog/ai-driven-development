@@ -22,7 +22,7 @@ export async function initCommand(options: Options): Promise<void> {
         ensureDirSync(aidevDir);
 
         // Create subdirectories
-        const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates'];
+        const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates', '.dev'];
 
         for (const subdir of subdirs) {
             const subdirPath = join(aidevDir, subdir);
@@ -58,7 +58,7 @@ export async function initCommand(options: Options): Promise<void> {
         }
 
         // Copy .devcontainer to root directory
-        const devcontainerSource = join(packageRoot, '.devcontainer');
+        const devcontainerSource = join(templatesRoot, 'devcontainer');
         const devcontainerTarget = join(process.cwd(), '.devcontainer');
         if (existsSync(devcontainerTarget) && !force) {
             log('.devcontainer already exists in root directory. Not overwriting, run --force to overwrite', 'warn');
