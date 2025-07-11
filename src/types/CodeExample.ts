@@ -1,5 +1,5 @@
 
-export type CodeExample = {
-    name: string;
-    purpose: string;
-};
+// export type CodeExample = {
+//     name: string;
+//     purpose: string;
+// };

@@ -1,4 +1,22 @@
+---
+name: "Next.js Project Structure Guide"
+description: "Defines the folder structure and file organization patterns for Next.js applications"
+ai_instructions: |
+  When organizing files in a Next.js project:
+  1. Follow the feature-first organization pattern
+  2. Keep related files together within feature directories
+  3. Use proper naming conventions (PascalCase for components, camelCase for utils)
+  4. Place shared components in /src/components, feature-specific in /src/features/[Feature]/components
+  5. Always check file placement against the directory structure rules
+---
+
 # Next.js Project Structure Guide
+
+<ai-context>
+This guide defines how to organize files and directories in Next.js applications using the App Router. 
+The structure promotes modularity, scalability, and clear separation of concerns through a feature-first approach.
+AI should use this guide to determine where to place new files and how to organize code.
+</ai-context>
 
 ## Overview
 This guide defines the folder structure for Next.js applications using App Router. It uses a feature-first approach with clear separation of concerns, promoting modularity and scalability.
@@ -67,7 +85,24 @@ project-root/
 
 ## File Placement Rules
 
+<ai-rules>
+- ALWAYS place page routes in /app directory following Next.js App Router conventions
+- NEVER mix client and server code in the same file
+- ALWAYS use 'use client' directive for interactive components
+- PREFER co-locating tests with their source files
+- ALWAYS organize features in self-contained modules under /src/features
+</ai-rules>
+
 ### 1. Page Routes (`/app`)
+
+<ai-decision-tree>
+When creating a new page:
+1. Is it a marketing page? → Place in app/(marketing)/
+2. Is it a dashboard page? → Place in app/(dashboard)/
+3. Is it an API route? → Place in app/api/
+4. Does it need a specific layout? → Create layout.tsx in the directory
+5. Does it have dynamic segments? → Use [param] syntax
+</ai-decision-tree>
 
 App Router page structure:
 
@@ -109,6 +144,30 @@ app/api/
 
 ### 3. Components (`/src/components`)
 
+<code-template name="shared-component">
+// src/components/ComponentName.tsx
+export const ComponentName = ({ prop1, prop2 }: Props) => {
+    // Component logic
+    return (
+        <div>
+            {/* Component JSX */}
+        </div>
+    );
+};
+</code-template>
+
+<code-template name="ui-component">
+// src/components/ui/BComponentName.tsx
+'use client';
+
+import { ComponentProps } from '@mui/material';
+
+export const BComponentName = (props: ComponentProps) => {
+    // Extended UI component logic
+    return <MUIComponent {...props} />;
+};
+</code-template>
+
 **Shared Components** (`/src/components/`)
 - Reusable across multiple features
 - No feature-specific business logic
@@ -127,6 +186,17 @@ app/api/
 - Client Components handle user interactions
 
 ### 4. Features (`/src/features`)
+
+<validation-schema>
+Feature Directory Structure:
+- ✅ /src/features/FeatureName/index.tsx (public exports)
+- ✅ /src/features/FeatureName/components/ (feature components)
+- ✅ /src/features/FeatureName/hooks/ (feature hooks)
+- ✅ /src/features/FeatureName/utils/ (feature utilities)
+- ✅ /src/features/FeatureName/types/ (feature types)
+- ❌ /src/features/featureName/ (must be PascalCase)
+- ❌ /src/features/FeatureName/pages/ (pages go in /app)
+</validation-schema>
 
 Each feature is a self-contained module:
 
@@ -402,6 +472,42 @@ Use underscore prefix for non-route folders in `/app`:
 | E2E Tests | kebab-case + .spec | `login-flow.spec.ts` |
 
 ## Best Practices
+
+<ai-rules>
+- Feature modules should be self-contained and not import from other features
+- Shared code goes in the appropriate shared directory (/components, /hooks, /utils)
+- Use barrel exports (index.ts) to control the public API of features
+- Keep the /app directory lean - only pages, layouts, and route handlers
+- Co-locate tests with source files for better maintainability
+- Use route groups in /app to organize without affecting URLs
+- Prefer absolute imports using @ alias over relative imports
+</ai-rules>
+
+<ai-decision-tree>
+Where should I place this file?
+
+1. Is it a page or route?
+   → YES: /app directory
+   → NO: Continue to 2
+
+2. Is it used by multiple features?
+   → YES: Is it a component?
+      → YES: /src/components
+      → NO: Is it a hook?
+         → YES: /src/hooks
+         → NO: Is it a utility?
+            → YES: /src/utils
+            → NO: /src/lib or /src/types
+   → NO: Continue to 3
+
+3. Is it feature-specific?
+   → YES: /src/features/[FeatureName]/[appropriate-subdirectory]
+   → NO: Consider if it should be shared
+
+4. Is it configuration or constants?
+   → YES: /src/config
+   → NO: Review the structure again
+</ai-decision-tree>
 
 1. **Feature Independence**: Features don't import from each other
 2. **Progressive Complexity**: Add subdirect

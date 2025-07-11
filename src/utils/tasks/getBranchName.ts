@@ -1,4 +1,4 @@
-import { Task } from "../taskManager";
+import { Task } from "../../types/tasks/Task";
 
 export function getBranchName(task: Task) {
     // Sanitize the task name for use in a git branch name

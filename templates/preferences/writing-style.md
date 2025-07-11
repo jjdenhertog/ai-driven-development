@@ -1,8 +1,34 @@
+---
+name: "Coding Style Guide"
+description: "Defines TypeScript/React coding conventions and patterns"
+ai_instructions: |
+  When writing code:
+  1. Use arrow functions for components and callbacks
+  2. Let TypeScript infer types when obvious
+  3. Use interfaces for object shapes, types for unions/aliases
+  4. Follow the exact naming conventions specified
+  5. Prefer functional patterns and immutability
+---
+
 # Coding Style Guide
+
+<ai-context>
+This document defines HOW to write TypeScript/React code. These are strict conventions that must be
+followed exactly. The style emphasizes readability, TypeScript inference, and functional patterns.
+AI must follow these patterns precisely when generating code.
+</ai-context>
 
 This document defines HOW I write TypeScript/React code. Follow these patterns exactly.
 
 ## Core Principles
+
+<ai-rules>
+- USE arrow functions for components and most functions
+- LET TypeScript infer types when obvious
+- PREFER functional patterns over imperative
+- DOCUMENT complex logic and public APIs with JSDoc
+- AVOID unnecessary type annotations
+</ai-rules>
 
 1. **Strategic Documentation** - Code should be self-explanatory, but document complex logic and public APIs
 2. **TypeScript Inference** - Let TypeScript infer types when possible
@@ -12,6 +38,16 @@ This document defines HOW I write TypeScript/React code. Follow these patterns e
 ## Naming Conventions
 
 ### Variables
+
+<validation-schema>
+Variable Naming:
+- ✅ userName, isActive, hasPermission (camelCase)
+- ✅ users, files (plural for arrays)
+- ✅ MAX_FILE_SIZE (UPPER_SNAKE for constants)
+- ❌ user_name (no snake_case)
+- ❌ UserName (PascalCase for variables)
+- ❌ USERS (uppercase for regular arrays)
+</validation-schema>
 ```typescript
 // camelCase for regular variables
 const userName = 'John';
@@ -86,6 +122,8 @@ export const BTextField = (props: Props) => {
 ## Function Patterns
 
 ### Component Style
+
+<code-template name="react-component">
 ```typescript
 // Arrow function with const
 export const HomePage = ({ title, content }: Props) => {
@@ -110,6 +148,7 @@ export const HomePage = ({ title, content }: Props) => {
     return <div>{content}</div>;
 };
 ```
+</code-template>
 
 ### Utility Functions
 ```typescript
@@ -144,6 +183,26 @@ function calculateSum(a: number, b: number) {
 ## TypeScript Usage
 
 ### Type Inference
+
+<ai-decision-tree>
+Should I add a type annotation?
+
+1. Is the type obvious from the value?
+   → YES: Don't add type (let TypeScript infer)
+   → NO: Continue to 2
+
+2. Is it a function parameter?
+   → YES: Add type annotation
+   → NO: Continue to 3
+
+3. Is it a complex object or union?
+   → YES: Add type annotation
+   → NO: Continue to 4
+
+4. Would the inferred type be 'any'?
+   → YES: Add type annotation
+   → NO: Let TypeScript infer
+</ai-decision-tree>
 ```typescript
 // Let TypeScript infer when obvious
 const [loading, setLoading] = useState(false);  // NOT useState<boolean>(false)
@@ -180,6 +239,7 @@ type UserWithStatus = UserData & { status: Status };
 
 ## State Management
 
+<code-template name="state-update-pattern">
 ```typescript
 // Functional updates when using previous state
 setState(prev => ({
@@ -191,4 +251,40 @@ setState(prev => ({
 }));
 
 // Direct updates otherwise
-setLoadi
+setLoading(false);
+setName('John');
+```
+</code-template>
+
+## Import Organization
+
+<ai-rules>
+- GROUP imports by type (external, internal, types)
+- ORDER: React first, then external libs, then internal
+- USE absolute imports with @ alias
+- AVOID default exports except for pages/components
+- PREFER named exports for better refactoring
+</ai-rules>
+
+## Summary
+
+<ai-decision-tree>
+Which pattern should I use?
+
+1. Defining a component?
+   → Arrow function with const
+
+2. Defining a type?
+   → Object shape: interface
+   → Union/alias: type
+
+3. Naming something?
+   → Component: PascalCase
+   → Function: camelCase
+   → Constant: UPPER_SNAKE_CASE
+   → File: camelCase.ts or PascalCase.tsx
+
+4. Adding types?
+   → Obvious from value: No
+   → Complex/unclear: Yes
+</ai-decision-tree>

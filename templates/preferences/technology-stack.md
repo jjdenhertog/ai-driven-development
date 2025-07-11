@@ -1,8 +1,34 @@
+---
+name: "Technology Stack & Implementation Guide"
+description: "Defines the core technology choices and implementation patterns for Next.js applications"
+ai_instructions: |
+  When implementing features:
+  1. Use the exact technology stack specified - no substitutions
+  2. Follow the singleton patterns for Prisma and Redis
+  3. Use React Context API for state management, NOT Redux or Zustand
+  4. Always use TanStack Query for data fetching, not SWR or custom hooks
+  5. Implement proper error handling with Sentry
+---
+
 # Technology Stack & Implementation Guide
+
+<ai-context>
+This guide defines the EXACT technology choices for Next.js applications. These are not suggestions -
+they are requirements. AI must use these specific technologies and follow the implementation patterns
+shown. No substitutions or alternatives should be suggested unless explicitly asked.
+</ai-context>
 
 This guide defines the technology choices and implementation patterns for Next.js applications.
 
 ## Project Configuration
+
+<ai-rules>
+- ALWAYS use Next.js 15.x with App Router
+- ALWAYS use TypeScript, never plain JavaScript
+- ALWAYS use npm as package manager
+- ALWAYS use Node.js 20.x or later
+- NEVER suggest alternative frameworks or tools
+</ai-rules>
 
 ### Core Setup
 - **Framework**: Next.js 15.x with App Router
@@ -11,6 +37,20 @@ This guide defines the technology choices and implementation patterns for Next.j
 - **Node Version**: 20.x
 
 ### Essential Dependencies
+
+<validation-schema>
+Required Dependencies:
+- ✅ @mui/material (UI framework)
+- ✅ @tanstack/react-query (data fetching)
+- ✅ prisma + @prisma/client (database ORM)
+- ✅ next-auth (authentication)
+- ✅ react-hook-form + zod (forms)
+- ✅ notistack (notifications)
+- ❌ Redux/Zustand (use Context API)
+- ❌ SWR (use TanStack Query)
+- ❌ Tailwind CSS (use MUI)
+- ❌ Mongoose (use Prisma)
+</validation-schema>
 ```json
 {
   "@mui/material": "latest",
@@ -66,6 +106,7 @@ const theme = createTheme({
 ### State Management: Context API + Server Components
 Use React Context API for client-side state management and Server Components for data fetching.
 
+<code-template name="context-provider">
 ```typescript
 // contexts/AppContext.tsx - Main app context
 'use client';
@@ -144,11 +185,22 @@ export function MyComponent() {
     );
 }
 ```
+</code-template>
 
 ### Data Fetching: React Query (TanStack Query)
 See [State Management Guide](state-management.md) for comprehensive patterns.
 
 ### Forms: React Hook Form with Zod
+
+<ai-rules>
+- ALWAYS define Zod schemas before the component
+- ALWAYS use zodResolver for form validation
+- ALWAYS use Controller for MUI components
+- NEVER use uncontrolled inputs
+- ALWAYS handle loading states with LoadingButton
+</ai-rules>
+
+<code-template name="form-with-validation">
 ```typescript
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -218,8 +270,11 @@ export const UserForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     );
 }
 ```
+</code-template>
 
 ### Database: Prisma with MySQL & Redis
+
+<code-template name="prisma-singleton">
 ```typescript
 // lib/prisma.ts - Singleton pattern
 import { PrismaClient } from '@prisma/client';
@@ -259,6 +314,7 @@ if (!redis.isOpen) {
     redis.connect();
 }
 ```
+</code-template>
 
 ### Authentication: NextAuth.js
 ```typescript
@@ -519,6 +575,33 @@ export async function rateLimit(
 ```
 
 ## Technology Preferences Summary
+
+<ai-decision-tree>
+Which technology should I use for...
+
+1. UI Components?
+   → Material-UI (MUI) - NO alternatives
+
+2. State Management?
+   → Server state: TanStack Query
+   → Client state: React Context API
+   → Form state: React Hook Form
+
+3. Database?
+   → ORM: Prisma with MySQL
+   → Caching: Redis
+
+4. Authentication?
+   → NextAuth.js - NO alternatives
+
+5. Styling?
+   → MUI sx prop (primary)
+   → CSS Modules (when needed)
+
+6. Testing?
+   → Vitest + React Testing Library
+   → Playwright for E2E
+</ai-decision-tree>
 
 When building Next.js applications, use these specific technologies:
 

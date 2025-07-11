@@ -1,4 +1,4 @@
-import { Task } from "../taskManager";
+import { Task } from "../../types/tasks/Task";
 import { getTasks } from "./getTasks";
 
 

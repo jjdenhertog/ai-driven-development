@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { GitState } from "../GitState";
+import { GitState } from "../../types/git/GitState";
 
 export function validateBranchState():GitState {
     try {

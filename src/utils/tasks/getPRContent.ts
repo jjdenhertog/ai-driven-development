@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'fs-extra';
 import { log } from '../logger';
-import { Task } from '../taskManager';
+import { Task } from '../../types/tasks/Task';
 
 export function getPRContent(task: Task): string {
     const prPath = join(process.cwd(), '.aidev', 'logs', task.id, 'last_result.md');

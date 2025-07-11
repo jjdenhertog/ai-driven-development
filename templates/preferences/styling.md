@@ -1,8 +1,34 @@
+---
+name: "Styling Guide"
+description: "Defines styling approaches using MUI sx prop and CSS Modules with SCSS"
+ai_instructions: |
+  When implementing styles:
+  1. DEFAULT to MUI sx prop for most styling needs
+  2. Use CSS Modules ONLY when specified or for complex animations
+  3. Always use MUI theme colors, never hardcode colors
+  4. Follow the B-prefix convention for custom UI components
+  5. Memoize complex sx prop objects with useMemo
+---
+
 # Styling Guide
+
+<ai-context>
+This document defines HOW to style Next.js applications. The PRIMARY approach is using MUI's sx prop
+for rapid development. CSS Modules with SCSS is a SECONDARY approach used only when needed for 
+complex designs or animations. AI should default to sx prop unless specifically told otherwise.
+</ai-context>
 
 This document defines HOW I style Next.js applications. My approach varies based on project requirements, but follows consistent patterns.
 
 ## Core Principles
+
+<ai-rules>
+- DEFAULT to MUI sx prop approach unless told otherwise
+- NEVER hardcode colors - use theme or CSS variables
+- ALWAYS memoize complex sx prop objects
+- USE B-prefix for custom UI components
+- AVOID !important unless overriding third-party styles
+</ai-rules>
 
 1. **Flexibility First** - Choose the right styling solution for the project
 2. **Material-UI Foundation** - Leverage MUI components and theming
@@ -12,6 +38,15 @@ This document defines HOW I style Next.js applications. My approach varies based
 ## Styling Approaches
 
 ### PRIMARY APPROACH: MUI sx Prop (Default)
+
+<ai-decision-tree>
+Should I use sx prop or CSS Modules?
+1. Is it a simple style? → Use sx prop
+2. Does it need animations? → Complex? Use CSS Modules. Simple? Use sx prop
+3. Is it a one-off style? → Use sx prop
+4. Does it need BEM-like organization? → Use CSS Modules
+5. Default choice? → Use sx prop
+</ai-decision-tree>
 **This is my main preference for most projects** - Using MUI sx prop for rapid development
 
 ```json
@@ -63,6 +98,16 @@ import linkStyle from '@/styles/Link.module.scss';
 ```
 
 ### Class Naming Conventions
+
+<validation-schema>
+CSS Module Class Names:
+- ✅ .NavigationButton (PascalCase for component root)
+- ✅ .TabsVerticalItem (BEM-like for elements)
+- ✅ &[aria-selected="true"] (attribute selectors for state)
+- ❌ .navigation-button (no kebab-case)
+- ❌ .navigationButton (no camelCase for CSS)
+- ❌ .navigation_button (no snake_case)
+</validation-schema>
 ```scss
 // PascalCase for component root
 .NavigationButton { }
@@ -94,6 +139,8 @@ if (className) classNames.push(className);
 ## MUI sx Prop Implementation
 
 ### Basic Patterns
+
+<code-template name="mui-sx-basic">
 ```tsx
 // Simple inline styles
 <Typography sx={{ mb: 2 }} variant="body2">
@@ -117,8 +164,11 @@ sx={{
     } 
 }}
 ```
+</code-template>
 
 ### Conditional Styling with sx
+
+<code-template name="mui-sx-conditional">
 ```tsx
 // Memoized conditional styles
 const paperStyles = useMemo(() => {
@@ -136,6 +186,7 @@ sx={{
     }
 }}
 ```
+</code-template>
 
 ## Design System
 
@@ -475,6 +526,17 @@ export const SpotifyButton = ({ onClick }) => (
 
 ## What NOT to Do
 
+<ai-rules>
+- DON'T mix inline styles with sx prop or CSS modules
+- DON'T hardcode colors - use theme or CSS variables
+- DON'T use !important unless overriding third-party styles
+- DON'T create deeply nested selectors in SCSS
+- DON'T use px for MUI spacing when theme units available
+- DON'T forget responsive considerations
+- DON'T use var declarations in styles
+- DON'T mix styling approaches unnecessarily in same component
+</ai-rules>
+
 1. Don't mix inline styles with sx prop or CSS modules
 2. Don't hardcode colors - use theme or CSS variables
 3. Don't use !important unless overriding third-party styles
@@ -485,5 +547,25 @@ export const SpotifyButton = ({ onClick }) => (
 8. Don't mix styling approaches unnecessarily in same component
 
 ## Summary
+
+<ai-decision-tree>
+Which styling approach for this component?
+
+1. Is this a new component?
+   → YES: Use MUI sx prop (default)
+   → NO: Match existing pattern
+
+2. Does it need complex animations?
+   → YES: Use CSS Modules with @keyframes
+   → NO: Use sx prop
+
+3. Is it a custom UI library component?
+   → YES: Name with B-prefix, use sx prop
+   → NO: Continue with chosen approach
+
+4. Does it need scoped styles?
+   → YES: CSS Modules provide automatic scoping
+   → NO: sx prop is sufficient
+</ai-decision-tree>
 
 Choose the right styling approach for your project needs. Use CSS Modules for complex, animation-heavy applications with custom designs. Use MUI sx prop for rapid development with Material Design patterns. Always maintain consistency within a project, leverage MUI's theming system, and prioritize performance through proper memoization and minimal runtime styles.

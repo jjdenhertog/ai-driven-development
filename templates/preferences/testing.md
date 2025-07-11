@@ -1,11 +1,33 @@
 ---
 name: "Testing Strategy and Preferences"
 description: "Defines the testing approach, tools, and conventions for this project"
+ai_instructions: |
+  When implementing tests:
+  1. Use Vitest as the primary test runner, not Jest
+  2. Write tests alongside implementation (TDD when appropriate)
+  3. Focus on testing behavior, not implementation details
+  4. Aim for 80%+ coverage on new code
+  5. Use React Testing Library for component tests
+  6. Use Playwright for E2E tests
 ---
 
 # Testing Strategy and Preferences
 
+<ai-context>
+This guide defines the testing approach for Next.js applications. We use Vitest for unit/component testing
+and Playwright for E2E testing. Tests should focus on behavior and user interactions rather than
+implementation details. AI should write tests alongside feature implementation.
+</ai-context>
+
 ## Testing Philosophy
+
+<ai-rules>
+- WRITE tests for all new features and bug fixes
+- FOCUS on testing behavior, not implementation
+- USE data-testid attributes for reliable element selection
+- MOCK external dependencies and API calls
+- KEEP tests fast and independent
+</ai-rules>
 - Follow Test-Driven Development (TDD) practices with a pragmatic approach
 - Write tests alongside features, not necessarily before (Red-Green-Refactor when appropriate)
 - Focus on behavior testing over implementation details
@@ -67,6 +89,21 @@ tests/                            # or e2e/
 ```
 
 ### Test Naming Conventions
+
+<validation-schema>
+Test File Names:
+- ✅ Button.test.tsx (unit/component tests)
+- ✅ route.test.ts (API route tests)
+- ✅ login.spec.ts (E2E tests)
+- ❌ Button.spec.tsx (wrong extension for unit tests)
+- ❌ test-button.tsx (wrong naming pattern)
+
+Test Descriptions:
+- ✅ "should display error message when form is invalid"
+- ✅ "should redirect to dashboard after login"
+- ❌ "test form validation" (not behavior-focused)
+- ❌ "works correctly" (too vague)
+</validation-schema>
 - Test files: `*.test.ts(x)` for unit/component tests
 - E2E files: `*.spec.ts` for Playwright tests
 - Test descriptions: Use behavior-focused language
@@ -76,6 +113,8 @@ tests/                            # or e2e/
 ## Testing Patterns
 
 ### Component Testing Example
+
+<code-template name="component-test">
 ```typescript
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -93,8 +132,11 @@ describe('Button', () => {
   })
 })
 ```
+</code-template>
 
 ### API Testing Example
+
+<code-template name="api-test">
 ```typescript
 import { createMocks } from 'node-mocks-http'
 import { POST } from './route'
@@ -114,8 +156,11 @@ describe('/api/users', () => {
   })
 })
 ```
+</code-template>
 
 ### E2E Testing Example
+
+<code-template name="e2e-test">
 ```typescript
 import { test, expect } from '@playwright/test'
 
@@ -130,6 +175,7 @@ test('user can complete signup flow', async ({ page }) => {
   await expect(page.getByText('Welcome')).toBeVisible()
 })
 ```
+</code-template>
 
 ## Test Implementation Requirements
 
@@ -149,6 +195,28 @@ test('user can complete signup flow', async ({ page }) => {
    - Add any missing edge case tests
 
 ### What to Test
+
+<ai-decision-tree>
+Should I write a test for this?
+
+1. Is it a user interaction?
+   → YES: Write a component test
+   → NO: Continue to 2
+
+2. Is it an API endpoint?
+   → YES: Write an API test
+   → NO: Continue to 3
+
+3. Is it a utility function?
+   → YES: Does it have complex logic?
+      → YES: Write a unit test
+      → NO: Skip if trivial
+   → NO: Continue to 4
+
+4. Is it a critical user flow?
+   → YES: Write an E2E test
+   → NO: Consider if testing adds value
+</ai-decision-tree>
 - **Always Test**:
   - User interactions (clicks, form submissions)
   - API endpoints (success and error cases)

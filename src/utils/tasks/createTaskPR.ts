@@ -3,8 +3,8 @@ import { execSync } from 'node:child_process';
 import { log } from '../logger';
 import { updateTaskFile } from './updateTaskFile';
 import { getPRContent } from './getPRContent';
-import { Task } from '../taskManager';
 import { createCommit } from '../git/createCommit';
+import { Task } from '../../types/tasks/Task';
 
 export function createTaskPR(task: Task, branchName: string): void {
     log('Preparing to create pull request...', 'info');

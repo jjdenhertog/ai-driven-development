@@ -1,5 +1,5 @@
-import { Task } from '../taskManager';
-import { getTaskById } from './getTaskById';
+import { Task } from "../../types/tasks/Task";
+import { getTaskById } from "./getTaskById";
 
 export function hasUnresolvedDependencies(task: Task): boolean {
     if (!task.dependencies || task.dependencies.length === 0) {

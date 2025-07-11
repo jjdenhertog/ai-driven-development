@@ -1,5 +1,5 @@
-import { Task } from '../taskManager';
 import { readFileSync } from "fs-extra";
+import { Task } from "../../types/tasks/Task";
 
 export function loadTaskFromFile(filePath: string): Task | null {
     try {

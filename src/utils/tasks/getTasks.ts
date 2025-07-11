@@ -1,7 +1,7 @@
-import { Task } from '../taskManager';
 import { loadTaskFromFile } from "./loadTaskFromFile";
 import { join } from "node:path";
 import { readdirSync } from "fs-extra";
+import { Task } from "../../types/tasks/Task";
 
 export function getTasks(status?: 'pending' | 'in-progress' | 'completed'): Task[] {
     const tasksDir = join(process.cwd(), '.aidev', 'tasks');

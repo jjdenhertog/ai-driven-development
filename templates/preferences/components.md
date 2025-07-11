@@ -1,6 +1,30 @@
+---
+name: "Component Patterns Guide"
+category: "frontend"
+version: "1.0.0"
+dependencies: ["technology-stack", "styling", "state-management"]
+tags: ["react", "components", "typescript", "performance", "patterns"]
+priority: "critical"
+ai-instructions:
+  - "ALWAYS use TypeScript with readonly props"
+  - "ALWAYS use arrow functions with React.FC type annotation"
+  - "MUST memoize callbacks passed as props using useCallback"
+  - "MUST use useMemo for expensive computations and filtering/sorting"
+  - "PREFER composition over complex component hierarchies"
+  - "USE React Context when prop drilling exceeds 2-3 levels"
+  - "CLEAN custom props before spreading to DOM elements"
+  - "NEVER use class components - only functional components"
+---
+
 # Component Patterns Guide
 
 This guide outlines our component architecture patterns, composition strategies, and best practices for building consistent, performant React components in our Next.js application.
+
+<ai-context>
+This preference file defines how to structure and implement React components.
+All components must follow these patterns for consistency, type safety, and performance.
+Components are organized by feature in src/features/ with shared UI in src/components/.
+</ai-context>
 
 ## Table of Contents
 1. [Component Philosophy](#component-philosophy)
@@ -15,6 +39,27 @@ This guide outlines our component architecture patterns, composition strategies,
 ---
 
 ## Component Philosophy
+
+<ai-rules category="component-basics">
+  <rule id="typescript-required" priority="critical">
+    <condition>Creating any component</condition>
+    <action>Use TypeScript with explicit type annotations</action>
+    <validation>File has .tsx extension and typed props</validation>
+  </rule>
+  
+  <rule id="functional-only" priority="critical">
+    <condition>Defining React components</condition>
+    <action>Use arrow functions with React.FC type</action>
+    <validation>No class components, only const = () =></validation>
+    <example>export const Component: React.FC&lt;Props&gt; = ({ prop }) =&gt; {}</example>
+  </rule>
+  
+  <rule id="readonly-props" priority="critical">
+    <condition>Defining component props interface</condition>
+    <action>Mark all props as readonly</action>
+    <validation>All interface properties have readonly modifier</validation>
+  </rule>
+</ai-rules>
 
 Our component architecture follows these core principles:
 
@@ -65,6 +110,37 @@ Use render props when you need flexible rendering of complex content.
 
 ### 2. Prop Spreading with Cleanup
 
+<ai-rules category="prop-spreading">
+  <rule id="clean-custom-props" priority="high">
+    <condition>Spreading props to DOM elements</condition>
+    <action>Remove custom props before spreading</action>
+    <validation>No console warnings about unknown DOM properties</validation>
+  </rule>
+</ai-rules>
+
+<code-template id="component-with-prop-cleanup">
+  <description>Component that cleans custom props before spreading</description>
+  <variables>
+    <var name="COMPONENT_NAME" type="string" example="BTextField" />
+    <var name="BASE_COMPONENT" type="string" example="TextField" />
+    <var name="CUSTOM_PROP" type="string" example="onPressEnter" />
+  </variables>
+  <template>
+export const ${COMPONENT_NAME} = (props: ${COMPONENT_NAME}Props) => {
+    const { ${CUSTOM_PROP}, validation, ...baseProps } = props;
+    
+    // Handle custom props
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && ${CUSTOM_PROP}) {
+            ${CUSTOM_PROP}();
+        }
+    }, [${CUSTOM_PROP}]);
+    
+    return <${BASE_COMPONENT} {...baseProps} onKeyDown={handleKeyDown} />;
+}
+  </template>
+</code-template>
+
 Always clean custom props before spreading to avoid DOM warnings.
 
 **Pattern:**
@@ -104,6 +180,38 @@ interface ErrorProviderProps {
 ```
 
 ## State Management Rules
+
+<ai-decision-tree id="state-management-choice">
+  <question>Does the state need to be shared across components?</question>
+  <yes>
+    <question>Is it server state (from API)?</question>
+    <yes>
+      <answer>Use TanStack Query</answer>
+      <template>tanstack-query-hook</template>
+    </yes>
+    <no>
+      <question>Is it app-wide state?</question>
+      <yes>
+        <answer>Use Zustand store</answer>
+        <template>zustand-store</template>
+      </yes>
+      <no>
+        <question>Does prop drilling exceed 2-3 levels?</question>
+        <yes>
+          <answer>Use React Context</answer>
+          <template>context-provider</template>
+        </yes>
+        <no>
+          <answer>Pass as props</answer>
+        </no>
+      </no>
+    </no>
+  </yes>
+  <no>
+    <answer>Use useState in component</answer>
+    <template>local-state</template>
+  </no>
+</ai-decision-tree>
 
 ### When to Use Local State
 
@@ -465,6 +573,26 @@ return (
 ```
 
 ## Performance Optimization
+
+<ai-rules category="performance">
+  <rule id="usecallback-required" priority="critical">
+    <condition>Creating event handler passed as prop</condition>
+    <action>Wrap in useCallback with correct dependencies</action>
+    <validation>All functions passed to child components are memoized</validation>
+  </rule>
+  
+  <rule id="usememo-filtering" priority="high">
+    <condition>Filtering or sorting arrays in render</condition>
+    <action>Wrap operation in useMemo</action>
+    <validation>No array operations directly in render body</validation>
+  </rule>
+  
+  <rule id="context-value-memoization" priority="critical">
+    <condition>Creating context provider value</condition>
+    <action>Always memoize with useMemo</action>
+    <validation>Context value is wrapped in useMemo</validation>
+  </rule>
+</ai-rules>
 
 ### useCallback Rules
 
@@ -1003,3 +1131,62 @@ This guide represents our established patterns for building consistent, maintain
 7. **Split code** at route and modal boundaries
 
 Follow these patterns to maintain consistency across the codebase and ensure optimal performance.
+
+<validation-schema for="react-component">
+  <check id="file-extension">
+    <pattern>\.tsx$</pattern>
+    <message>React components must use .tsx extension</message>
+  </check>
+  
+  <check id="component-definition">
+    <pattern>export const \w+: React\.FC</pattern>
+    <message>Components must be arrow functions with React.FC type</message>
+  </check>
+  
+  <check id="props-interface">
+    <pattern>readonly \w+[?:]</pattern>
+    <message>All props must be marked readonly</message>
+  </check>
+  
+  <check id="callback-memoization">
+    <pattern>useCallback\([^)]+\[[^\]]*\]\)</pattern>
+    <message>Callbacks passed as props must be memoized</message>
+  </check>
+  
+  <check id="no-class-components">
+    <forbidden>class .+ extends (React\.)?Component</forbidden>
+    <message>Use functional components only, no class components</message>
+  </check>
+</validation-schema>
+
+<code-template id="component-basic">
+  <description>Basic functional component with TypeScript</description>
+  <variables>
+    <var name="COMPONENT_NAME" type="string" example="UserCard" />
+    <var name="PROP_NAME" type="string" example="user" />
+    <var name="PROP_TYPE" type="string" example="User" />
+  </variables>
+  <template>
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+
+export type ${COMPONENT_NAME}Props = {
+    readonly ${PROP_NAME}: ${PROP_TYPE};
+    readonly onClick?: (id: string) => void;
+};
+
+export const ${COMPONENT_NAME}: React.FC<${COMPONENT_NAME}Props> = ({ ${PROP_NAME}, onClick }) => {
+    const handleClick = useCallback(() => {
+        if (onClick) {
+            onClick(${PROP_NAME}.id);
+        }
+    }, [onClick, ${PROP_NAME}.id]);
+
+    return (
+        <Box onClick={handleClick} sx={{ cursor: onClick ? 'pointer' : 'default' }}>
+            <Typography>{${PROP_NAME}.name}</Typography>
+        </Box>
+    );
+};
+  </template>
+</code-template>

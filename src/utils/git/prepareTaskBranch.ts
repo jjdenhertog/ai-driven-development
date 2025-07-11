@@ -1,10 +1,10 @@
 import { BranchResult } from '../../types/git/BranchResult';
 import { execSync } from "node:child_process";
-import { getMainBranch } from "./getMainBranch";
-import { Task } from '../taskManager';
 import { getBranchName } from '../tasks/getBranchName';
 import { switchToBranch } from './switchToBranch';
 import { branchExists } from './branchExists';
+import { Task } from '../../types/tasks/Task';
+import { getMainBranch } from './getMainBranch';
 
 export function prepareTaskBranch(task: Task): BranchResult {
     try {

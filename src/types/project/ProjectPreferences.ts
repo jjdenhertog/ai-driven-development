@@ -1,2 +1,2 @@
 
-export type ProjectPreferences = Readonly<Record<string, string>>;
+// export type ProjectPreferences = Readonly<Record<string, string>>;

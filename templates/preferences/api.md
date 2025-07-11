@@ -1,8 +1,50 @@
+---
+name: "API Design Standards"
+category: "backend"
+version: "1.0.0"
+dependencies: ["technology-stack", "folder-structure", "testing"]
+tags: ["api", "rest", "nextjs", "routes", "validation", "error-handling"]
+priority: "critical"
+ai-instructions:
+  - "ALWAYS use App Router pattern (/app/api/) for API routes"
+  - "NEVER use next-connect - use native Next.js route handlers"
+  - "MUST validate all inputs with Zod schemas before processing"
+  - "MUST use centralized error handling with handleError function"
+  - "ALWAYS return consistent error format: { error: string }"
+  - "PREFER direct JSON responses without unnecessary wrappers"
+---
+
 # API Design Standards
 
 This document defines the API design patterns and conventions used across our Next.js applications. These standards align with our technology stack and emphasize native Next.js patterns.
 
+<ai-context>
+This preference file defines how to structure and implement API routes in Next.js App Router. 
+All API routes must follow these patterns for consistency and maintainability.
+</ai-context>
+
 ## Framework & Router Configuration
+
+<ai-rules category="routing">
+  <rule id="api-location" priority="critical">
+    <condition>Creating any API route</condition>
+    <action>Place in /app/api/ directory with route.ts filename</action>
+    <validation>Path matches: ^/app/api/.*/route\.ts$</validation>
+    <example>/app/api/users/route.ts</example>
+  </rule>
+  
+  <rule id="router-pattern" priority="critical">
+    <condition>Implementing route handlers</condition>
+    <action>Export named functions (GET, POST, PUT, DELETE)</action>
+    <validation>No default export, only named HTTP method exports</validation>
+  </rule>
+  
+  <rule id="no-next-connect" priority="critical">
+    <condition>Setting up API routes</condition>
+    <action>Use native Next.js handlers, NOT next-connect</action>
+    <validation>No import from 'next-connect'</validation>
+  </rule>
+</ai-rules>
 
 ### Next.js App Router API Routes
 - **Location**: `/app/api/` (App Router pattern)
@@ -10,6 +52,25 @@ This document defines the API design patterns and conventions used across our Ne
 - **Error Handling**: Custom error handler function with consistent format
 
 ### Basic Route Template
+
+<code-template id="api-route-basic">
+  <description>Basic API route with authentication and error handling</description>
+  <use-when>Creating any authenticated API endpoint</use-when>
+  <variables>
+    <var name="RESOURCE_NAME" type="string" example="user" />
+    <var name="RESOURCE_TYPE" type="string" example="User" />
+    <var name="SCHEMA_NAME" type="string" example="userSchema" />
+  </variables>
+  <imports>
+    <import>import { NextRequest, NextResponse } from 'next/server';</import>
+    <import>import { getServerSession } from 'next-auth';</import>
+    <import>import { authOptions } from '@/lib/auth';</import>
+    <import>import { prisma } from '@/lib/prisma';</import>
+    <import>import { z } from 'zod';</import>
+    <import>import { ${SCHEMA_NAME} } from '@/schemas/${RESOURCE_NAME}';</import>
+  </imports>
+</code-template>
+
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -184,6 +245,23 @@ export async function DELETE(request: NextRequest) {
 
 ## Request/Response Standards
 
+<ai-rules category="response-format">
+  <rule id="direct-json" priority="high">
+    <condition>Returning successful response data</condition>
+    <action>Return data directly without success wrapper</action>
+    <validation>Response does not contain { success: true, data: ... }</validation>
+    <good>return NextResponse.json(user);</good>
+    <bad>return NextResponse.json({ success: true, data: user });</bad>
+  </rule>
+  
+  <rule id="error-format" priority="critical">
+    <condition>Returning error response</condition>
+    <action>Use consistent { error: string } format</action>
+    <validation>All errors have 'error' property with string message</validation>
+    <example>{ error: "User not found" }</example>
+  </rule>
+</ai-rules>
+
 ### Response Format
 Responses should be direct JSON without unnecessary wrappers:
 
@@ -217,6 +295,39 @@ return NextResponse.json({ ok: true });
 ```
 
 ### Request Validation with Zod
+
+<ai-rules category="validation">
+  <rule id="zod-validation" priority="critical">
+    <condition>Processing request body or query params</condition>
+    <action>ALWAYS validate with Zod schema before use</action>
+    <validation>Schema.parse() called before data usage</validation>
+  </rule>
+  
+  <rule id="schema-location" priority="high">
+    <condition>Creating validation schemas</condition>
+    <action>Place in /lib/schemas/ or /schemas/ directory</action>
+    <validation>Import path includes 'schemas'</validation>
+  </rule>
+</ai-rules>
+
+<code-template id="zod-schema-basic">
+  <description>Basic Zod schema for request validation</description>
+  <variables>
+    <var name="MODEL_NAME" type="string" example="User" />
+    <var name="FIELD_NAME" type="string" example="email" />
+  </variables>
+  <template>
+const create${MODEL_NAME}Schema = z.object({
+    name: z.string().min(1, 'Name is required').max(100),
+    email: z.string().email('Invalid email format'),
+    role: z.enum(['admin', 'user', 'guest']),
+    ${FIELD_NAME}: z.string().optional()
+});
+
+export type Create${MODEL_NAME}Input = z.infer<typeof create${MODEL_NAME}Schema>;
+  </template>
+</code-template>
+
 ```typescript
 // Define schema with Zod
 const createUserSchema = z.object({
@@ -690,3 +801,56 @@ Reference implementations:
 - **File uploads**: `/app/api/upload/route.ts`
 - **Webhooks**: `/app/api/webhooks/stripe/route.ts`
 - **Public endpoints**: `/app/api/public/health/route.ts`
+
+<validation-schema for="api-route">
+  <check id="file-location">
+    <pattern>^/app/api/.*/route\.ts$</pattern>
+    <message>API routes must be in /app/api/ with route.ts filename</message>
+  </check>
+  
+  <check id="exports">
+    <pattern>export (async )?function (GET|POST|PUT|DELETE|PATCH)</pattern>
+    <message>Must export named HTTP method functions</message>
+  </check>
+  
+  <check id="imports">
+    <required>NextRequest, NextResponse from 'next/server'</required>
+    <forbidden>next-connect</forbidden>
+  </check>
+  
+  <check id="validation">
+    <pattern>\.parse\(|\.safeParse\(</pattern>
+    <message>Must use Zod validation for request data</message>
+  </check>
+  
+  <check id="error-handling">
+    <pattern>handleError|catch</pattern>
+    <message>Must handle errors with try/catch or error handler</message>
+  </check>
+</validation-schema>
+
+<ai-decision-tree id="api-implementation">
+  <question>Does the endpoint need authentication?</question>
+  <yes>
+    <question>Does it need role-based access?</question>
+    <yes>
+      <answer>Use withRole middleware</answer>
+      <template>api-route-with-role</template>
+    </yes>
+    <no>
+      <answer>Use withAuth middleware</answer>
+      <template>api-route-basic</template>
+    </no>
+  </yes>
+  <no>
+    <question>Is it a webhook endpoint?</question>
+    <yes>
+      <answer>Place in /app/api/webhooks/</answer>
+      <template>webhook-route</template>
+    </yes>
+    <no>
+      <answer>Place in /app/api/public/</answer>
+      <template>public-route</template>
+    </no>
+  </no>
+</ai-decision-tree>

@@ -6,8 +6,9 @@ import { getTasks } from '../utils/tasks/getTasks';
 import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
-import { Task } from '../utils/taskManager';
 import { readFileSync } from 'fs-extra';
+import { checkCommitExists } from '../utils/git/checkCommitExists';
+import { Task } from '../types/tasks/Task';
 
 type Options = {
     dangerouslySkipPermission: boolean
@@ -64,6 +65,12 @@ export async function learningCommand(options: Options) {
                 // Process each completed task sequentially
                 for (const task of completedTasks) {
                     try {
+                        // Check if this task has already been processed and committed to main branch
+                        if (checkCommitExists(task.id, getMainBranch())) {
+                            log(`Task ${task.id} already has a commit on main branch. Skipping...`, 'warn');
+                            continue;
+                        }
+                        
                         await processCompletedTask(task, dangerouslySkipPermission);
                     } catch (error) {
 

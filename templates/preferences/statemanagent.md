@@ -1,4 +1,22 @@
+---
+name: "State Management & Data Flow Guide"
+description: "Defines state management patterns using TanStack Query, Context API, and React state"
+ai_instructions: |
+  When implementing state management:
+  1. Use TanStack Query for ALL server state (data fetching, caching)
+  2. Use Context API for global client state (theme, user preferences)
+  3. Use useState/useReducer for local component state
+  4. Never store server data in useState - always use TanStack Query
+  5. Follow the query key conventions for cache invalidation
+---
+
 # State Management & Data Flow Guide
+
+<ai-context>
+This guide defines how to manage state in Next.js applications. We strictly separate server state 
+(managed by TanStack Query) from client state (managed by Context API or local state). 
+AI should use this guide to determine the correct state management approach for different scenarios.
+</ai-context>
 
 ## Overview
 
@@ -9,6 +27,14 @@ This guide outlines our state management patterns and when to use different appr
 - **React Hook Form** for complex form state (optional)
 
 ## Core Principles
+
+<ai-rules>
+- NEVER use useState for server data - always use TanStack Query
+- ALWAYS separate server state from client state
+- START with local component state, elevate only when needed
+- USE TypeScript for all state definitions
+- PREFER TanStack Query's built-in features over custom solutions
+</ai-rules>
 
 1. **Separate server and client state** - Use TanStack Query for server data, Context/useState for UI state
 2. **Start with local state** - Use component state by default
@@ -46,6 +72,15 @@ const [processing, setProcessing] = useState(false);
 
 ### 2. Server State (TanStack Query)
 
+<ai-decision-tree>
+Should I use TanStack Query?
+1. Is the data fetched from an API? → YES: Use TanStack Query
+2. Do multiple components need this data? → YES: Use TanStack Query
+3. Does the data need caching? → YES: Use TanStack Query
+4. Will the data be mutated? → YES: Use useMutation
+5. Is it purely client-side state? → NO: Use Context or useState
+</ai-decision-tree>
+
 **When to use:**
 - Any data fetched from APIs
 - Data that needs caching
@@ -80,6 +115,8 @@ export default function App() {
 ```
 
 **Query Pattern (GET):**
+
+<code-template name="tanstack-query-fetch">
 ```typescript
 import { useQuery } from '@tanstack/react-query';
 import { enqueueSnackbar } from 'notistack';
@@ -111,8 +148,11 @@ const ClientDetails = ({ clientId }: Props) => {
   return <ClientView client={client} />;
 };
 ```
+</code-template>
 
 **Mutation Pattern (POST/PUT/DELETE):**
+
+<code-template name="tanstack-query-mutation">
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -161,6 +201,7 @@ const ClientForm = ({ client, onSuccess }: Props) => {
   );
 };
 ```
+</code-template>
 
 **Optimistic Updates:**
 ```typescript
@@ -203,6 +244,17 @@ const toggleLike = useMutation({
 ```
 
 ### 3. Global Client State (Context)
+
+<validation-schema>
+Context API Usage:
+- ✅ User preferences (theme, language)
+- ✅ Authentication state (user info, permissions)
+- ✅ UI state shared across routes (sidebar open/closed)
+- ✅ Feature flags
+- ❌ Server data (use TanStack Query)
+- ❌ Form data (use local state or React Hook Form)
+- ❌ Temporary UI state (use local state)
+</validation-schema>
 
 **When to use:**
 - User preferences (theme, language)
@@ -369,6 +421,14 @@ Is the data needed by multiple components?
 ```
 
 ## Query Key Conventions
+
+<ai-rules>
+- ALWAYS define query keys as const arrays
+- USE hierarchical structure for easy invalidation
+- INCLUDE filters/params in query keys
+- EXPORT query keys from a central location
+- FOLLOW the pattern: [resource, id?, subresource?, params?]
+</ai-rules>
 
 Organize query keys hierarchically for easy invalidation:
 
@@ -543,6 +603,26 @@ const updateClientInCache = (clientId: string, updates: Partial<Client>) => {
 ```
 
 ## Summary
+
+<ai-decision-tree>
+Which state management approach should I use?
+
+1. Is it data from an API/database?
+   → YES: Use TanStack Query (useQuery/useMutation)
+   → NO: Continue to 2
+
+2. Is it needed by multiple components across different routes?
+   → YES: Use Context API
+   → NO: Continue to 3
+
+3. Is it form data?
+   → YES: Simple form? Use useState. Complex? Use React Hook Form
+   → NO: Use local useState
+
+4. Does it need to persist across page refreshes?
+   → YES: Use localStorage with Context or TanStack Query persistence
+   → NO: Use appropriate state solution from above
+</ai-decision-tree>
 
 1. **Use TanStack Query for all server state** - Never manage server data with useState
 2. **Keep UI state local when possible** - Elevate only when necessary

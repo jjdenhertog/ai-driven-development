@@ -1,6 +1,6 @@
 import { ensureDirSync } from "fs-extra";
 import { join } from "node:path";
-import { AI_DEV_DIR } from "../taskManager";
+import { AI_DEV_DIR } from "../../config";
 
 export function createSession(taskId: string) {
     const timestamp = new Date().toISOString()

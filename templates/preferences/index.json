@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "description": "Index of all preference files for AI parsing and navigation",
+  "preferences": {
+    "api": {
+      "file": "api.md",
+      "category": "backend",
+      "priority": "critical",
+      "rules": [
+        "api-location",
+        "router-pattern",
+        "no-next-connect",
+        "direct-json",
+        "error-format",
+        "zod-validation",
+        "schema-location"
+      ],
+      "templates": [
+        "api-route-basic",
+        "zod-schema-basic"
+      ],
+      "decision_trees": ["api-implementation"],
+      "validation_schemas": ["api-route"],
+      "dependencies": ["technology-stack", "folder-structure", "testing"]
+    },
+    "components": {
+      "file": "components.md",
+      "category": "frontend",
+      "priority": "critical",
+      "rules": [
+        "typescript-required",
+        "functional-only",
+        "readonly-props",
+        "clean-custom-props",
+        "usecallback-required",
+        "usememo-filtering",
+        "context-value-memoization"
+      ],
+      "templates": [
+        "component-with-prop-cleanup",
+        "component-basic"
+      ],
+      "decision_trees": ["state-management-choice"],
+      "validation_schemas": ["react-component"],
+      "dependencies": ["technology-stack", "styling", "state-management"]
+    },
+    "folder-structure": {
+      "file": "folder-structure.md",
+      "category": "architecture",
+      "priority": "high",
+      "rules": [
+        "file-placement",
+        "feature-colocation",
+        "api-directory",
+        "component-location",
+        "test-colocation"
+      ],
+      "templates": [
+        "feature-component",
+        "ui-component"
+      ],
+      "decision_trees": ["page-route-placement", "general-file-placement"],
+      "validation_schemas": ["feature-directory"],
+      "dependencies": []
+    },
+    "state-management": {
+      "file": "statemanagent.md",
+      "category": "frontend",
+      "priority": "high",
+      "rules": [
+        "server-state-tanstack",
+        "client-state-zustand",
+        "no-redux",
+        "query-key-convention",
+        "mutation-invalidation"
+      ],
+      "templates": [
+        "tanstack-query-basic",
+        "tanstack-mutation",
+        "zustand-store-basic",
+        "context-provider-basic"
+      ],
+      "decision_trees": ["tanstack-query-choice", "state-management-approach"],
+      "validation_schemas": ["context-api"],
+      "dependencies": ["technology-stack", "components"]
+    },
+    "styling": {
+      "file": "styling.md",
+      "category": "frontend",
+      "priority": "medium",
+      "rules": [
+        "mui-sx-primary",
+        "css-modules-secondary",
+        "no-css-in-js-libs",
+        "no-utility-classes",
+        "no-inline-styles"
+      ],
+      "templates": [
+        "mui-sx-pattern",
+        "css-module-pattern"
+      ],
+      "decision_trees": ["styling-approach"],
+      "validation_schemas": ["css-class-naming"],
+      "dependencies": ["technology-stack", "components"]
+    },
+    "technology-stack": {
+      "file": "technology-stack.md",
+      "category": "core",
+      "priority": "critical",
+      "rules": [
+        "exact-tech-stack",
+        "no-alternatives",
+        "dependency-versions"
+      ],
+      "templates": [
+        "context-provider",
+        "form-with-validation",
+        "database-query"
+      ],
+      "decision_trees": ["technology-choice"],
+      "validation_schemas": ["dependencies"],
+      "dependencies": []
+    },
+    "testing": {
+      "file": "testing.md",
+      "category": "quality",
+      "priority": "high",
+      "rules": [
+        "test-everything",
+        "user-perspective",
+        "no-internals",
+        "data-testid",
+        "test-naming"
+      ],
+      "templates": [
+        "component-test-basic",
+        "hook-test-basic",
+        "api-route-test"
+      ],
+      "decision_trees": ["what-to-test"],
+      "validation_schemas": ["test-naming"],
+      "dependencies": ["technology-stack", "components"]
+    },
+    "writing-style": {
+      "file": "writing-style.md",
+      "category": "code-style",
+      "priority": "medium",
+      "rules": [
+        "naming-conventions",
+        "import-organization",
+        "arrow-functions",
+        "explicit-types",
+        "readonly-modifiers"
+      ],
+      "templates": [
+        "component-structure",
+        "zustand-state-update"
+      ],
+      "decision_trees": ["type-annotation", "pattern-selection"],
+      "validation_schemas": ["variable-naming"],
+      "dependencies": []
+    }
+  },
+  "rule_categories": {
+    "backend": ["api"],
+    "frontend": ["components", "state-management", "styling"],
+    "architecture": ["folder-structure"],
+    "core": ["technology-stack"],
+    "quality": ["testing"],
+    "code-style": ["writing-style"]
+  },
+  "priority_order": [
+    "technology-stack",
+    "api",
+    "components",
+    "folder-structure",
+    "state-management",
+    "testing",
+    "styling",
+    "writing-style"
+  ],
+  "cross_references": {
+    "authentication": ["api", "components", "state-management"],
+    "forms": ["components", "state-management", "styling"],
+    "data-fetching": ["api", "state-management", "components"],
+    "error-handling": ["api", "components", "state-management"],
+    "performance": ["components", "state-management", "api"]
+  }
+}

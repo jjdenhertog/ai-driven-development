@@ -1,6 +1,6 @@
 
-export type ExecutionContext = {
-    branchName: string;
-    sessionId: string;
-    commitPrefix?: string;
-};
+// export type ExecutionContext = {
+//     branchName: string;
+//     sessionId: string;
+//     commitPrefix?: string;
+// };

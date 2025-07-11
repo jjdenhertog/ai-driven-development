@@ -1,6 +1,6 @@
+import { Task } from '../../types/tasks/Task';
 import { log } from '../logger';
 import { getTaskById } from './getTaskById';
-import { Task } from '../taskManager';
 
 export function validateTaskForExecution(
     taskId: string,

@@ -1,6 +1,6 @@
 
-export type Session = {
-    dir: string;
-    logPath: string;
-    timestamp: string;
-};
+// export type Session = {
+//     dir: string;
+//     logPath: string;
+//     timestamp: string;
+// };
