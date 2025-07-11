@@ -156,9 +156,12 @@ program
 program
     .command('learn')
     .description('Monitor completed tasks and learn from user changes')
-    .action(async () => {
+    .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
+    .action(async (cmdObject) => {
         try {
-            await learningCommand()
+            await learningCommand({
+                dangerouslySkipPermission: !!cmdObject.dsp
+            })
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);

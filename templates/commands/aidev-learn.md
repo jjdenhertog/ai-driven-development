@@ -9,34 +9,79 @@ allowed-tools: ["*"]
 You are a learning specialist analyzing code improvements. You have deep understanding of software patterns, best practices, and the ability to extract generalizable learnings from specific corrections. You focus on understanding the "why" behind changes, not just the "what".
 </role-context>
 
-**CRITICAL: This command REQUIRES a task filename argument (format: taskId-taskName). If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.**
+**CRITICAL CONSTRAINTS:**
+1. This command REQUIRES a task filename argument (format: taskId-taskName). If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.
+2. **FILE WRITE RESTRICTION**: You may ONLY write to the `.aidev/patterns/` directory. Writing to any other location is FORBIDDEN.
+3. **MANDATORY PRE-FLIGHT**: The pre-flight validation MUST pass completely before ANY other operations. Do NOT skip or bypass these checks.
 
 ## Purpose
 Analyzes user changes to AI-generated code for a specific task, extracting learnings to improve future AI implementations.
+
+## File Operations
+**This command writes to EXACTLY ONE location:**
+- `.aidev/patterns/learned-patterns.json` - The patterns database
+
+**This command READS from these locations:**
+- `.aidev/tasks/[taskId-taskName].json` - Task metadata
+- `.aidev/tasks/[taskId-taskName].md` - Task specification  
+- `.aidev/logs/[taskId]/prp.md` - Implementation plan (MUST exist and be non-empty)
+- `.aidev/logs/[taskId]/user_changes.json` - User's corrections (MUST exist and be valid JSON)
 
 ## Process
 
 ### 0. Pre-Flight Check
 
 ```bash
-# Validate task argument
+# CRITICAL: Pre-flight validation - MUST NOT PROCEED if any check fails
+
+# 1. Validate task argument
 if [ -z "#$ARGUMENTS" ]; then
   echo "ERROR: No task filename provided. Usage: /aidev-learn <taskId-taskName>"
+  echo "FATAL: Cannot proceed without task identifier"
   exit 1
 fi
 
-# Extract task ID
+# 2. Extract and validate task ID
 TASK_ID=$(echo "#$ARGUMENTS" | cut -d'-' -f1)
+if [ -z "$TASK_ID" ] || ! [[ "$TASK_ID" =~ ^[0-9]+$ ]]; then
+  echo "ERROR: Invalid task ID format. Expected format: 001-task-name"
+  echo "FATAL: Cannot determine task ID from: #$ARGUMENTS"
+  exit 1
+fi
 
-# Check required files exist
+# 3. Check ALL required files exist before proceeding
+MISSING_FILES=()
 for file in ".aidev/tasks/#$ARGUMENTS.json" ".aidev/tasks/#$ARGUMENTS.md" ".aidev/logs/$TASK_ID/prp.md" ".aidev/logs/$TASK_ID/user_changes.json"; do
   if [ ! -f "$file" ]; then
-    echo "ERROR: Required file not found: $file"
-    exit 1
+    MISSING_FILES+=("$file")
   fi
 done
 
-echo "✅ Task #$ARGUMENTS found with learning data"
+if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+  echo "ERROR: Required files not found:"
+  for file in "${MISSING_FILES[@]}"; do
+    echo "  - $file"
+  done
+  echo "FATAL: Cannot proceed without ALL required files"
+  exit 1
+fi
+
+# 4. Verify PRP is not empty
+if [ ! -s ".aidev/logs/$TASK_ID/prp.md" ]; then
+  echo "ERROR: PRP file exists but is empty: .aidev/logs/$TASK_ID/prp.md"
+  echo "FATAL: Cannot learn without implementation plan"
+  exit 1
+fi
+
+# 5. Verify user_changes.json is valid JSON
+if ! jq . ".aidev/logs/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
+  echo "ERROR: user_changes.json is not valid JSON"
+  echo "FATAL: Cannot parse user changes"
+  exit 1
+fi
+
+echo "✅ Pre-flight validation PASSED for task #$ARGUMENTS"
+echo "📁 All required files present and valid"
 ```
 
 <pre-flight-validation>

@@ -9,7 +9,13 @@ import { sleep } from '../utils/sleep';
 import { Task } from '../utils/taskManager';
 import { readFileSync } from 'fs-extra';
 
-export async function learningCommand() {
+type Options = {
+    dangerouslySkipPermission: boolean
+}
+
+export async function learningCommand(options: Options) {
+    const { dangerouslySkipPermission } = options;
+
     // Ensure git auth
     if (!checkGitAuth()) {
         log('Git authentication required. Run: gh auth login', 'error');
@@ -22,6 +28,8 @@ export async function learningCommand() {
 
     log('Learning command started. Monitoring for completed tasks...', 'success');
 
+    if(dangerouslySkipPermission)
+        log('Dangerously skipping permission checks of Claude Code', 'warn');
 
     let tasks = getTasks().filter(task => task.status != 'archived');
 
@@ -56,7 +64,7 @@ export async function learningCommand() {
                 // Process each completed task sequentially
                 for (const task of completedTasks) {
                     try {
-                        await processCompletedTask(task);
+                        await processCompletedTask(task, dangerouslySkipPermission);
                     } catch (error) {
 
                         log(`Error processing task ${task.id}: ${String(error)}`, 'error');

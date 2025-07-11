@@ -426,17 +426,8 @@ if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   exit 1
 fi
 
-# Update task status to review
-TASK_JSON=$(cat .aidev/tasks/#$ARGUMENTS.json)
-UPDATED_JSON=$(echo "$TASK_JSON" | jq '.status = "review"')
-echo "$UPDATED_JSON" > .aidev/tasks/#$ARGUMENTS.json
-
-# Stage status change (but don't commit)
-git add .aidev/tasks/#$ARGUMENTS.json
-
 echo "✅ Task #$ARGUMENTS completed successfully"
 echo "📝 PR message saved to: $LAST_RESULT_PATH"
-echo "📋 Task status updated to: review"
 ```
 
 ## Error Handling
@@ -476,7 +467,7 @@ echo "📋 Task status updated to: review"
 </final-verification>
 
 - **Task Isolation**: Only modify the specified task
-- **Status Updates**: Update task JSON status only at completion (pending → review)
+- **Status Updates**: Do not update task status - this is handled by the parent process
 - **PR Message**: MUST create `last_result.md` before marking as review
 - **Testing**: Only create tests if testing infrastructure exists
 - **Patterns**: Follow established patterns from `.aidev/patterns/`

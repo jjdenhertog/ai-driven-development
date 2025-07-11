@@ -8,10 +8,8 @@ import { logToSession } from '../utils/tasks/logToSession';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
 import { createTaskPR } from '../utils/tasks/createTaskPR';
-import { executeClaudeWithHooks } from '../utils/claude/executeClaudeWithHooks';
-import { watchTaskFile } from '../utils/tasks/watchTaskFile';
+import { executeClaudeCommand } from '../utils/claude/executeClaudeCommand';
 import { log } from "../utils/logger";
-import { ChildProcess } from 'node:child_process';
 import { switchToBranch } from '../utils/git/switchToBranch';
 import { getMainBranch } from '../utils/git/getMainBranch';
 
@@ -75,82 +73,42 @@ export async function executeTaskCommand(options: Options) {
         log_path: session.logPath
     });
 
-    // Step 3: Execute Claude with file watching and retry support
+    // Step 3: Execute Claude
     log('Starting Claude with aidev-code-task command...', 'success');
 
-    ///////////////////////////////////////////////////////////
-    // Starting Claude Code
-    ///////////////////////////////////////////////////////////
-    const taskFileName = `${task.id}-${task.name}`
-    const args = [taskFileName];
-
+    const args = [];
     if (dangerouslySkipPermission)   
         args.push('--dangerously-skip-permissions');
 
-    let watcherCleanup: (() => void) | undefined;
-    let shouldRetry = true;
-    
-    const claudeSpawnOptions = {
-        command: '/aidev-code-task',
+    // Execute Claude and wait for completion
+    await executeClaudeCommand({
+        command: `/aidev-code-task ${task.id}-${task.name}`,
         args,
-        enableRetry: true,
-        maxRetries: 3,
-        retryDelay: 5000,
-        retryOnExitCodes: [143]
-    };
-    
-    const onClaudeStart = (claudeProcess: ChildProcess) => {
-        const { cleanup, setDisableRetry } = watchTaskFile(task, claudeProcess);
-        watcherCleanup = cleanup;
-        
-        // When timeout kill is triggered, disable retries
-        setDisableRetry(() => {
-            shouldRetry = false;
+        taskId: task.id,
+    });
+
+    ///////////////////////////////////////////////////////////
+    // Update task status and create PR
+    ///////////////////////////////////////////////////////////
+    try {
+        // Update task status to review
+        updateTaskFile(task.path, {
+            status: 'review'
         });
-    };
-    
-    const onClaudeCleanup = () => {
-        if (watcherCleanup) {
-            watcherCleanup();   
-        }
-    };
-    
-    const onClaudeExit = (code: number | null, _signal: NodeJS.Signals | null) => {
-        // Override retry behavior if timeout kill was triggered
-        if (!shouldRetry && code === 143) {
-            return { preventRetry: true };
-        }
-    };
-    
-    const result = await executeClaudeWithHooks(claudeSpawnOptions,
-        { onStart: onClaudeStart, cleanup: onClaudeCleanup, onExit: onClaudeExit }
-    );
-
-    // Only proceed if Claude ran successfully or after retries
-    if (!result.success) 
-        log(`Claude execution failed with exit code: ${result.exitCode}`, 'error');
-
-    ///////////////////////////////////////////////////////////
-    // Log final task status
-    ///////////////////////////////////////////////////////////
-    const finalTask = getTaskById(task.id);
-    if (finalTask) {
-
-        if((finalTask.status !== 'review'))
-            return;
-
+        
+        // Then immediately to completed for PR creation
+        updateTaskFile(task.path, {
+            status: 'completed'
+        });
+        
         // Create PR
-        try {
-            updateTaskFile(task.path, {
-                status: 'completed'
-            });
-            
-            createTaskPR(task, branchName);
-            switchToBranch(getMainBranch(), { pull: true, cleanIgnored: true, force: true });
-        } catch (error) {
-            log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-            // Don't throw here - the task execution itself was successful
-            // The PR creation failure is a separate concern
-        }
+        createTaskPR(task, branchName);
+        
+        // Switch back to main branch
+        switchToBranch(getMainBranch(), { pull: true, cleanIgnored: true, force: true });
+    } catch (error) {
+        log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+        // Don't throw here - the task execution itself was successful
+        // The PR creation failure is a separate concern
     }
 }
