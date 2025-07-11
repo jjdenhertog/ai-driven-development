@@ -26,17 +26,32 @@ This command performs a thorough analysis of the concept and all tasks to predic
 
 ### Phase 1: Initial Analysis
 
+```bash
+# First, resolve path to .aidev-storage directory
+if [ -d ".aidev-storage" ]; then
+    AIDEV_DIR=".aidev-storage"
+elif [ -d "../.aidev-storage" ]; then
+    AIDEV_DIR="../.aidev-storage"
+else
+    echo "ERROR: Cannot find .aidev-storage directory"
+    echo "Searched in current directory and parent directory"
+    exit 1
+fi
+
+echo "✅ Found aidev directory at: $AIDEV_DIR"
+```
+
 1. **Load Project Context**
    - Read all the current files of the project, to understand what has already been created
-   - Read the concept from `.aidev/concept/`
+   - Read the concept from `$AIDEV_DIR/concept/`
    - Analyze existing source code and implemented tasks
-   - Load all tasks from `.aidev/tasks/` (both .md and .json files)
+   - Load all tasks from `$AIDEV_DIR/tasks/` (both .md and .json files)
    - **Load all user preferences dynamically**:
      ```bash
      # Find and load all .md preference files
-     find .aidev/preferences -name "*.md" -type f
+     find $AIDEV_DIR/preferences -name "*.md" -type f
      ```
-   - Load user examples from `.aidev/examples/`
+   - Load user examples from `$AIDEV_DIR/examples/`
 
 2. **Concept Analysis**
    - Parse the concept to understand:
@@ -112,8 +127,8 @@ This command performs a thorough analysis of the concept and all tasks to predic
 </preference-validation>
 
 **Preference Application:**
-- Apply all dynamically loaded preferences from `.aidev/preferences/`
-- Validate against code examples in `.aidev/examples/`
+- Apply all dynamically loaded preferences from `$AIDEV_DIR/preferences/`
+- Validate against code examples in `$AIDEV_DIR/examples/`
 - Support any custom patterns without hardcoded assumptions
 
 4. **Gap Detection**
@@ -347,7 +362,7 @@ Question: Should the dashboard be mobile-responsive? What's the minimum supporte
 ```
 Task: user-form
 Issue: Component pattern doesn't match preference file
-Expected: Pattern from .aidev/preferences/component-patterns.md
+Expected: Pattern from $AIDEV_DIR/preferences/component-patterns.md
 Found: Different implementation approach
 Action: Update task to follow preference file patterns
 ```
@@ -356,7 +371,7 @@ Action: Update task to follow preference file patterns
 ```
 Task: shopping-cart
 Issue: State management approach differs from preferences
-Expected: Pattern from .aidev/preferences/state-management.md
+Expected: Pattern from $AIDEV_DIR/preferences/state-management.md
 Found: Different state solution
 Action: Align with preferred state management approach
 ```
@@ -365,7 +380,7 @@ Action: Align with preferred state management approach
 ```
 Task: api-endpoint
 Issue: API structure doesn't match examples
-Expected: Pattern from .aidev/examples/api/sample-route.ts
+Expected: Pattern from $AIDEV_DIR/examples/api/sample-route.ts
 Found: Inconsistent implementation
 Action: Follow example API patterns
 ```

@@ -19,7 +19,7 @@ export function getMainBranch(): string {
                 .toString()
                 .split('\n')
                 .map(b => b.trim())
-                .filter(b => b); // Remove empty lines
+                .filter(b => !!b); // Remove empty lines
 
             if (branches.some(b => b.includes('origin/main'))) {
                 return 'main';

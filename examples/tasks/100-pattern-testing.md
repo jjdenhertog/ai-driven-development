@@ -84,8 +84,8 @@ Establish testing patterns, utilities, and conventions that all future tests wil
   - Component state checks
 
 ## Examples to Reference
-- `.aidev/preferences/testing.md` - Project testing preferences
-- `.aidev/examples/` - Look for any existing test examples
+- `.aidev-storage/preferences/testing.md` - Project testing preferences
+- `.aidev-storage/examples/` - Look for any existing test examples
 - Industry best practices for React Testing Library
 
 ## Documentation Links

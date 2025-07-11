@@ -64,7 +64,7 @@ Install and configure a comprehensive testing framework for the Next.js applicat
 - Example tests: Co-located with example code
 
 ## Implementation Notes
-- Check `.aidev/preferences/testing.md` for any project-specific testing preferences
+- Check `.aidev-storage/preferences/testing.md` for any project-specific testing preferences
 - If no testing preference exists, use these defaults
 - Create vitest.config.ts with jsdom environment
 - Set up testing-library cleanup in test setup file
@@ -73,7 +73,7 @@ Install and configure a comprehensive testing framework for the Next.js applicat
 - Create custom render function with providers
 
 ## Examples to Reference
-- `.aidev/preferences/testing.md` - Testing preferences (if exists)
+- `.aidev-storage/preferences/testing.md` - Testing preferences (if exists)
 - Standard Vitest + Next.js setup patterns
 - React Testing Library best practices
 

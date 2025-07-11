@@ -1,14 +1,15 @@
+import { readFileSync } from 'fs-extra';
+
+import { Task } from '../types/tasks/Task';
+import { checkCommitExists } from '../utils/git/checkCommitExists';
 /* eslint-disable max-depth */
 import { checkGitAuth } from '../utils/git/checkGitAuth';
-import { switchToBranch } from '../utils/git/switchToBranch';
 import { getMainBranch } from '../utils/git/getMainBranch';
-import { getTasks } from '../utils/tasks/getTasks';
+import { switchToBranch } from '../utils/git/switchToBranch';
 import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
-import { readFileSync } from 'fs-extra';
-import { checkCommitExists } from '../utils/git/checkCommitExists';
-import { Task } from '../types/tasks/Task';
+import { getTasks } from '../utils/tasks/getTasks';
 
 type Options = {
     dangerouslySkipPermission: boolean
@@ -24,7 +25,7 @@ export async function learningCommand(options: Options) {
     }
 
     // Switch to main branch
-    if (!switchToBranch(getMainBranch(), { pull: true, force: true }))
+    if (!switchToBranch(getMainBranch(), {   }))
         throw new Error('Failed to switch to main branch');
 
     log('Learning command started. Monitoring for completed tasks...', 'success');
@@ -41,7 +42,7 @@ export async function learningCommand(options: Options) {
         // eslint-disable-next-line no-constant-condition
         while (true) {
             // Pull latest changes
-            switchToBranch(getMainBranch(), { pull: true });
+            switchToBranch(getMainBranch(), {  });
 
             // Reload the tasks
             if (iteration && iteration == iterationAfterFullReload) {

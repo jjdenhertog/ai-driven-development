@@ -1,11 +1,12 @@
 import { execSync } from 'node:child_process';
-import { getUserChanges } from '../git/getUserChanges';
-import { saveUserChanges } from './saveUserChanges';
-import { log } from '../logger';
-import { getMainBranch } from '../git/getMainBranch';
-import { createCommit } from '../git/createCommit';
-import { executeClaudeCommand } from '../claude/executeClaudeCommand';
+
 import { Task } from '../../types/tasks/Task';
+import { executeClaudeCommand } from '../claude/executeClaudeCommand';
+import { createCommit } from '../git/createCommit';
+import { getMainBranch } from '../git/getMainBranch';
+import { getUserChanges } from '../git/getUserChanges';
+import { log } from '../logger';
+import { saveUserChanges } from '../storage/saveUserChanges';
 
 export async function processCompletedTask(task: Task, dangerouslySkipPermission: boolean): Promise<void> {
     log(`Processing completed task: ${task.id} - ${task.name}`, 'success');

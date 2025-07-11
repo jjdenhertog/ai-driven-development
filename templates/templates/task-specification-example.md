@@ -118,9 +118,7 @@ Implement a complete user authentication system with email/password and OAuth pr
 - Include rate limiting middleware
 
 ## Examples to Reference
-- `.aidev/examples/components/LoginForm.tsx` - form component patterns
-- `.aidev/examples/api/auth/` - authentication API patterns
-- `.aidev/examples/middleware/auth.ts` - middleware patterns
+- `.aidev-storage/examples/api/auth/` - authentication API patterns
 
 ## Documentation Links
 - https://next-auth.js.org/configuration/initialization

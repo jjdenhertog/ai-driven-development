@@ -2,17 +2,18 @@
 /* eslint-disable unicorn/prefer-module */
 
 import { Command } from "commander";
-import { initCommand } from "./commands/initCommand";
-import { logError } from "./utils/logger";
-import { executeTaskCommand } from "./commands/executeTaskCommand";
-import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
-import { learningCommand } from "./commands/learningCommand";
 import { log } from "node:console";
-import { sleep } from "./utils/sleep";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { switchToBranch } from "./utils/git/switchToBranch";
+
+import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
+import { executeTaskCommand } from "./commands/executeTaskCommand";
+import { initCommand } from "./commands/initCommand";
+import { learningCommand } from "./commands/learningCommand";
 import { getMainBranch } from "./utils/git/getMainBranch";
+import { switchToBranch } from "./utils/git/switchToBranch";
+import { logError } from "./utils/logger";
+import { sleep } from "./utils/sleep";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', 'package.json');
@@ -111,7 +112,7 @@ program
         while (true) {
             try {
                 // Ensure we start each iteration from a clean main branch
-                if (!switchToBranch(getMainBranch(), { force: true, cleanIgnored: true, pull: true })) {
+                if (!switchToBranch(getMainBranch(), {  })) {
                     logError('Failed to switch to clean main branch');
                     
                     log(`Waiting ${TASK_EXECUTION_DELAY / 1000} seconds before retrying...`, 'info');
@@ -170,75 +171,5 @@ program
             }
         }
     })
-
-// Status command
-// program
-//     .command('status')
-//     .description('Show status of all tasks')
-//     .option('-p, --pending', 'Show only pending tasks')
-//     .option('-i, --in-progress', 'Show only in-progress tasks')
-//     .option('-c, --completed', 'Show only completed tasks')
-//     .action(async (cmdObject) => {
-//         try {
-//             await statusCommand({
-//                 pending: !!cmdObject.pending,
-//                 inProgress: !!cmdObject.inProgress,
-//                 completed: !!cmdObject.completed
-//             })
-//         } catch (error) {
-//             if (error instanceof Error) {
-//                 logError(error.message);
-//             } else {
-//                 logError(String(error));
-//             }
-//         }
-//     })
-
-// Complete command
-// program
-//     .command('complete <taskId>')
-//     .description('Complete task implementation: commit, push, and create PR')
-//     .option('--pr-file <file>', 'File containing PR description from Claude')
-//     .option('--no-validate', 'Skip validation before creating PR')
-//     .option('--draft', 'Create as draft PR')
-//     .action(async (taskId: string, cmdObject) => {
-//         try {
-//             await completeCommand({
-//                 taskId,
-//                 prFile: cmdObject.prFile,
-//                 noValidate: !cmdObject.validate,
-//                 draft: !!cmdObject.draft
-//             })
-//         } catch (error) {
-//             if (error instanceof Error) {
-//                 logError(error.message);
-//             } else {
-//                 logError(String(error));
-//             }
-//         }
-//     })
-
-// Monitor command
-// program
-//     .command('monitor')
-//     .description('Monitor task execution and PR status')
-//     .option('--interval <seconds>', 'Update interval in seconds', '60')
-//     .option('--auto-process', 'Automatically process merged PRs')
-//     .option('--once', 'Run once and exit')
-//     .action(async (cmdObject) => {
-//         try {
-//             await monitorCommand({
-//                 interval: cmdObject.interval || '60',
-//                 autoProcess: !!cmdObject.autoProcess,
-//                 once: !!cmdObject.once
-//             })
-//         } catch (error) {
-//             if (error instanceof Error) {
-//                 logError(error.message);
-//             } else {
-//                 logError(String(error));
-//             }
-//         }
-//     })
 
 program.parse(process.argv);

@@ -20,9 +20,9 @@ You are implementing a specific task with deep knowledge of the codebase. You fo
 
 <post-generation-validation>
   After generating this PRP:
-  1. Save to: .aidev/logs/[taskid]/prp.md
+  1. Save to: .aidev-storage/tasks_output/[taskid]/prp.md
   2. Verify NO placeholders remain: grep -c '${' should return 0
-  3. Create PR message: .aidev/logs/[taskid]/last_result.md
+  3. Create PR message: .aidev-storage/tasks_output/[taskid]/last_result.md
   4. Update task status to "review" in JSON
   5. Stage the status change (but don't commit)
 </post-generation-validation>
@@ -1048,7 +1048,7 @@ Future Improvements:
 
 ### 🚨 CRITICAL: Status Update and PR Creation
 After implementation is complete:
-1. **Create PR Message**: Save to `.aidev/logs/[taskid]/last_result.md`
+1. **Create PR Message**: Save to `.aidev-storage/tasks_output/[taskid]/last_result.md`
 2. **Verify PR Message**: Ensure file exists and has content
 3. **Update Status**: Change task status to "review" in JSON
 4. **Stage Status**: Stage the status change (but don't commit)
@@ -1089,7 +1089,7 @@ ${OUT_OF_SCOPE}
 ## 🎬 Session Recording
 
 Document all decisions and issues in:
-`.aidev/sessions/${SESSION_ID}/log.md`
+`.aidev-storage/sessions/${SESSION_ID}/log.md`
 
 Track:
 - Architectural decisions made
@@ -1111,8 +1111,8 @@ Track:
 ## 📋 Final Steps
 
 ### After Implementation
-1. **Save Generated PRP**: `.aidev/logs/[taskid]/prp.md`
-2. **Create PR Message**: `.aidev/logs/[taskid]/last_result.md`
+1. **Save Generated PRP**: `.aidev-storage/tasks_output/[taskid]/prp.md`
+2. **Create PR Message**: `.aidev-storage/tasks_output/[taskid]/last_result.md`
 3. **Run Validation**:
    - `npm run lint`
    - `npm run type-check`

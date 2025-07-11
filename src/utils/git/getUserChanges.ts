@@ -159,7 +159,6 @@ export function getUserChanges(branch: string, taskId: string): UserChanges | nu
 
             // Identify user commits (not AI-generated)
             if (!isAIGeneratedCommit(message, author)) {
-                console.log(message)
                 commits.push(commitInfo);
                 userCommits.push(hash);
             }

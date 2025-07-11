@@ -7,7 +7,7 @@ export function hasUnresolvedDependencies(task: Task): boolean {
     }
 
     for (const depId of task.dependencies) {
-        const depTask = getTaskById(depId);
+        const depTask = getTaskById({ taskId: depId });
         if (!depTask || depTask.status !== 'completed') {
             return true;
         }

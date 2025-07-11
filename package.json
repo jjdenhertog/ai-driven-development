@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "commander": "^11.1.0",
-    "fs-extra": "^11.3.0"
+    "fs-extra": "^11.3.0",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

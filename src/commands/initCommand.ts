@@ -1,8 +1,12 @@
+import { copySync, ensureDirSync, existsSync, readdirSync, removeSync } from 'fs-extra';
+import { join } from 'node:path';
+
+import { AIDEV_STORAGE_PATH } from '../config';
+import { checkGitInitialized } from '../utils/git/checkGitInitialized';
+import { setupStorageWorktree } from '../utils/git/setupStorageWorktree';
 /* eslint-disable unicorn/prefer-module */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { log } from '../utils/logger.js';
-import { ensureDirSync, existsSync, readdirSync, copySync } from 'fs-extra';
-import { join } from 'node:path';
+import { log } from '../utils/logger';
 
 type Options = {
     force: boolean
@@ -13,16 +17,26 @@ export async function initCommand(options: Options): Promise<void> {
     try {
         log('Initializing aidev in current directory...', 'info');
 
+        // Check if git is initialized
+        if (!checkGitInitialized()) {
+            log('Git repository not initialized. Please run "git init" first.', 'error');
+            throw new Error('Git repository not initialized');
+        }
+
+        // Create aidev-storage worktree
+        await setupStorageWorktree(force);
+
         // The templates folder is at the root of the package (../../templates from dist/commands/)
         const packageRoot = join(__dirname, '..', '..');
         const templatesRoot = join(packageRoot, 'templates');
 
         // Create .aidev directory if it doesn't exist
-        const aidevDir = join(process.cwd(), '.aidev');
-        ensureDirSync(aidevDir);
+        const aidevDir = join(process.cwd(), AIDEV_STORAGE_PATH);
+        if (!existsSync(aidevDir))
+            throw new Error(`${AIDEV_STORAGE_PATH} directory not found.`);
 
         // Create subdirectories
-        const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates', '.dev'];
+        const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates'];
 
         for (const subdir of subdirs) {
             const subdirPath = join(aidevDir, subdir);
@@ -90,7 +104,9 @@ export async function initCommand(options: Options): Promise<void> {
         log('aidev initialized successfully!', 'success');
         log('You can now use aidev commands in this directory.', 'info');
     } catch (error) {
+        removeSync(AIDEV_STORAGE_PATH);
         log(`Failed to initialize aidev: ${error}`, 'error');
         throw error;
     }
 }
+

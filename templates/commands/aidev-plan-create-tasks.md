@@ -10,7 +10,7 @@ You are a senior engineer who has worked on this codebase for 2 years. You know 
 </role-context>
 
 ## Purpose
-Analyzes concept documents in the `.aidev/concept/` directory and breaks them down into individual task specifications that can be implemented incrementally. This includes setup tasks, infrastructure patterns, and feature implementations.
+Analyzes concept documents in the `.aidev-storage/concept/` directory and breaks them down into individual task specifications that can be implemented incrementally. This includes setup tasks, infrastructure patterns, and feature implementations.
 
 **IMPORTANT OUTPUT FORMAT**: This command creates TWO files per task:
 1. A detailed `.md` file with full task specification (description, criteria, notes, etc.)
@@ -20,9 +20,24 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 
 ### 1. Discovery Phase
 
+```bash
+# First, resolve path to .aidev-storage directory
+if [ -d ".aidev-storage" ]; then
+    AIDEV_DIR=".aidev-storage"
+elif [ -d "../.aidev-storage" ]; then
+    AIDEV_DIR="../.aidev-storage"
+else
+    echo "ERROR: Cannot find .aidev-storage directory"
+    echo "Searched in current directory and parent directory"
+    exit 1
+fi
+
+echo "✅ Found aidev directory at: $AIDEV_DIR"
+```
+
 <discovery-checklist>
 <required-checks>
-  □ Concept directory exists at `.aidev/concept/`
+  □ Concept directory exists at `$AIDEV_DIR/concept/`
   □ At least one .md file found in concept directory
   □ Concept file contains minimum 100 words
   □ package.json exists (record all dependencies)
@@ -40,16 +55,16 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
 </discovery-checklist>
 
 **Implementation Steps:**
-- Check if `.aidev/concept/` directory exists
+- Check if `$AIDEV_DIR/concept/` directory exists
 - Look for concept documents (*.md files) in the directory
 - Verify concept has sufficient detail (100+ words)
 - If requirements not met, stop with appropriate error message
 
 - **Read project preferences and examples**:
-  - Dynamically load all .md files in `.aidev/preferences/` directory:
+  - Dynamically load all .md files in `$AIDEV_DIR/preferences/` directory:
     ```bash
     # Find and process all preference files
-    find .aidev/preferences -name "*.md" -type f | while read pref_file; do
+    find $AIDEV_DIR/preferences -name "*.md" -type f | while read pref_file; do
       echo "Loading preference: $(basename "$pref_file")"
       # Each file may define any type of preference or convention
     done
@@ -63,7 +78,7 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
     - Custom conventions, coding standards, etc.
   - New preference files can be added anytime and will be included
   - All found preferences should be applied to task generation
-  - Scan `.aidev/examples/` directory to identify:
+  - Scan `$AIDEV_DIR/examples/` directory to identify:
     - Example components, hooks, and features
     - Code patterns to follow
     - Implementation approaches
@@ -79,7 +94,7 @@ Analyzes concept documents in the `.aidev/concept/` directory and breaks them do
   - Identify what framework/tools are already set up
   - Determine what's missing for the concept requirements
   - Make intelligent decisions about what setup tasks are needed
-- Read all files in `.aidev/concept/` directory
+- Read all files in `$AIDEV_DIR/concept/` directory
 - Identify the overall project vision and goals
 - Extract feature requirements and dependencies
 - **Cross-reference concept needs with current state** to determine gaps
@@ -191,7 +206,7 @@ Organize tasks by priority and dependencies:
 For each task, create two files:
 
 #### 4.1 Task Specification (.md file)
-Use the template from `.aidev/templates/task-specification-template.md` to create each task specification. The template includes sections for:
+Use the template from `$AIDEV_DIR/templates/task-specification-template.md` to create each task specification. The template includes sections for:
 - Metadata (id, name, type, dependencies, etc.) in frontmatter
 - Overview and objectives
 - Technical requirements and acceptance criteria
@@ -229,14 +244,14 @@ Create a corresponding JSON file for each task with the initial status:
 **Incorporating Preferences and Examples**:
 Each task specification should explicitly reference:
 - **Relevant preferences**: Link to any applicable preference files found
-  - E.g., "Follow API patterns from `.aidev/preferences/[any-api-related].md`"
-  - E.g., "Use component structure from `.aidev/preferences/[any-component-related].md`"
-  - E.g., "Apply styling approach from `.aidev/preferences/[any-styling-related].md`"
+  - E.g., "Follow API patterns from `$AIDEV_DIR/preferences/[any-api-related].md`"
+  - E.g., "Use component structure from `$AIDEV_DIR/preferences/[any-component-related].md`"
+  - E.g., "Apply styling approach from `$AIDEV_DIR/preferences/[any-styling-related].md`"
   - Reference whichever preference files are relevant to the task
 - **Example code**: Reference specific example files to guide implementation
-  - E.g., "See `.aidev/examples/components/UserRegistrationForm.tsx` for form pattern"
-  - E.g., "Follow API structure in `.aidev/examples/api/products-route.ts`"
-  - E.g., "Use state management pattern from `.aidev/examples/stores/useAppStore.ts`"
+  - E.g., "See `$AIDEV_DIR/examples/components/UserRegistrationForm.tsx` for form pattern"
+  - E.g., "Follow API structure in `$AIDEV_DIR/examples/api/products-route.ts`"
+  - E.g., "Use state management pattern from `$AIDEV_DIR/examples/stores/useAppStore.ts`"
 - **Implementation notes** should include:
   - Which preferences apply to this task
   - Which examples demonstrate the desired pattern
@@ -289,17 +304,17 @@ For setup tasks that require user input, clearly specify:
 - List all required environment variables with descriptions
 
 Refer to:
-- `.aidev/templates/task-specification-example.md` for feature task examples
-- `.aidev/templates/instruction-specification-example.md` for instruction task examples
+- `$AIDEV_DIR/templates/task-specification-example.md` for feature task examples
+- `$AIDEV_DIR/templates/instruction-specification-example.md` for instruction task examples
 
 ### 5. Output Structure
-Create files in `.aidev/tasks/` with sequential numbering. Each task consists of two files:
+Create files in `$AIDEV_DIR/tasks/` with sequential numbering. Each task consists of two files:
 - `.md` file: The task specification
 - `.json` file: The initial status tracking
 
 **Example structure (actual numbers will vary based on project needs):**
 ```
-.aidev/tasks/
+$AIDEV_DIR/tasks/
 # Only create tasks that are actually needed!
 ├── 001-setup-environment.md          # Task specification
 ├── 001-setup-environment.json        # Status tracking
@@ -324,7 +339,7 @@ Create files in `.aidev/tasks/` with sequential numbering. Each task consists of
 - Include features not in the concept
 - Pad the task list unnecessarily
 
-Each `.md` file should follow the structure defined in `.aidev/templates/task-specification-template.md`
+Each `.md` file should follow the structure defined in `$AIDEV_DIR/templates/task-specification-template.md`
 
 Each `.json` file should contain the initial status tracking with this structure:
 ```json
@@ -465,7 +480,7 @@ This will:
 3. Generate ONLY necessary setup tasks
 4. Generate ONLY required pattern tasks
 5. Generate ONLY features mentioned in concept
-6. Create both .md and .json files for each task in `.aidev/tasks/`
+6. Create both .md and .json files for each task in `$AIDEV_DIR/tasks/`
 7. Perform self-validation with fresh perspective
 8. Self-correct any identified issues
 9. Output a comprehensive validation report
@@ -473,7 +488,7 @@ This will:
 ### Example Task Creation
 When creating a task like "001-setup-nextjs-project", the command will generate:
 
-**File 1: `.aidev/tasks/001-setup-nextjs-project.md`**
+**File 1: `.aidev-storage/tasks/001-setup-nextjs-project.md`**
 ```markdown
 ---
 id: "001"
@@ -516,7 +531,7 @@ Initialize a new Next.js project with TypeScript, App Router, and essential conf
 ## Estimated Hours: 1
 ```
 
-**File 2: `.aidev/tasks/001-setup-nextjs-project.json`**
+**File 2: `.aidev-storage/tasks/001-setup-nextjs-project.json`**
 ```json
 {
     "id": "001",
@@ -549,7 +564,7 @@ Initialize a new Next.js project with TypeScript, App Router, and essential conf
 - Pattern files should come after basic setup but before features
 - Tasks with dependencies should be numbered after their dependencies
 - Keep tasks focused - if too large, split into sub-tasks
-- All tasks remain in the `.aidev/tasks/` directory regardless of status
+- All tasks remain in the `$AIDEV_DIR/tasks/` directory regardless of status
 
 ## Intelligent Project Assessment
 The command performs smart gap analysis by:

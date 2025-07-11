@@ -1,9 +1,11 @@
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { log } from '../logger';
 import { sleep } from '../sleep';
 import { ClaudeOutput } from '../../types/claude/ClaudeOutput';
+import { TASKS_OUTPUT_DIR } from '../../config';
+import { ensureDirSync } from 'fs-extra';
 
 type ExecuteClaudeCommandOptions = {
     command: string;
@@ -43,8 +45,9 @@ export async function executeClaudeCommand(options: ExecuteClaudeCommandOptions)
 
             // Save output to logs directory if taskId provided
             if (taskId) {
-                const logDir = join('.aidev', 'logs', taskId);
-                mkdirSync(logDir, { recursive: true });
+                const logDir = join(TASKS_OUTPUT_DIR, taskId);
+                ensureDirSync(logDir);
+                
                 const outputPath = join(logDir, `claude_${Date.now()}.json`);
                 writeFileSync(outputPath, output);
                 log(`Saved Claude output to: ${outputPath}`, 'info');

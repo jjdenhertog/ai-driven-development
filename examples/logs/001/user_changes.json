@@ -11,8 +11,8 @@
   ],
   "fileChanges": [
     {
-      "file": ".aidev/tasks/001-setup-nextjs-project.json",
-      "diff": "diff --git a/.aidev/tasks/001-setup-nextjs-project.json b/.aidev/tasks/001-setup-nextjs-project.json\nindex 580e1960..69a36991 100644\n--- a/.aidev/tasks/001-setup-nextjs-project.json\n+++ b/.aidev/tasks/001-setup-nextjs-project.json\n@@ -5,5 +5,8 @@\n     \"dependencies\": [],\n     \"estimated_lines\": 150,\n     \"priority\": \"critical\",\n-    \"status\": \"pending\"\n+    \"status\": \"completed\",\n+    \"branch\": \"ai/001-setup-nextjs-project\",\n+    \"started_at\": \"2025-07-10T11:37:39.683Z\",\n+    \"log_path\": \".aidev/logs/001/2025-07-10T11-37-39-682Z.log\"\n }\n\\ No newline at end of file\n"
+      "file": ".aidev-storage/tasks/001-setup-nextjs-project.json",
+      "diff": "diff --git a/.aidev-storage/tasks/001-setup-nextjs-project.json b/.aidev-storage/tasks/001-setup-nextjs-project.json\nindex 580e1960..69a36991 100644\n--- a/.aidev-storage/tasks/001-setup-nextjs-project.json\n+++ b/.aidev-storage/tasks/001-setup-nextjs-project.json\n@@ -5,5 +5,8 @@\n     \"dependencies\": [],\n     \"estimated_lines\": 150,\n     \"priority\": \"critical\",\n-    \"status\": \"pending\"\n+    \"status\": \"completed\",\n+    \"branch\": \"ai/001-setup-nextjs-project\",\n+    \"started_at\": \"2025-07-10T11:37:39.683Z\",\n+    \"log_path\": \".aidev-storage/logs/001/2025-07-10T11-37-39-682Z.log\"\n }\n\\ No newline at end of file\n"
     },
     {
       "file": "app/layout.tsx",

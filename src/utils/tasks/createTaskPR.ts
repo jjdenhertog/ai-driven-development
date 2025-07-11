@@ -5,6 +5,7 @@ import { updateTaskFile } from './updateTaskFile';
 import { getPRContent } from './getPRContent';
 import { createCommit } from '../git/createCommit';
 import { Task } from '../../types/tasks/Task';
+import { pushBranch } from '../git/pushBranch';
 
 export function createTaskPR(task: Task, branchName: string): void {
     log('Preparing to create pull request...', 'info');
@@ -23,9 +24,8 @@ export function createTaskPR(task: Task, branchName: string): void {
                 prefix: 'feat'
             });
             
-            if (!commitResult.success) {
+            if (!commitResult.success) 
                 throw new Error(`Failed to commit: ${commitResult.error}`);
-            }
         }
 
         // Check if there are unpushed commits
@@ -43,7 +43,7 @@ export function createTaskPR(task: Task, branchName: string): void {
 
         if (hasUnpushedCommits) {
             log('Pushing changes to remote...', 'info');
-            execSync(`git push -u origin ${branchName}`, { stdio: 'pipe' });
+            pushBranch(branchName);
         }
 
         // Check if PR already exists
@@ -85,7 +85,6 @@ export function createTaskPR(task: Task, branchName: string): void {
             const prNumber = prNumberMatch ? parseInt(prNumberMatch[1], 10) : undefined;
             
             updateTaskFile(task.path, {
-                status: 'completed',
                 pr_url: prUrl,
                 pr_number: prNumber
             });

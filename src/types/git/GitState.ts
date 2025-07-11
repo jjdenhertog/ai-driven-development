@@ -1,7 +1,8 @@
 export type GitState = {
-    isAIBranch: boolean;
     currentBranch: string;
     hasChanges: boolean;
+    hasUnstagedFiles: boolean;
+    unpushedCommits: number;
     clean: boolean;
     ready: boolean;
     error?: string;

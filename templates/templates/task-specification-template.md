@@ -70,7 +70,7 @@ priority: "medium" # high, medium, low
 - [Any architectural decisions already made]
 
 ## Examples to Reference
-- [Path to similar features in .aidev/examples/]
+- [Path to similar features in .aidev-storage/examples/]
 - [Existing components that demonstrate patterns]
 
 ## Documentation Links
