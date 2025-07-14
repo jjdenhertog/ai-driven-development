@@ -4,6 +4,8 @@ import { IPty } from 'node-pty';
 export function spawnClaudePty(cwd: string, command: string, args: string[]): IPty {
     const claudeCommand = `claude ${command} ${args.join(' ')}`;
     
+    console.log(`Spawning Claude process... ${claudeCommand}`);
+    
     const ptyProcess = pty.spawn('bash', ['-c', claudeCommand], {
         name: 'xterm-256color',
         cols: process.stdout.columns || 80,
