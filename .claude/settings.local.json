@@ -25,7 +25,8 @@
       "Bash(rm:*)",
       "Bash(true)",
       "Bash(awk:*)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(diff:*)"
     ],
     "deny": []
   }

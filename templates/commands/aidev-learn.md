@@ -24,8 +24,8 @@ Analyzes user changes to AI-generated code for a specific task, extracting learn
 **This command READS from these locations:**
 - `.aidev-storage/tasks/[taskId-taskName].json` - Task metadata
 - `.aidev-storage/tasks/[taskId-taskName].md` - Task specification  
-- `.aidev-storage/logs/[taskId]/prp.md` - Implementation plan (MUST exist and be non-empty)
-- `.aidev-storage/logs/[taskId]/user_changes.json` - User's corrections (MUST exist and be valid JSON)
+- `.aidev-storage/task_output/[taskId]/prp.md` - Implementation plan (MUST exist and be non-empty)
+- `.aidev-storage/task_output/[taskId]/user_changes.json` - User's corrections (MUST exist and be valid JSON)
 
 ## Process
 
@@ -37,11 +37,8 @@ Analyzes user changes to AI-generated code for a specific task, extracting learn
 # 0. Resolve path to .aidev-storage directory
 if [ -d ".aidev-storage" ]; then
     AIDEV_DIR=".aidev-storage"
-elif [ -d "../.aidev-storage" ]; then
-    AIDEV_DIR="../.aidev-storage"
 else
     echo "ERROR: Cannot find .aidev-storage directory"
-    echo "Searched in current directory and parent directory"
     exit 1
 fi
 
@@ -64,7 +61,7 @@ fi
 
 # 3. Check ALL required files exist before proceeding
 MISSING_FILES=()
-for file in "$AIDEV_DIR/tasks/#$ARGUMENTS.json" "$AIDEV_DIR/tasks/#$ARGUMENTS.md" "$AIDEV_DIR/logs/$TASK_ID/prp.md" "$AIDEV_DIR/logs/$TASK_ID/user_changes.json"; do
+for file in "$AIDEV_DIR/tasks/#$ARGUMENTS.json" "$AIDEV_DIR/tasks/#$ARGUMENTS.md" "$AIDEV_DIR/task_output/$TASK_ID/prp.md" "$AIDEV_DIR/task_output/$TASK_ID/user_changes.json"; do
   if [ ! -f "$file" ]; then
     MISSING_FILES+=("$file")
   fi
@@ -80,14 +77,14 @@ if [ ${#MISSING_FILES[@]} -gt 0 ]; then
 fi
 
 # 4. Verify PRP is not empty
-if [ ! -s "$AIDEV_DIR/logs/$TASK_ID/prp.md" ]; then
-  echo "ERROR: PRP file exists but is empty: $AIDEV_DIR/logs/$TASK_ID/prp.md"
+if [ ! -s "$AIDEV_DIR/task_output/$TASK_ID/prp.md" ]; then
+  echo "ERROR: PRP file exists but is empty: $AIDEV_DIR/task_output/$TASK_ID/prp.md"
   echo "FATAL: Cannot learn without implementation plan"
   exit 1
 fi
 
 # 5. Verify user_changes.json is valid JSON
-if ! jq . "$AIDEV_DIR/logs/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
+if ! jq . "$AIDEV_DIR/task_output/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
   echo "ERROR: user_changes.json is not valid JSON"
   echo "FATAL: Cannot parse user changes"
   exit 1
@@ -101,8 +98,8 @@ echo "📁 All required files present and valid"
 <mandatory-checks>
   □ Task argument provided
   □ Task JSON/MD files exist
-  □ PRP exists at `$AIDEV_DIR/logs/$TASK_ID/prp.md`
-  □ User changes exist at `$AIDEV_DIR/logs/$TASK_ID/user_changes.json`
+  □ PRP exists at `$AIDEV_DIR/task_output/$TASK_ID/prp.md`
+  □ User changes exist at `$AIDEV_DIR/task_output/$TASK_ID/user_changes.json`
 </mandatory-checks>
 </pre-flight-validation>
 
@@ -113,7 +110,7 @@ echo "📁 All required files present and valid"
 - Extract task type, objectives, and requirements
 
 #### 1.2 Load PRP
-- Read PRP from `$AIDEV_DIR/logs/$TASK_ID/prp.md`
+- Read PRP from `$AIDEV_DIR/task_output/$TASK_ID/prp.md`
 - Understand the AI's implementation plan and decisions
 
 #### 1.3 Load User Changes
@@ -312,6 +309,8 @@ Security/performance bonus: +0.15
   - Average confidence: [score]
 
 ✅ Learning captured successfully
+
+AI Development command was successful
 ```
 
 ## Error Handling

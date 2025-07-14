@@ -24,11 +24,8 @@ Analyzes concept documents in the `.aidev-storage/concept/` directory and breaks
 # First, resolve path to .aidev-storage directory
 if [ -d ".aidev-storage" ]; then
     AIDEV_DIR=".aidev-storage"
-elif [ -d "../.aidev-storage" ]; then
-    AIDEV_DIR="../.aidev-storage"
 else
     echo "ERROR: Cannot find .aidev-storage directory"
-    echo "Searched in current directory and parent directory"
     exit 1
 fi
 

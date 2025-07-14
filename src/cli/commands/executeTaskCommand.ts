@@ -20,6 +20,7 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
+import { executeClaudeCommand } from '../../claude-wrapper';
 
 type Options = {
     taskId: string
@@ -95,17 +96,22 @@ export async function executeTaskCommand(options: Options) {
 
 
     // Execute Claude and wait for completion
-    // await executeClaudeCommand({
-    //     command: `/aidev-code-task ${task.id}-${task.name}`,
-    //     args,
-    //     taskId: task.id,
-    // });
+    const { success, output } = await executeClaudeCommand({
+        cwd: worktreePath,
+        command: `/aidev-code-task ${task.id}-${task.name}`,
+        args,
+        taskId: task.id,
+    });
+    logToSession(session.logPath, `\n ${output}`);
 
-    log('Sleeping for 2 seconds...', 'info');
+    if (!success) {
+        log(`Failed to execute Claude command`, 'error');
+        updateTaskFile(task.path, {
+            status: 'failed'
+        });
 
-    writeFileSync(join(worktreePath, 'test.txt'), 'test');
-
-    await sleep(4000)
+        return;
+    }
 
     ///////////////////////////////////////////////////////////
     // Update task status and create PR

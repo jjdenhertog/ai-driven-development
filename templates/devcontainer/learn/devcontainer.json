@@ -1,5 +1,6 @@
 {
-    "name": "Claude Code Sandbox",
+    "name": "AI Driven Development - Learn",
+    "description": "This container is ideally used to do the learning, you can use it to run the `aidev learn` command. Which will watch the main branch for merges and changes.",
     "build": {
       "dockerfile": "Dockerfile",
       "args": {

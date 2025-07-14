@@ -30,11 +30,8 @@ This command performs a thorough analysis of the concept and all tasks to predic
 # First, resolve path to .aidev-storage directory
 if [ -d ".aidev-storage" ]; then
     AIDEV_DIR=".aidev-storage"
-elif [ -d "../.aidev-storage" ]; then
-    AIDEV_DIR="../.aidev-storage"
 else
     echo "ERROR: Cannot find .aidev-storage directory"
-    echo "Searched in current directory and parent directory"
     exit 1
 fi
 
