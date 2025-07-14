@@ -1,3 +1,4 @@
+import { log } from 'console';
 import { ProcessState } from '../types/ProcessState';
 import { handlePtyOutput } from './handlePtyOutput';
 import { sleep } from './sleep';
@@ -31,6 +32,9 @@ export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<{ o
 
         try {
             const result = await new Promise<{ output: string; wasAutoExited: boolean }>((resolve, reject) => {
+
+                log(`Spawning Claude process... ${command} ${args.join(' ')}`, 'info');
+                
                 const ptyProcess = spawnClaudePty(cwd, command, args);
                 
                 handlePtyOutput(ptyProcess, state, onOutput);
