@@ -1,7 +1,6 @@
 import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
 import { containsExitKeyword } from './utils/containsExitKeyword';
 import { CompressedLogger } from './utils/CompressedLogger';
-import * as path from 'path';
 
 type Options = {
     cwd: string
@@ -33,7 +32,6 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
         args,
         maxRetries = 3,
         retryDelay = 5000,
-        taskId,
         logPath
     } = options;
 
