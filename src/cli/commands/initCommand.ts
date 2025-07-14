@@ -167,7 +167,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" tool_name=\"$tool_name\" tool_input=\"$tool_input\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"tool_name\":\"$tool_name\",\"tool_input\":\"$tool_input\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }
@@ -178,7 +178,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" tool_name=\"$tool_name\" tool_input=\"$tool_input\" tool_response=\"$tool_response\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"tool_name\":\"$tool_name\",\"tool_input\":\"$tool_input\",\"tool_response\":\"$tool_response\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }
@@ -188,7 +188,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }
@@ -198,7 +198,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }
@@ -208,7 +208,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }
@@ -219,7 +219,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
+                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
                         }
                     ]
                 }

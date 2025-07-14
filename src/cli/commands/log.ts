@@ -201,49 +201,15 @@ Hook data can be passed as:
             try {
                 const parsedData = inputData ? JSON.parse(inputData) : {};
                 
-                // Extract hook data from environment variables if available
-                const hookData = {
-                    session_id: process.env.session_id,
-                    transcript_path: process.env.transcript_path,
-                    tool_name: process.env.tool_name,
-                    tool_input: process.env.tool_input ? JSON.parse(process.env.tool_input) : undefined,
-                    tool_response: process.env.tool_response ? JSON.parse(process.env.tool_response) : undefined,
-                    hook_event_name: process.env.hook_event_name,
-                };
-                
-                // Clean up undefined values
-                const cleanedHookData: any = {};
-                Object.keys(hookData).forEach(key => {
-                    const value = hookData[key as keyof typeof hookData];
-                    if (value !== undefined) {
-                        cleanedHookData[key] = value;
-                    }
-                });
-                
                 const logEntry = {
                     timestamp,
                     type: 'raw',
                     sessionId,
-                    hookData: Object.keys(cleanedHookData).length > 0 ? cleanedHookData : undefined,
-                    data: parsedData
+                    data: parsedData,
+                    inputData: inputData || '(empty)'
                 };
 
                 appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-                
-                // Also create a human-readable log if this is a tool use
-                if (cleanedHookData.tool_name) {
-                    const readableLogFile = logFile.replace('.log', '-readable.txt');
-                    const readableEntry = `[${timestamp}] ${cleanedHookData.hook_event_name || 'Hook'}: ${cleanedHookData.tool_name}\n`;
-                    
-                    if (cleanedHookData.tool_input) {
-                        appendFileSync(readableLogFile, readableEntry + `Input: ${JSON.stringify(cleanedHookData.tool_input, null, 2)}\n`);
-                    }
-                    
-                    if (cleanedHookData.tool_response) {
-                        appendFileSync(readableLogFile, `Output: ${JSON.stringify(cleanedHookData.tool_response, null, 2)}\n\n`);
-                    }
-                }
-                
                 console.log('✓ Logged raw data');
             } catch (err) {
                 console.error('Failed to parse JSON:', err);
