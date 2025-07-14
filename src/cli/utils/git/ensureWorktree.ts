@@ -12,11 +12,16 @@ export async function ensureWorktree(branch: string, path: string): Promise<void
     log(`Ensuring worktree for branch '${branch}' at path '${path}'...`, 'info');
 
     const git = getGitInstance();
+
+    await git.raw(['worktree', 'prune']);
+
     const worktrees = await getWorktrees();
 
     // Find worktrees related to our branch and path
-    const branchWorktree = worktrees.find(w => w.branch.includes(branch));
-    const pathWorktree = worktrees.find(w => w.path === path);
+    const branchWorktrees = worktrees.filter(w => w.branch.includes(branch));
+    const [branchWorktree] = branchWorktrees
+    const pathWorktrees = worktrees.filter(w => w.path === path);
+    const [pathWorktree] = pathWorktrees
 
     // Check if already correctly linked
     if (branchWorktree && pathWorktree && branchWorktree.path === path)
@@ -26,23 +31,9 @@ export async function ensureWorktree(branch: string, path: string): Promise<void
     // 1. Branch is linked to a different path
     // 2. Path is linked to a different branch
     // 3. Either exists but not both
-    const invalidWorktree = branchWorktree || pathWorktree;
-    if (invalidWorktree) {
-        log(`Removing invalid worktree at ${invalidWorktree.path}...`, 'info');
-
-        // Remove the directory if it exists
-        if (existsSync(invalidWorktree.path))
-            removeSync(invalidWorktree.path);
-
-        // Remove the worktree reference
-        try {
-            await git.raw(['worktree', 'remove', invalidWorktree.path]);
-        } catch (_error) {
-        }
-
-        // Prune any stale worktree references
-        await git.raw(['worktree', 'prune']);
-    }
+    const invalidWorktree =  (branchWorktree || pathWorktree);
+    if (invalidWorktree) 
+        throw new Error(`Invalid worktree found for branch '${branch}' at path '${path}'. Remove the worktree and try again.`);
 
     // Create the worktree
     log(`Creating worktree at ${path}...`, 'info');

@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "fs-extra";
 import { join, resolve } from "node:path";
 
-const STORAGE_FOLDER = '.aidev-storage';
-const CONFIG_FILE = '.aidev.json';
+export const STORAGE_FOLDER = '.aidev-storage';
+export const CONFIG_FILE = '.aidev.json';
 
 
 
@@ -16,12 +16,12 @@ type AidevConfig = {
  * Load and parse the .aidev.json configuration file if it exists
  */
 function loadAidevConfig(): AidevConfig {
-    
+
     if (existsSync(CONFIG_PATH)) {
         try {
             const configContent = readFileSync(CONFIG_PATH, 'utf8');
 
-            const data= JSON.parse(configContent);
+            const data = JSON.parse(configContent);
 
             return {
                 branchStartingPoint: data.branchStartingPoint || 'main',

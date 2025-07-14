@@ -1,21 +1,23 @@
 /* eslint-disable @typescript-eslint/prefer-regexp-exec */
 import { execSync } from 'node:child_process';
-import { log } from '../logger';
-import { updateTaskFile } from './updateTaskFile';
-import { getPRContent } from './getPRContent';
-import { createCommit } from '../git/createCommit';
-import { Task } from '../../types/tasks/Task';
-import { pushBranch } from '../git/pushBranch';
-import { getGitInstance } from '../git/getGitInstance';
 
-export async function createTaskPR(task: Task, branchName: string): Promise<void> {
+import { Task } from '../../types/tasks/Task';
+import { createCommit } from '../git/createCommit';
+import { getGitInstance } from '../git/getGitInstance';
+import { pushBranch } from '../git/pushBranch';
+import { stageAllFiles } from '../git/stageAllFiles';
+import { log } from '../logger';
+import { getPRContent } from './getPRContent';
+import { updateTaskFile } from './updateTaskFile';
+
+export async function createTaskPR(task: Task, branchName: string, worktreePath: string): Promise<void> {
     log('Preparing to create pull request...', 'info');
 
     try {
-        const git = getGitInstance();
+        const git = getGitInstance(worktreePath);
         
         // Stage all changes
-        await git.add('-A');
+        await stageAllFiles(worktreePath);
 
         // Check if there are staged changes
         const status = await git.status();
@@ -25,7 +27,8 @@ export async function createTaskPR(task: Task, branchName: string): Promise<void
             log('Committing changes...', 'info');
             // Create commit message from task with AI identifier
             const commitResult = await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
-                prefix: 'feat'
+                prefix: 'feat',
+                cwd: worktreePath
             });
             
             if (!commitResult.success) 
@@ -48,20 +51,7 @@ export async function createTaskPR(task: Task, branchName: string): Promise<void
 
         if (hasUnpushedCommits) {
             log('Pushing changes to remote...', 'info');
-            await pushBranch(branchName);
-        }
-
-        // Check if PR already exists
-        try {
-            const prExists = execSync(`gh pr view ${branchName} --json url`, { 
-                stdio: 'pipe', 
-                encoding: 'utf8' 
-            });
-            log('Pull request already exists for this branch', 'warn');
-            log(`PR URL: ${JSON.parse(prExists).url}`, 'info');
-            return;
-        } catch {
-            // PR doesn't exist, continue to create
+            await pushBranch(branchName, worktreePath);
         }
 
         // Get PR content
@@ -72,7 +62,7 @@ export async function createTaskPR(task: Task, branchName: string): Promise<void
         log('Creating pull request...', 'info');
         const prOutput = execSync(
             `gh pr create --title "${title}" --body "${prContent}" --base main --head ${branchName}`,
-            { encoding: 'utf8' }
+            { encoding: 'utf8', cwd: worktreePath }
         );
 
         // Extract PR URL from output
@@ -89,6 +79,6 @@ export async function createTaskPR(task: Task, branchName: string): Promise<void
         }
     } catch (error) {
         log(`Failed to create PR: ${error instanceof Error ? error.message : String(error)}`, 'error');
-        throw error;
+        
     }
 }

@@ -15,7 +15,7 @@ import { logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 
 // Read version from package.json
-const packageJsonPath = join(__dirname, '..', 'package.json');
+const packageJsonPath = join(__dirname, '..', '..', 'package.json');
 const { version } = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 const program = new Command();

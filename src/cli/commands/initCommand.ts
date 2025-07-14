@@ -1,7 +1,8 @@
 import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
 
-import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_PATH } from '../config';
+import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_FOLDER, STORAGE_PATH } from '../config';
+import { addToGitignore } from '../utils/git/addToGitignore';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { ensureOrphanBranch } from '../utils/git/ensureOrphanBranch';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
@@ -64,7 +65,7 @@ export async function initCommand(options: Options): Promise<void> {
         /////////////////////////////////////////////
 
         // The templates folder is at the root of the package (../../templates from dist/commands/)
-        const packageRoot = join(__dirname, '..', '..');
+        const packageRoot = join(__dirname, '..', '..', '..');
         const templatesRoot = join(packageRoot, 'templates');
 
         // Create subdirectories
@@ -74,7 +75,6 @@ export async function initCommand(options: Options): Promise<void> {
             const subdirPath = join(STORAGE_PATH, subdir);
             ensureDirSync(subdirPath);
         }
-
 
         // Copy examples folder
         const examplesSourceDir = join(templatesRoot, 'examples');

@@ -117,21 +117,24 @@ export async function executeTaskCommand(options: Options) {
         });
 
         // Create PR
-        if(checkGitAuth()){
-            await createTaskPR(task, branchName);
-        }else{
+        if (checkGitAuth()) {
+            await createTaskPR(task, branchName, worktreePath);
+        } else {
             log('No automatic PR creation. If you want to create a PR automatically, please run `gh auth login` to enable', 'warn');
+
+            await stageAllFiles(worktreePath)
+            await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
+                prefix: 'feat',
+                cwd: worktreePath
+            });
+            await pushBranch(branchName, worktreePath);
         }
 
         ///////////////////////////////////////////////////////////
         // Save all changes to the branch
         ///////////////////////////////////////////////////////////
-        await stageAllFiles(worktreePath)
-        await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
-            prefix: 'feat',
-            cwd: worktreePath
-        });
-        await pushBranch(branchName, worktreePath);
+
+
 
         ///////////////////////////////////////////////////////////
         // Remove work tree
@@ -139,7 +142,7 @@ export async function executeTaskCommand(options: Options) {
         rmSync(worktreePath, { force: true, recursive: true });
         const git = getGitInstance();
         await git.raw(['worktree', 'prune']);
-        
+
     } catch (error) {
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
