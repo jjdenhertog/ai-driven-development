@@ -1,0 +1,280 @@
+{"timestamp":"2025-07-14T22:24:48.070Z","event":"virtual_terminal_initialized","cols":160,"rows":50}
+{"timestamp":"2025-07-14T22:24:48.827Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:48.832Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:48.874Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:48.992Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:48.996Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:49.014Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:49.026Z","event":"terminal_changed","preview":"╭────────────────────────────────────────────────────╮                                              "}
+{"timestamp":"2025-07-14T22:24:49.065Z","event":"terminal_changed","preview":"│ ✻ Welcome to Claude Code!                          │                                              "}
+{"timestamp":"2025-07-14T22:24:49.497Z","event":"terminal_changed","preview":" ※ Tip: Did you know you can drag and drop image files into your terminal?                          "}
+{"timestamp":"2025-07-14T22:24:49.529Z","event":"terminal_changed","preview":"· Channelling… (0s · ↓ 0 tokens · esc to interrupt)─────────────────────────────────────────────────"}
+{"timestamp":"2025-07-14T22:24:49.842Z","event":"terminal_changed","preview":"╰───────────────────────────────────────────────────────────────────────────────────────────────────"}
+{"timestamp":"2025-07-14T22:24:49.895Z","event":"terminal_changed","preview":"✻ Channelling… (0s · ↓ 0 tokens · esc to interrupt)                                                 "}
+{"timestamp":"2025-07-14T22:24:50.843Z","event":"terminal_changed","preview":"╰───────────────────────────────────────────────────────────────────────────────────────────────────"}
+{"timestamp":"2025-07-14T22:24:51.852Z","event":"terminal_changed","preview":"╭───────────────────────────────────────────────────────────────────────────────────────────────────"}
+{"timestamp":"2025-07-14T22:24:51.916Z","event":"terminal_changed","preview":"────────╮hortcuts                                                                                   "}
+{"timestamp":"2025-07-14T22:24:51.980Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.018Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.056Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.095Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.172Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.211Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.252Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.297Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.367Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.403Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.437Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.487Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.511Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.547Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.592Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.627Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.662Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.742Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.777Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.823Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.857Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.905Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:52.942Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.017Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.058Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.096Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.105Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.113Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.168Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.206Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.282Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.622Z","event":"terminal_changed","preview":"        │                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.815Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.861Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.899Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:53.980Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.017Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.059Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.142Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.180Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.218Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.255Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.291Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.332Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.407Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.443Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.477Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.552Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.588Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.622Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.699Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.735Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.772Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.854Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.890Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.930Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.936Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.943Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:24:54.951Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:24:55.034Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:24:55.079Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.118Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.153Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.188Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.271Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.309Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.345Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.382Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.456Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.471Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.557Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.601Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.647Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.683Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.721Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.757Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:55.843Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:56.116Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:56.720Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:56.842Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:57.332Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:57.419Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:57.433Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:57.850Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:58.847Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:24:59.850Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:25:00.802Z","event":"terminal_changed","preview":"          AIDEV_DIR=\".aidev-storage\"…)                                                              "}
+{"timestamp":"2025-07-14T22:25:00.808Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:00.838Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.227Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.264Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.300Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.338Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.376Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.425Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.468Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.502Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.546Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.584Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.654Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.689Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.729Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.806Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.844Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.877Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.947Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:01.981Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.019Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.075Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.130Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.167Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.240Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.274Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.314Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.346Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.387Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.424Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.459Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.536Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.581Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.617Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.652Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.688Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.749Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.802Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.839Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.876Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.912Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.957Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:02.994Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.031Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.106Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.144Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.184Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.189Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.194Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.205Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.229Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:03.273Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.326Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.363Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.437Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.476Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.514Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.584Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.620Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.659Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.730Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.767Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.805Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.843Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.885Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.927Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.961Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:03.996Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:04.077Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:04.143Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:04.158Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:04.847Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:05.847Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:06.851Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:06.965Z","event":"terminal_changed","preview":"      if [ -z \"$TASK_FILENAME\" ]; then…)                                                            "}
+{"timestamp":"2025-07-14T22:25:06.970Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.480Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.737Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.783Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.817Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.825Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.861Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.897Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.905Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.950Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:07.985Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.054Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.095Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.103Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.146Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.181Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.253Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.301Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.382Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.425Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.462Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.471Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.509Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.545Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.616Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.623Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.660Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.695Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.729Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.795Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.803Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.838Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.874Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.879Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.918Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:08.992Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.028Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.065Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.122Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.139Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.175Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.211Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.246Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.285Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.324Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.359Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.393Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.432Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.505Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.546Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.582Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.621Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.661Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.697Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.775Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.813Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.856Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.898Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:09.952Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.024Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.064Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.113Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.151Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.193Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.268Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.306Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.341Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.405Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.416Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.424Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.427Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.436Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.448Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.462Z","event":"terminal_changed","preview":"────────╯                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.480Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.496Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.545Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.589Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.664Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.699Z","event":"terminal_changed","preview":"      TASK_FILENAME=\"001-setup-nextjs-project\"…)                                                    "}
+{"timestamp":"2025-07-14T22:25:10.738Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.816Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.855Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.900Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.944Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:10.983Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.020Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.068Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.115Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.162Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.209Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.307Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:11.845Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:12.851Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:12.910Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.096Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.100Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.297Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.299Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.306Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.310Z","event":"terminal_changed","preview":"────────╮                                                                                           "}
+{"timestamp":"2025-07-14T22:25:13.324Z","event":"getting_final_output","bufferLength":8049,"preview":"────────╮                                                                                                                                                       \n│ > Try \"edit aidev-plan-review-tasks.m"}

@@ -93,16 +93,17 @@ export async function executeTaskCommand(options: Options) {
 
 
     // Execute Claude and wait for completion
-    const { success, output } = await executeClaudeCommand({
+    const result = await executeClaudeCommand({
         cwd: worktreePath,
         command: `/aidev-code-task ${task.id}-${task.name}`,
         args,
-        taskId: task.id,
     });
-    logToSession(session.logPath, `\n ${output}`);
+    
+    // We no longer capture output - hooks will handle logging
+    logToSession(session.logPath, `\nClaude command exited with code: ${result.exitCode}`);
 
-    if (!success) {
-        log(`Failed to execute Claude command`, 'error');
+    if (result.exitCode !== 0) {
+        log(`Claude command exited with code ${result.exitCode}`, 'error');
         updateTaskFile(task.path, {
             status: 'failed'
         });

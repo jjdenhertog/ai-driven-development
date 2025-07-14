@@ -1,5 +1,6 @@
-import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
+import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync, readJsonSync } from 'fs-extra';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 
 import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_FOLDER, STORAGE_PATH } from '../config';
 import { addToGitignore } from '../utils/git/addToGitignore';
@@ -140,6 +141,141 @@ export async function initCommand(options: Options): Promise<void> {
                 // Only copy if target doesn't exist (to preserve custom commands)
                 copySync(sourceFile, targetFile, { overwrite: true });
                 log(`Copied command file: ${file}`, 'success');
+            }
+        }
+
+        /////////////////////////////////////////////
+        //
+        // SETUP CLAUDE HOOKS
+        // - Add hooks to ~/.claude/settings.json
+        //
+        /////////////////////////////////////////////
+
+        const claudeSettingsPath = join(homedir(), '.claude', 'settings.json');
+        const claudeSettingsDir = join(homedir(), '.claude');
+        
+        // Ensure ~/.claude directory exists
+        ensureDirSync(claudeSettingsDir);
+        
+        // Define the hooks configuration
+        const hooksConfig = {
+            "PreToolUse": [
+                {
+                    "matcher": "*",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                        }
+                    ]
+                }
+            ],
+            "PostToolUse": [
+                {
+                    "matcher": "*",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                        }
+                    ]
+                }
+            ],
+            "Notification": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                        }
+                    ]
+                }
+            ],
+            "Stop": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw && aidev log session-end"
+                        }
+                    ]
+                }
+            ],
+            "SubagentStop": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                        }
+                    ]
+                }
+            ],
+            "PreCompact": [
+                {
+                    "matcher": "*",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Read existing settings or create new
+        let settings: any = {};
+        if (existsSync(claudeSettingsPath)) {
+            try {
+                settings = readJsonSync(claudeSettingsPath);
+            } catch (err) {
+                log('Warning: Could not parse existing Claude settings.json', 'warn');
+                settings = {};
+            }
+        }
+
+        // Merge hooks configuration
+        if (!settings.hooks) {
+            // No hooks exist, add all
+            settings.hooks = hooksConfig;
+            writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
+            log('Added Claude Code hooks configuration to ~/.claude/settings.json', 'success');
+        } else {
+            // Hooks exist, merge our logging hooks
+            let hooksAdded = false;
+            
+            // Helper function to check if our logging hook already exists
+            const hasLoggingHook = (hookArray: any[]): boolean => {
+                if (!Array.isArray(hookArray)) return false;
+                return hookArray.some(hook => 
+                    hook.hooks?.some((h: any) => 
+                        h.command?.includes('aidev log')
+                    )
+                );
+            };
+            
+            // Merge each hook type
+            for (const [hookType, hookConfig] of Object.entries(hooksConfig)) {
+                if (!settings.hooks[hookType]) {
+                    // Hook type doesn't exist, add it
+                    settings.hooks[hookType] = hookConfig;
+                    hooksAdded = true;
+                } else if (!hasLoggingHook(settings.hooks[hookType])) {
+                    // Hook type exists but doesn't have our logging hook
+                    if (Array.isArray(settings.hooks[hookType])) {
+                        // Add our hook config to existing array
+                        settings.hooks[hookType].push(...(hookConfig as any[]));
+                        hooksAdded = true;
+                    }
+                }
+            }
+            
+            if (hooksAdded) {
+                writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
+                log('Updated Claude Code hooks configuration in ~/.claude/settings.json', 'success');
+            } else {
+                log('Claude Code logging hooks already configured in ~/.claude/settings.json', 'info');
             }
         }
 

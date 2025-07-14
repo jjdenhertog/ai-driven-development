@@ -11,6 +11,7 @@ import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
 import { executeTaskCommand } from "./commands/executeTaskCommand";
 import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
+import { logCommand } from "./commands/log";
 import { logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 
@@ -162,6 +163,25 @@ program
             }
         }
     })
+
+// Log command - for capturing output from Claude Code hooks
+program
+    .command('log <subcommand> [args...]')
+    .description('Capture and log output from Claude Code hooks')
+    .allowUnknownOption()
+    .action((subcommand, args) => {
+        try {
+            logCommand([subcommand, ...args]);
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+            
+            process.exit(1);
+        }
+    });
 
 // Clear command
 program
