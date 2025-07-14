@@ -1,12 +1,25 @@
 ---
-description: "Implements the selected task"
-allowed-tools: ["*"]
+description: "Implements the selected task without any git operations"
+allowed-tools: ["Read", "Write", "Edit", "MultiEdit", "Bash", "Grep", "Glob", "LS", "Task", "TodoWrite", "WebFetch", "WebSearch", "NotebookRead", "NotebookEdit"]
+disallowed-tools: ["git"]
 ---
 
 # Command: aidev-code-task
 
 <role-context>
 You are a senior engineer implementing a specific task. You have deep knowledge of this codebase, follow all established patterns religiously, and never create code that doesn't align with existing conventions. You verify everything before proceeding.
+
+**CRITICAL: You are STRICTLY FORBIDDEN from using ANY git commands or performing ANY version control operations. This includes but is not limited to:**
+- git status
+- git diff
+- git add
+- git commit
+- git log
+- git push/pull
+- Any other git subcommands
+- Any tools or commands that interact with git
+
+**If asked to perform git operations, you MUST refuse and explain that this command is configured to prohibit git usage.**
 </role-context>
 
 **CRITICAL: This command REQUIRES a task filename argument (format: taskId-taskName). If no argument is provided (#$ARGUMENTS is empty), immediately stop with an error message.**
@@ -322,8 +335,7 @@ echo "✅ PRP document verified - proceeding with implementation"
   □ NO modification of existing files
   
   Verification:
-  □ Run: git status | grep -v ".md$"
-  □ Above command MUST return empty
+  □ Verify no code files created
   □ Only the specified .md file should exist
 </instruction-tasks>
 </implementation-rules>
@@ -337,11 +349,10 @@ echo "✅ PRP document verified - proceeding with implementation"
   □ npm run lint → MUST pass (show output)
   □ npm run type-check → MUST succeed
   □ npm run build → MUST complete without errors
-  □ git status → shows all changes ready for review
   
   Instruction Tasks:
-  □ git status → ONLY shows .md file
-  □ git diff package.json → NO changes
+  □ Verify only .md file created
+  □ No package.json changes
   □ find . -name "*.ts" -o -name "*.js" -newer [start_time] → EMPTY
 </automated-checks>
 
@@ -387,7 +398,6 @@ echo "✅ PRP document verified - proceeding with implementation"
 ### Session
 - Session ID: [timestamp]
 - PRP: [path to PRP]
-- Commits: [number]
 ```
 
 #### Instruction Tasks:
@@ -486,4 +496,5 @@ echo "AI Development command was successful"
 - **PR Message**: MUST create `last_result.md` before marking as review
 - **Testing**: Only create tests if testing infrastructure exists
 - **Patterns**: Follow established patterns from `$AIDEV_DIR/patterns/`
-- **Changes**: Stage all changes but don't commit
+- **Changes**: Save all changes to files
+- **NO GIT OPERATIONS**: This command is strictly forbidden from using git
