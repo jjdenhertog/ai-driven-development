@@ -1,6 +1,6 @@
 import { existsSync, removeSync } from 'fs-extra';
 import { symlink } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 import { STORAGE_BRANCH, STORAGE_PATH } from '../../config';
 import { log } from '../logger';
@@ -48,9 +48,12 @@ export async function ensureWorktree(branch: string, path: string): Promise<void
             if (existsSync(symlinkPath))
                 removeSync(symlinkPath);
 
-            // Create symlink to storage path
-            await symlink(STORAGE_PATH, symlinkPath, 'dir');
-            log(`Created symlink to storage at ${symlinkPath}`, 'info');
+            // Calculate relative path from the worktree to the storage
+            const relativeStoragePath = relative(path, STORAGE_PATH);
+            
+            // Create symlink to storage path using relative path
+            await symlink(relativeStoragePath, symlinkPath, 'dir');
+            log(`Created symlink to storage at ${symlinkPath} -> ${relativeStoragePath}`, 'info');
 
             // Make sure the .aidev-storage is never pushed
             addToGitignore(path, '.aidev-storage');

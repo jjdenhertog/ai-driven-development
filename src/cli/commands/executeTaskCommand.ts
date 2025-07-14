@@ -1,5 +1,4 @@
 import { rmSync, writeFileSync } from 'fs-extra';
-import { join } from 'node:path';
 
 import { checkGitAuth } from '../utils/git/checkGitAuth';
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -13,7 +12,6 @@ import { pullBranch } from '../utils/git/pullBranch';
 import { pushBranch } from '../utils/git/pushBranch';
 import { stageAllFiles } from '../utils/git/stageAllFiles';
 import { log } from "../utils/logger";
-import { sleep } from '../utils/sleep';
 import { createSession } from '../utils/storage/createSession';
 import { logToSession } from '../utils/storage/logToSession';
 import { createTaskPR } from '../utils/tasks/createTaskPR';
@@ -60,7 +58,7 @@ export async function executeTaskCommand(options: Options) {
     await ensureBranch(branchName);
 
     const worktreeFolder = branchName.split('/').at(-1) || branchName;
-    const worktreePath = join(process.cwd(), `.aidev-${worktreeFolder}`);
+    const worktreePath = `.aidev-${worktreeFolder}`;
 
     await ensureWorktree(branchName, worktreePath);
     await pullBranch(branchName, worktreePath);

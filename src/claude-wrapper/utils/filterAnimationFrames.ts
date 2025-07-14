@@ -10,13 +10,17 @@ interface OutputBuffer {
     lastFrame: string;
     lastFrameTime: number;
     meaningfulOutput: string[];
+    recentLines: Set<string>;
+    lastMeaningfulLine: string;
 }
 
 export class AnimationFilter {
     private buffer: OutputBuffer = {
         lastFrame: '',
         lastFrameTime: 0,
-        meaningfulOutput: []
+        meaningfulOutput: [],
+        recentLines: new Set<string>(),
+        lastMeaningfulLine: ''
     };
     
     /**
@@ -57,16 +61,29 @@ export class AnimationFilter {
             return true;
         }
         
+        const stripped = data.replace(ANSI_ESCAPE_REGEX, '').replace(/\[O\[I/g, '');
+        
+        // Check for repetitive UI patterns
+        const lineCount = (stripped.match(/\n/g) || []).length;
+        const tryPromptCount = (stripped.match(/>\s*Try\s+"[^"]*"/g) || []).length;
+        
+        // If we have many repeated "Try" prompts, it's likely an animation frame
+        if (tryPromptCount > 2 && tryPromptCount / Math.max(lineCount, 1) > 0.3) {
+            return true;
+        }
+        
         // Check for box drawing characters with minimal other content
         const hasBoxDrawing = /[╭╮╰╯─│]/.test(data);
-        const strippedLength = data.replace(ANSI_ESCAPE_REGEX, '').trim().length;
+        const strippedLength = stripped.trim().length;
         
         // If it's mostly box drawing and ANSI codes, likely animation
         if (hasBoxDrawing && strippedLength < 200) {
             // Check for repeating patterns that suggest UI chrome
             const hasUIPatterns = data.includes('for shortcuts') || 
                                  data.includes('esc to interrupt') ||
-                                 data.includes('tokens');
+                                 data.includes('tokens') ||
+                                 data.includes('Waiting…') ||
+                                 data.includes('Running…');
             return hasUIPatterns;
         }
         
@@ -78,30 +95,59 @@ export class AnimationFilter {
      */
     private extractMeaningfulContent(data: string): string {
         // Remove ANSI codes for analysis
-        const stripped = data.replace(ANSI_ESCAPE_REGEX, '');
+        const stripped = data.replace(ANSI_ESCAPE_REGEX, '').replace(/\[O\[I/g, '');
         
         // Split into lines and filter
         const lines = stripped.split('\n');
-        const meaningfulLines = lines.filter(line => {
+        const meaningfulLines: string[] = [];
+        
+        for (const line of lines) {
             const trimmed = line.trim();
             
             // Skip empty lines
-            if (!trimmed) return false;
+            if (!trimmed) continue;
             
             // Skip UI chrome
-            if (trimmed.match(/^[╭╮╰╯─│┌┐└┘═║╔╗╚╝]+$/)) return false;
-            if (trimmed.includes('for shortcuts')) return false;
-            if (trimmed.includes('esc to interrupt')) return false;
-            if (trimmed.includes('Bypassing Permissions')) return false;
+            if (trimmed.match(/^[╭╮╰╯─│┌┐└┘═║╔╗╚╝]+$/)) continue;
+            if (trimmed.includes('for shortcuts')) continue;
+            if (trimmed.includes('esc to interrupt')) continue;
+            if (trimmed.includes('Bypassing Permissions')) continue;
             
-            // Skip progress indicators but keep the actual content
-            if (trimmed.match(/^✻\s+\w+…?\s+\(/)) {
-                // This is a progress line, skip it
-                return false;
+            // Skip progress indicators
+            if (trimmed.match(/^[✻●]\s+\w+…?\s*\(/)) continue;
+            
+            // Skip lines that start with > Try (these are UI prompts)
+            if (trimmed.match(/^│\s*>\s*Try\s+"[^"]+"\s*│$/)) continue;
+            
+            // Skip tool status lines (Waiting, Running, etc.)
+            if (trimmed.match(/⎿\s*(Waiting|Running|✅)/)) continue;
+            
+            // Check for duplicate content
+            const cleanLine = trimmed.replace(/^[●│\s]+/, '').replace(/\s*│\s*$/, '');
+            
+            // Skip if we've seen this exact line recently
+            if (this.buffer.recentLines.has(cleanLine)) {
+                continue;
             }
             
-            return true;
-        });
+            // Skip if it's the same as the last meaningful line
+            if (cleanLine === this.buffer.lastMeaningfulLine) {
+                continue;
+            }
+            
+            // This is meaningful content
+            if (cleanLine.length > 5) { // Ignore very short fragments
+                meaningfulLines.push(cleanLine);
+                this.buffer.lastMeaningfulLine = cleanLine;
+                
+                // Keep recent lines buffer small
+                this.buffer.recentLines.add(cleanLine);
+                if (this.buffer.recentLines.size > 50) {
+                    const firstLine = this.buffer.recentLines.values().next().value;
+                    this.buffer.recentLines.delete(firstLine);
+                }
+            }
+        }
         
         return meaningfulLines.join('\n').trim();
     }
@@ -110,6 +156,9 @@ export class AnimationFilter {
      * Get any buffered output that should be flushed
      */
     flush(): string {
+        // Clear the duplicate tracking on flush
+        this.buffer.recentLines.clear();
+        this.buffer.lastMeaningfulLine = '';
         return this.buffer.meaningfulOutput.join('\n');
     }
 }

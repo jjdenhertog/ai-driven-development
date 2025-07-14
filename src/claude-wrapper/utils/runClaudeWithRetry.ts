@@ -12,7 +12,7 @@ type RunClaudeOptions = {
     onOutput: (data: string) => void;
 }
 
-export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<string> {
+export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<{ output: string; wasAutoExited: boolean }> {
     const { cwd, command, args, maxRetries, retryDelay, onOutput } = options;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -30,7 +30,7 @@ export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<str
         };
 
         try {
-            const result = await new Promise<string>((resolve, reject) => {
+            const result = await new Promise<{ output: string; wasAutoExited: boolean }>((resolve, reject) => {
                 const ptyProcess = spawnClaudePty(cwd, command, args);
                 
                 handlePtyOutput(ptyProcess, state, onOutput);
@@ -38,12 +38,12 @@ export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<str
                 ptyProcess.onExit(({ exitCode, signal }) => {
                     if (state.isManuallyKilled) {
                         // Process was killed by auto-exit, this is success
-                        resolve(state.output);
+                        resolve({ output: state.output, wasAutoExited: true });
                     } else if (exitCode === 0) {
-                        resolve(state.output);
+                        resolve({ output: state.output, wasAutoExited: false });
                     } else if (signal === 2 || signal === 15) { // SIGINT or SIGTERM
                         // User interrupted, treat as success
-                        resolve(state.output);
+                        resolve({ output: state.output, wasAutoExited: false });
                     } else {
                         reject(new Error(`Claude process exited with code ${exitCode}, signal ${signal}`));
                     }
@@ -62,5 +62,6 @@ export async function runClaudeWithRetry(options: RunClaudeOptions): Promise<str
         }
     }
 
-    throw new Error('Failed to execute Claude command after all retries');
+    // If we get here, all retries failed
+    return { output: '', wasAutoExited: false };
 }

@@ -1,4 +1,5 @@
 import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
+import { containsExitKeyword } from './utils/containsExitKeyword';
 
 type Options = {
     cwd: string
@@ -33,7 +34,7 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
 
     let fullOutput = '';
 
-    await runClaudeWithRetry({
+    const result = await runClaudeWithRetry({
         cwd,
         command,
         args,
@@ -44,8 +45,9 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
         }
     });
     
-    // Check if the task was successfully completed
-    const success = fullOutput.toLowerCase().includes('task completed');
+    // If auto-exit triggered, it means we detected success keywords
+    // Otherwise, check the output for success indicators
+    const success = result.wasAutoExited || containsExitKeyword(fullOutput);
     
     return { success, output: fullOutput };
 }
