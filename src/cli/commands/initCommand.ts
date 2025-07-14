@@ -151,8 +151,8 @@ export async function initCommand(options: Options): Promise<void> {
         //
         /////////////////////////////////////////////
 
-        const claudeSettingsPath = join(homedir(), '.claude', 'settings.json');
-        const claudeSettingsDir = join(homedir(), '.claude');
+        const claudeSettingsPath = join(process.cwd(), '.claude', 'settings.json');
+        const claudeSettingsDir = join(process.cwd(), '.claude');
         
         // Ensure ~/.claude directory exists
         ensureDirSync(claudeSettingsDir);
@@ -196,7 +196,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw && aidev log session-end"
+                            "command": "echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }

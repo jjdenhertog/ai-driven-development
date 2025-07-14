@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
+Cab import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -38,7 +38,7 @@ Hook data can be passed as:
     }
     
     // Get log configuration
-    const logDir = process.env.AIDEV_LOG_DIR || join(homedir(), '.aidev', 'logs');
+    const logDir = process.env.AIDEV_LOG_DIR || join(process.cwd(), 'debug_logs');
     const sessionId = process.env.AIDEV_SESSION_ID || new Date().toISOString().replace(/[:.]/g, '-');
     const logFile = join(logDir, `session-${sessionId}.log`);
     
