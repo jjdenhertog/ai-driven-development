@@ -1,5 +1,8 @@
-import { execSync } from "node:child_process";
+import { getGitInstance } from './getGitInstance';
 
-export function getCurrentBranch(): string {
-    return execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+export async function getCurrentBranch(): Promise<string> {
+    const git = getGitInstance();
+    const branches = await git.branch();
+    
+    return branches.current;
 }

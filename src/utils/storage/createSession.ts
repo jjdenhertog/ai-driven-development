@@ -1,5 +1,6 @@
 import { ensureDirSync } from "fs-extra";
 import { join } from "node:path";
+
 import { TASKS_OUTPUT_DIR } from "../../config";
 
 export function createSession(taskId: string) {
@@ -9,10 +10,10 @@ export function createSession(taskId: string) {
     const logsDir = join(TASKS_OUTPUT_DIR, taskId);
     ensureDirSync(logsDir);
 
-    const relativeLogPath = join(`tasks_output`, taskId, `${timestamp}.log`);
+    const logPath = join(TASKS_OUTPUT_DIR, taskId, `${timestamp}.log`);
 
     return {
         timestamp,
-        logPath: relativeLogPath
+        logPath
     };
 }

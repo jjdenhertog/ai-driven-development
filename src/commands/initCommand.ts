@@ -1,9 +1,11 @@
-import { copySync, ensureDirSync, existsSync, readdirSync, removeSync } from 'fs-extra';
+import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
 
-import { AIDEV_STORAGE_PATH } from '../config';
+import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_PATH } from '../config';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
-import { setupStorageWorktree } from '../utils/git/setupStorageWorktree';
+import { ensureOrphanBranch } from '../utils/git/ensureOrphanBranch';
+import { ensureWorktree } from '../utils/git/ensureWorktree';
+import { isInWorktree } from '../utils/git/isInWorktree';
 /* eslint-disable unicorn/prefer-module */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { log } from '../utils/logger';
@@ -18,48 +20,88 @@ export async function initCommand(options: Options): Promise<void> {
         log('Initializing aidev in current directory...', 'info');
 
         // Check if git is initialized
-        if (!checkGitInitialized()) {
+        if (!await checkGitInitialized()) {
             log('Git repository not initialized. Please run "git init" first.', 'error');
             throw new Error('Git repository not initialized');
         }
 
+        if (await isInWorktree())
+            throw new Error('You are in a worktree. Please exit the work tree folder and try again.');
+
         // Create aidev-storage worktree
-        await setupStorageWorktree(force);
+        await ensureOrphanBranch(STORAGE_BRANCH);
+        await ensureWorktree(STORAGE_BRANCH, STORAGE_PATH);
+
+        // Create .aidev directory if it doesn't exist
+        if (!existsSync(STORAGE_PATH))
+            throw new Error(`${STORAGE_PATH} directory not found.`);
+
+
+        /////////////////////////////////////////////
+        //
+        // SETUP CONFIG FILE
+        // - Create .aidev.json
+        //
+        /////////////////////////////////////////////
+
+        if(!existsSync(CONFIG_PATH)) {
+            writeFileSync(CONFIG_PATH, JSON.stringify({
+                branchStartingPoint: 'main',
+                mainBranch: 'main',
+                storageBranch: 'aidev-storage'
+            }, null, 2));
+
+            log('Config file created', 'success');
+
+        }
+
+        /////////////////////////////////////////////
+        //
+        // SETUP STORAGE
+        // - Ensure needed folders
+        // - Copy files
+        //
+        /////////////////////////////////////////////
 
         // The templates folder is at the root of the package (../../templates from dist/commands/)
         const packageRoot = join(__dirname, '..', '..');
         const templatesRoot = join(packageRoot, 'templates');
 
-        // Create .aidev directory if it doesn't exist
-        const aidevDir = join(process.cwd(), AIDEV_STORAGE_PATH);
-        if (!existsSync(aidevDir))
-            throw new Error(`${AIDEV_STORAGE_PATH} directory not found.`);
-
         // Create subdirectories
         const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates'];
 
         for (const subdir of subdirs) {
-            const subdirPath = join(aidevDir, subdir);
+            const subdirPath = join(STORAGE_PATH, subdir);
             ensureDirSync(subdirPath);
         }
 
+
         // Copy examples folder
         const examplesSourceDir = join(templatesRoot, 'examples');
-        const examplesTargetDir = join(aidevDir, 'examples');
+        const examplesTargetDir = join(STORAGE_PATH, 'examples');
         copySync(examplesSourceDir, examplesTargetDir, { overwrite: true });
         log('Copied examples folder', 'success');
 
         // Copy preferences folder
         const preferencesSourceDir = join(templatesRoot, 'preferences');
-        const preferencesTargetDir = join(aidevDir, 'preferences');
+        const preferencesTargetDir = join(STORAGE_PATH, 'preferences');
         copySync(preferencesSourceDir, preferencesTargetDir, { overwrite: true });
         log('Copied preferences folder', 'success');
 
         // Copy templates folder
         const templatesSourceDir = join(templatesRoot, 'templates');
-        const templatesTargetDir = join(aidevDir, 'templates');
+        const templatesTargetDir = join(STORAGE_PATH, 'templates');
         copySync(templatesSourceDir, templatesTargetDir, { overwrite: true });
         log('Copied templates folder', 'success');
+
+        /////////////////////////////////////////////
+        //
+        // SETUP CLAUDE FILES
+        // - Copy CLAUDE.md
+        // - Copy .devcontainer
+        // - Copy .claude/commands
+        //
+        /////////////////////////////////////////////
 
         // Copy CLAUDE.md to root directory
         const claudeMdSource = join(templatesRoot, 'CLAUDE.md');
@@ -104,7 +146,7 @@ export async function initCommand(options: Options): Promise<void> {
         log('aidev initialized successfully!', 'success');
         log('You can now use aidev commands in this directory.', 'info');
     } catch (error) {
-        removeSync(AIDEV_STORAGE_PATH);
+        removeSync(STORAGE_PATH);
         log(`Failed to initialize aidev: ${error}`, 'error');
         throw error;
     }

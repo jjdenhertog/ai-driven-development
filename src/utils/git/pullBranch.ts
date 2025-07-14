@@ -1,27 +1,19 @@
-import { execSync } from 'node:child_process';
+import { PullResult } from '../../types/git/PullResult';
+import { getGitInstance } from './getGitInstance';
 
-export type PullResult = {
-    success: boolean;
-    error?: string;
-};
-
-/**
- * Pull latest changes from remote branch
- */
-export function pullBranch(branch: string, cwd?: string): PullResult {
-    const workingDir = cwd || process.cwd();
-    
+export async function pullBranch(branch: string, cwd?: string): Promise<PullResult> {
     try {
-        execSync(`git pull origin ${branch}`, { 
-            cwd: workingDir,
-            stdio: 'ignore' 
-        });
-        
+        // Get appropriate git instance
+        const git = getGitInstance(cwd);
+
+        // Pull from origin
+        await git.pull('origin', branch);
+
         return { success: true };
     } catch (error) {
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Pull failed'
+            error: error instanceof Error ? error.message : 'Failed to pull branch'
         };
     }
 }

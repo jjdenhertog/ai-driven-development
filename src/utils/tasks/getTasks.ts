@@ -1,25 +1,26 @@
-import { loadTaskFromFile } from "./loadTaskFromFile";
+import { existsSync, readdirSync } from "fs-extra";
 import { join } from "node:path";
-import { readdirSync, existsSync } from "fs-extra";
+
+import { STORAGE_BRANCH, STORAGE_PATH, TASKS_DIR } from "../../config";
 import { Task } from "../../types/tasks/Task";
-import { TASKS_DIR, getWorktreePath, AIDEV_BRANCH } from "../../config";
 import { createCommit } from "../git/createCommit";
+import { getBranchState } from "../git/getBranchState";
 import { pullBranch } from "../git/pullBranch";
 import { pushBranch } from "../git/pushBranch";
 import { log } from "../logger";
-import { getBranchState } from "../git/getBranchState";
+import { loadTaskFromFile } from "./loadTaskFromFile";
 
 type Options = {
     status?: 'pending' | 'in-progress' | 'completed';
     refresh?: boolean;
 }
 
-export function getTasks(options: Options = {}): Task[] {
+export async function getTasks(options: Options = {}): Promise<Task[]> {
     const { status, refresh = false } = options;
 
     // Sync worktree if refresh is requested
     if (refresh)
-        syncWorktreeData();
+        await syncStorageData();
 
     // Always use absolute path to worktree tasks directory
     const foundTasks: Task[] = [];
@@ -49,38 +50,37 @@ export function getTasks(options: Options = {}): Task[] {
     return foundTasks;
 }
 
-function syncWorktreeData(): void {
+async function syncStorageData(): Promise<void> {
     try {
-        const worktreePath = getWorktreePath();
-
         // Check if there are uncommitted changes using the utility
-        const gitState = getBranchState(worktreePath);
+        const gitState = await getBranchState(STORAGE_PATH);
         if (gitState.hasChanges) {
-            log('Committing changes in worktree...', 'info');
+            log('Committing changes in storage...', 'info');
 
             // Create commit using the utility
             const timestamp = new Date().toISOString();
-            const commitResult = createCommit(`Auto-sync tasks: ${timestamp}`, {
+            const commitResult = await createCommit(`Auto-sync tasks: ${timestamp}`, {
                 all: true,
-                cwd: worktreePath
+                cwd: STORAGE_PATH
             });
 
-            if (!commitResult.success) {
+            if (!commitResult.success)
                 log(`Failed to commit: ${commitResult.error}`, 'warn');
+
+            // Push local commits using the utility
+            const pushResult = await pushBranch(STORAGE_BRANCH, STORAGE_PATH);
+            if (!pushResult.success && pushResult.error && !pushResult.error.includes('up-to-date')) {
+                log(`Push warning: ${pushResult.error}`, 'info');
             }
         }
 
         // Pull latest changes using the utility
-        const pullResult = pullBranch(AIDEV_BRANCH, worktreePath);
+        const pullResult = await pullBranch(STORAGE_BRANCH, STORAGE_PATH);
         if (pullResult.success) {
             log('Pulled latest task updates', 'success');
         }
 
-        // Push local commits using the utility
-        const pushResult = pushBranch(AIDEV_BRANCH, worktreePath);
-        if (!pushResult.success && pushResult.error && !pushResult.error.includes('up-to-date')) {
-            log(`Push warning: ${pushResult.error}`, 'info');
-        }
+
 
     } catch (error) {
         log(`Failed to sync worktree: ${String(error)}`, 'warn');

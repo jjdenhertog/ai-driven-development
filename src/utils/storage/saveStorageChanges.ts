@@ -1,15 +1,13 @@
-import { getWorktreePath, AIDEV_BRANCH } from '../../config';
+import { STORAGE_BRANCH, STORAGE_PATH } from '../../config';
 import { createCommit } from '../git/createCommit';
 import { getBranchState } from '../git/getBranchState';
 import { pushBranch } from '../git/pushBranch';
 import { log } from '../logger';
 
-export function saveStorageChanges(message?: string): void {
+export async function saveStorageChanges(message?: string): Promise<void> {
     try {
-        const worktreePath = getWorktreePath();
-        
         // Check if there are any changes to commit
-        const gitState = getBranchState(worktreePath);
+        const gitState = await getBranchState(STORAGE_PATH);
         if (!gitState.hasChanges) {
             log('No changes to save in worktree', 'info');
             
@@ -18,9 +16,9 @@ export function saveStorageChanges(message?: string): void {
         
         // Generate commit message if not provided
         const commitMessage = message || `Auto-save worktree changes: ${new Date().toISOString()}`;
-        const commitResult = createCommit(commitMessage, {
+        const commitResult = await createCommit(commitMessage, {
             all: true,
-            cwd: worktreePath
+            cwd: STORAGE_PATH
         });
         
         if (!commitResult.success) {
@@ -29,7 +27,7 @@ export function saveStorageChanges(message?: string): void {
         }
         
         log('Committed worktree changes', 'success');
-        const pushResult = pushBranch(AIDEV_BRANCH, worktreePath);
+        const pushResult = await pushBranch(STORAGE_BRANCH, STORAGE_PATH);
         if (pushResult.success) {
             log('Pushed worktree changes to remote', 'success');
         } else {

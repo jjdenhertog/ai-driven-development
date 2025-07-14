@@ -6,10 +6,10 @@ type Options = {
     refresh?: boolean;
 }
 
-export function getTaskById(options: Options): Task | null {
+export async function getTaskById(options: Options): Promise<Task | null> {
     const { taskId, refresh = false } = options;
 
-    const allTasks = getTasks({ refresh });
+    const allTasks = await getTasks({ refresh });
 
     return allTasks.find(task => task.id === taskId) || null;
 }

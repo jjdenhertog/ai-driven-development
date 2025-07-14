@@ -10,11 +10,11 @@ type Options = {
     refresh?: boolean;
 }
 
-export function validateTaskForExecution(options: Options): Task {
+export async function validateTaskForExecution(options: Options): Promise<Task> {
     const { taskId, expectedStatuses, force = false, errorMessage, refresh = false } = options;
 
     // Get the specified task
-    const task = getTaskById({ taskId, refresh });
+    const task = await getTaskById({ taskId, refresh });
     if (!task) {
         log(`Task ${taskId} not found`, 'error');
         throw new Error(`Task ${taskId} not found`);

@@ -1,31 +1,32 @@
 import { CommitResult } from '../../types/git/CommitResult';
-import { execSync } from 'node:child_process';
+import { getGitInstance } from './getGitInstance';
 
-
-
-export function createCommit(message: string, options: { prefix?: string; all?: boolean; body?: string; cwd?: string; } = {}): CommitResult {
+export async function createCommit(
+    message: string, 
+    options: { prefix?: string; all?: boolean; body?: string; cwd?: string; } = {}
+): Promise<CommitResult> {
     try {
-
-        const { prefix = 'chore', all, body, cwd = process.cwd() } = options;
-
+        const { prefix = 'chore', all, body, cwd } = options;
+        
+        // Get appropriate git instance
+        const git = getGitInstance(cwd);
+        
         // Stage changes if requested
-        if (all)
-            execSync('git add -A', { cwd });
+        if (all) 
+            await git.add('-A');
 
         // Build commit message
         let fullMessage = prefix ? `${prefix}: ${message}` : message;
-        if (body) {
+        if (body) 
             fullMessage += `\n\n${body}`;
-        }
 
         // Execute commit with AI author
-        const commitCommand = `git commit --author="AI <noreply@anthropic.com>" -m "${fullMessage}"`;
-        execSync(commitCommand, { cwd });
+        await git.commit(fullMessage, undefined, {
+            '--author': 'AI <noreply@anthropic.com>'
+        });
 
         // Get the commit hash
-        const commitHash = execSync('git rev-parse HEAD', { cwd })
-            .toString()
-            .trim();
+        const commitHash = await git.revparse(['HEAD']);
 
         return { success: true, commitHash };
     } catch (error) {

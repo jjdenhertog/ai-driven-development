@@ -4,8 +4,6 @@ import { Task } from '../types/tasks/Task';
 import { checkCommitExists } from '../utils/git/checkCommitExists';
 /* eslint-disable max-depth */
 import { checkGitAuth } from '../utils/git/checkGitAuth';
-import { getMainBranch } from '../utils/git/getMainBranch';
-import { switchToBranch } from '../utils/git/switchToBranch';
 import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
@@ -25,29 +23,28 @@ export async function learningCommand(options: Options) {
     }
 
     // Switch to main branch
-    if (!switchToBranch(getMainBranch(), {   }))
-        throw new Error('Failed to switch to main branch');
-
     log('Learning command started. Monitoring for completed tasks...', 'success');
 
     if(dangerouslySkipPermission)
         log('Dangerously skipping permission checks of Claude Code', 'warn');
 
-    let tasks = getTasks().filter(task => task.status != 'archived');
+    const allTasks = await getTasks();
+    let tasks = allTasks.filter(task => task.status != 'archived');
 
     const iterationAfterFullReload = 30;
     let iteration = 0;
 
+    const mainBranch = 'main';
+
     try {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            // Pull latest changes
-            switchToBranch(getMainBranch(), {  });
 
             // Reload the tasks
             if (iteration && iteration == iterationAfterFullReload) {
                 iteration = 0;
-                tasks = getTasks().filter(task => task.status != 'archived');
+                const refreshedTasks = await getTasks();
+                tasks = refreshedTasks.filter(task => task.status != 'archived');
             }
 
             // Check for completed tasks
@@ -67,7 +64,7 @@ export async function learningCommand(options: Options) {
                 for (const task of completedTasks) {
                     try {
                         // Check if this task has already been processed and committed to main branch
-                        if (checkCommitExists(task.id, getMainBranch())) {
+                        if (await checkCommitExists(task.id, mainBranch)) {
                             log(`Task ${task.id} already has a commit on main branch. Skipping...`, 'warn');
                             continue;
                         }

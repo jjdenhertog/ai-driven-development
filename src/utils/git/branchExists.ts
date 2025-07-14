@@ -1,10 +1,16 @@
-import { execSync } from "node:child_process";
+import { getGitInstance } from './getGitInstance';
 
-export function branchExists(branchName: string): boolean {
+export async function branchExists(branchName: string): Promise<boolean> {
     try {
-        execSync(`git show-ref --verify --quiet refs/heads/${branchName}`, { stdio: 'pipe' });
-
-        return true;
+        const git = getGitInstance();
+        const branches = await git.branch(['-a']);
+        
+        // Check if branch exists locally or remotely
+        // Remote branches are prefixed with 'remotes/'
+        return branches.all.some(branch => 
+            branch === branchName || 
+            branch.endsWith(`/${branchName}`)
+        );
     } catch {
         return false;
     }

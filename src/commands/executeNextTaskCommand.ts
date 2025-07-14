@@ -1,7 +1,6 @@
 import { branchExists } from '../utils/git/branchExists';
-import { checkGitAuth } from '../utils/git/checkGitAuth';
-import { getBranchState } from '../utils/git/getBranchState';
-import { switchToBranch } from '../utils/git/switchToBranch';
+import { checkGitInitialized } from '../utils/git/checkGitInitialized';
+import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { getTasks } from '../utils/tasks/getTasks';
@@ -23,25 +22,16 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
     const { dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth
-    if (!checkGitAuth()) {
-        log('Git authentication required for PR creation. Run: gh auth login', 'error');
-        throw new Error('Git authentication required');
-    }
+    if (!await checkGitInitialized())
+        throw new Error('Git is not initialized. Please run `git init` in the root of the repository.');
 
-    if (dangerouslySkipPermission)
-        log('Dangerously skipping permission checks', 'warn');
-
-    // Validate git state
-    const gitState = getBranchState();
-    if ('error' in gitState) {
-        log(`${gitState.error}`, 'error');
-        throw new Error(gitState.error);
-    }
+    // Check if we are in a worktree
+    if (await isInWorktree())
+        throw new Error('This command must be run from the root of the repository.');
 
     // Find all pending tasks (no need to switch branches - tasks are in worktree)
     log('Looking for pending tasks...', 'info');
-    const pendingTasks = getTasks({ status: 'pending', refresh: true });
-
+    const pendingTasks = await getTasks({ status: 'pending', refresh: true });
     if (pendingTasks.length === 0) {
         log('No pending tasks found', 'warn');
 
@@ -55,19 +45,18 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
         log(`Checking task ${task.id}: ${task.name}`, 'info');
 
         // Check dependencies
-        if (hasUnresolvedDependencies(task)) {
+        if (await hasUnresolvedDependencies(task)) {
             log(`Skipping - has unresolved dependencies`, 'warn');
             continue;
         }
 
         // Check if branch exists
         const branchName = getBranchName(task);
-        const exists = branchExists(branchName);
 
+        const exists = await branchExists(branchName);
         if (!exists) {
             // Branch doesn't exist, we found our task!
             log(`Found executable task: ${task.id} - ${task.name}`, 'success');
-
             await executeTaskCommand({
                 taskId: task.id,
                 dryRun,
@@ -78,25 +67,14 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
             return { taskExecuted: true, noTasksFound: false };
         }
 
-        // Branch exists, need to check task status in that branch
-        log(`Branch exists, checking task status in branch...`, 'info');
-        switchToBranch(branchName);
-
         // Found our task!
         log(`Found executable task: ${task.id} - ${task.name}`, 'success');
-
-        if (dryRun) {
-            log('Dry Run Mode - No changes will be made', 'warn');
-            log(`   Would execute task: ${task.id}`, 'info');
-        } else {
-            // Execute the task using the existing command
-            await executeTaskCommand({
-                taskId: task.id,
-                dangerouslySkipPermission,
-                dryRun,
-                force
-            });
-        }
+        await executeTaskCommand({
+            taskId: task.id,
+            dangerouslySkipPermission,
+            dryRun,
+            force
+        });
 
         return { taskExecuted: !dryRun, noTasksFound: false };
     }

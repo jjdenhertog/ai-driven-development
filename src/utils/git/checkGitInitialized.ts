@@ -1,8 +1,9 @@
-import { execSync } from 'node:child_process';
+import { getGitInstance } from './getGitInstance';
 
-export function checkGitInitialized(): boolean {
+export async function checkGitInitialized(): Promise<boolean> {
     try {
-        execSync('git rev-parse --git-dir', { stdio: 'ignore' });
+        const git = getGitInstance();
+        await git.checkIsRepo();
         
         return true;
     } catch {

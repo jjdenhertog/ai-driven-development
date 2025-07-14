@@ -1,27 +1,19 @@
-import { execSync } from 'node:child_process';
+import { PushResult } from '../../types/git/PushResult';
+import { getGitInstance } from './getGitInstance';
 
-export type PushResult = {
-    success: boolean;
-    error?: string;
-};
-
-/**
- * Push local commits to remote branch
- */
-export function pushBranch(branch: string, cwd?: string): PushResult {
-    const workingDir = cwd || process.cwd();
-    
+export async function pushBranch(branch: string, cwd?: string): Promise<PushResult> {
     try {
-        execSync(`git push origin ${branch}`, { 
-            cwd: workingDir,
-            stdio: 'ignore' 
-        });
+        // Get appropriate git instance
+        const git = getGitInstance(cwd);
+        
+        // Push to origin
+        await git.push('origin', branch);
         
         return { success: true };
     } catch (error) {
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Push failed'
+            error: error instanceof Error ? error.message : 'Failed to push branch'
         };
     }
 }

@@ -24,7 +24,8 @@
       "Bash(chmod:*)",
       "Bash(rm:*)",
       "Bash(true)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "WebFetch(domain:www.npmjs.com)"
     ],
     "deny": []
   }

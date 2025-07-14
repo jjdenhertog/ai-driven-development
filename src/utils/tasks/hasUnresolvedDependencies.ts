@@ -1,13 +1,13 @@
 import { Task } from "../../types/tasks/Task";
 import { getTaskById } from "./getTaskById";
 
-export function hasUnresolvedDependencies(task: Task): boolean {
+export async function hasUnresolvedDependencies(task: Task): Promise<boolean> {
     if (!task.dependencies || task.dependencies.length === 0) {
         return false;
     }
 
     for (const depId of task.dependencies) {
-        const depTask = getTaskById({ taskId: depId });
+        const depTask = await getTaskById({ taskId: depId });
         if (!depTask || depTask.status !== 'completed') {
             return true;
         }

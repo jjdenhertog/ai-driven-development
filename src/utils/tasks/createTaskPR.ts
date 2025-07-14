@@ -6,21 +6,25 @@ import { getPRContent } from './getPRContent';
 import { createCommit } from '../git/createCommit';
 import { Task } from '../../types/tasks/Task';
 import { pushBranch } from '../git/pushBranch';
+import { getGitInstance } from '../git/getGitInstance';
 
-export function createTaskPR(task: Task, branchName: string): void {
+export async function createTaskPR(task: Task, branchName: string): Promise<void> {
     log('Preparing to create pull request...', 'info');
 
     try {
+        const git = getGitInstance();
+        
         // Stage all changes
-        execSync('git add -A', { stdio: 'pipe' });
+        await git.add('-A');
 
         // Check if there are staged changes
-        const stagedChanges = execSync('git diff --cached --name-only', { stdio: 'pipe', encoding: 'utf8' }).trim();
+        const status = await git.status();
+        const hasStagedChanges = status.staged.length > 0;
         
-        if (stagedChanges) {
+        if (hasStagedChanges) {
             log('Committing changes...', 'info');
             // Create commit message from task with AI identifier
-            const commitResult = createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
+            const commitResult = await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
                 prefix: 'feat'
             });
             
@@ -31,11 +35,12 @@ export function createTaskPR(task: Task, branchName: string): void {
         // Check if there are unpushed commits
         let hasUnpushedCommits = false;
         try {
-            const unpushedCommits = execSync(`git log origin/${branchName}..${branchName} --oneline`, { 
-                stdio: 'pipe', 
-                encoding: 'utf8' 
-            }).trim();
-            hasUnpushedCommits = unpushedCommits.length > 0;
+            const unpushedCommits = await git.raw([
+                'log',
+                `origin/${branchName}..${branchName}`,
+                '--oneline'
+            ]);
+            hasUnpushedCommits = unpushedCommits.trim().length > 0;
         } catch (_error) {
             // Branch might not exist on remote yet
             hasUnpushedCommits = true;
@@ -43,55 +48,47 @@ export function createTaskPR(task: Task, branchName: string): void {
 
         if (hasUnpushedCommits) {
             log('Pushing changes to remote...', 'info');
-            pushBranch(branchName);
+            await pushBranch(branchName);
         }
 
         // Check if PR already exists
         try {
-            const existingPR = execSync(`gh pr view ${branchName} --json url`, { 
+            const prExists = execSync(`gh pr view ${branchName} --json url`, { 
                 stdio: 'pipe', 
                 encoding: 'utf8' 
             });
-            const prData = JSON.parse(existingPR);
-            if (prData.url) {
-                log(`Pull request already exists: ${prData.url}`, 'info');
-
-                return;
-            }
-        } catch (_error) {
-            // No existing PR, continue to create one
+            log('Pull request already exists for this branch', 'warn');
+            log(`PR URL: ${JSON.parse(prExists).url}`, 'info');
+            return;
+        } catch {
+            // PR doesn't exist, continue to create
         }
-
-        log('Creating pull request...', 'info');
 
         // Get PR content
         const prContent = getPRContent(task);
+        const title = `${task.id}: ${task.name}`;
 
-        // Use task details for PR title
-        const prTitle = `[${task.id}] ${task.name}`;
-        const prBody = prContent;
+        // Create PR
+        log('Creating pull request...', 'info');
+        const prOutput = execSync(
+            `gh pr create --title "${title}" --body "${prContent}" --base main --head ${branchName}`,
+            { encoding: 'utf8' }
+        );
 
-        // Create PR using GitHub CLI with explicit head branch
-        const prCommand = `gh pr create --title "${prTitle}" --body "${prBody}" --base master --head ${branchName}`;
-        const prOutput = execSync(prCommand, { stdio: 'pipe', encoding: 'utf8' });
-
-        log(`Pull request created: ${prOutput.trim()}`, 'success');
-
-        // Update task file with PR URL and number if available
-        if (prOutput.includes('github.com')) {
-            const prUrl = prOutput.trim();
-            // Extract PR number from URL (e.g., https://github.com/owner/repo/pull/123)
-            const prNumberMatch = prUrl.match(/\/pull\/(\d+)/);
-            const prNumber = prNumberMatch ? parseInt(prNumberMatch[1], 10) : undefined;
+        // Extract PR URL from output
+        const prUrlMatch = prOutput.match(/https:\/\/github\.com\/[\w-]+\/[\w-]+\/pull\/\d+/);
+        if (prUrlMatch) {
+            const prUrl = prUrlMatch[0];
+            log(`Pull request created: ${prUrl}`, 'success');
             
+            // Update task file with PR URL
             updateTaskFile(task.path, {
                 pr_url: prUrl,
-                pr_number: prNumber
+                pr_created_at: new Date().toISOString()
             });
         }
-
     } catch (error) {
-        log(`Failed to create PR: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+        log(`Failed to create PR: ${error instanceof Error ? error.message : String(error)}`, 'error');
         throw error;
     }
 }

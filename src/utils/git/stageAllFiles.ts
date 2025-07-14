@@ -1,46 +1,22 @@
-import { execSync } from 'node:child_process';
+import { StageResult } from '../../types/git/StageResult';
+import { getGitInstance } from './getGitInstance';
 
-export type StageResult = {
-    success: boolean;
-    error?: string;
-    stagedCount?: number;
-};
-
-/**
- * Stage all unstaged files (modified, new, and deleted)
- */
-export function stageAllFiles(cwd?: string): StageResult {
-    const workingDir = cwd || process.cwd();
-    
+export async function stageAllFiles(cwd?: string): Promise<StageResult> {
     try {
-        // Get list of unstaged files before staging
-        const beforeStatus = execSync('git status --porcelain', { 
-            cwd: workingDir,
-            encoding: 'utf8'
-        }).trim();
-        
-        const unstagedCount = beforeStatus
-            .split('\n')
-            .filter(line => line && (line.startsWith(' ') || line.startsWith('??')))
-            .length;
-        
-        if (unstagedCount === 0) {
-            return { 
-                success: true, 
-                stagedCount: 0 
-            };
-        }
-        
+        // Get appropriate git instance
+        const git = getGitInstance(cwd);
+
+        // Get status before staging
+        const statusBefore = await git.status();
+        const unstagedCount = statusBefore.files.length;
+
+        if (unstagedCount === 0)
+            return { success: true, stagedCount: 0 };
+
         // Stage all files
-        execSync('git add -A', { 
-            cwd: workingDir,
-            stdio: 'pipe'
-        });
-        
-        return { 
-            success: true,
-            stagedCount: unstagedCount
-        };
+        await git.add('-A');
+
+        return { success: true, stagedCount: unstagedCount };
     } catch (error) {
         return {
             success: false,

@@ -1,18 +1,19 @@
-import { execSync } from 'node:child_process';
-import { escapeShellArg } from '../escapeShellArg';
+import { getGitInstance } from './getGitInstance';
 
-export function checkCommitExists(taskId: string, mainBranch: string): boolean {
+export async function checkCommitExists(taskId: string, mainBranch: string): Promise<boolean> {
     try {
-        const safeMainBranch = escapeShellArg(mainBranch);
-        const safeTaskId = escapeShellArg(taskId);
+        const git = getGitInstance();
         
         // Check for commits containing the task ID in the message
-        const result = execSync(
-            `git log ${safeMainBranch} --grep="archive task ${safeTaskId}" --oneline --author="AI <noreply@anthropic.com>"`,
-            { encoding: 'utf8' }
-        ).trim();
+        const result = await git.raw([
+            'log',
+            mainBranch,
+            `--grep=archive task ${taskId}`,
+            '--oneline',
+            '--author=AI <noreply@anthropic.com>'
+        ]);
         
-        return result.length > 0;
+        return result.trim().length > 0;
     } catch {
         // If git log fails (e.g., no commits found), it returns non-zero exit code
         return false;

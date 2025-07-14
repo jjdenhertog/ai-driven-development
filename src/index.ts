@@ -6,12 +6,11 @@ import { log } from "node:console";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { clearCommand } from "./commands/clearCommand";
 import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
 import { executeTaskCommand } from "./commands/executeTaskCommand";
 import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
-import { getMainBranch } from "./utils/git/getMainBranch";
-import { switchToBranch } from "./utils/git/switchToBranch";
 import { logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 
@@ -111,14 +110,6 @@ program
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
-                // Ensure we start each iteration from a clean main branch
-                if (!switchToBranch(getMainBranch(), {  })) {
-                    logError('Failed to switch to clean main branch');
-                    
-                    log(`Waiting ${TASK_EXECUTION_DELAY / 1000} seconds before retrying...`, 'info');
-                    await sleep(TASK_EXECUTION_DELAY);
-                    continue;
-                }
                 
                 log('Looking for next task...', 'info');
                 
@@ -163,6 +154,22 @@ program
             await learningCommand({
                 dangerouslySkipPermission: !!cmdObject.dsp
             })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    })
+
+// Clear command
+program
+    .command('clear')
+    .description('Clear invalid worktrees')
+    .action(async () => {
+        try {
+            await clearCommand()
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);
