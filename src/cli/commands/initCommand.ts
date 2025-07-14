@@ -158,8 +158,7 @@ export async function initCommand(options: Options): Promise<void> {
         ensureDirSync(claudeSettingsDir);
         
         // Define the hooks configuration
-        // Note: Claude Code passes hook data via $HOOK_INPUT env var and additional env vars like
-        // session_id, transcript_path, tool_name, tool_input, tool_response, hook_event_name
+        // Note: Claude Code passes hook data via stdin as JSON, not environment variables
         const hooksConfig = {
             "PreToolUse": [
                 {
@@ -167,7 +166,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"tool_name\":\"$tool_name\",\"tool_input\":\"$tool_input\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }
@@ -178,7 +177,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"tool_name\":\"$tool_name\",\"tool_input\":\"$tool_input\",\"tool_response\":\"$tool_response\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }
@@ -188,7 +187,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }
@@ -198,7 +197,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }
@@ -208,7 +207,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }
@@ -219,7 +218,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": String.raw`aidev log raw "{\"session_id\":\"$session_id\",\"transcript_path\":\"$transcript_path\",\"hook_event_name\":\"$hook_event_name\"}"`
+                            "command": "aidev log raw"
                         }
                     ]
                 }

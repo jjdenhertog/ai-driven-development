@@ -74,7 +74,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged PreToolUse hook');
             break;
         }
 
@@ -88,7 +87,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged PostToolUse hook');
             break;
         }
 
@@ -102,7 +100,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged Notification hook');
             break;
         }
 
@@ -116,7 +113,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged Stop hook');
             break;
         }
 
@@ -130,7 +126,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged SubagentStop hook');
             break;
         }
 
@@ -144,7 +139,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log('✓ Logged PreCompact hook');
             break;
         }
 
@@ -165,7 +159,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log(`✓ Session started: ${sessionId}`);
             break;
         }
 
@@ -177,7 +170,6 @@ Hook data can be passed as:
             };
 
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-            console.log(`✓ Session ended: ${sessionId}`);
             break;
         }
 
@@ -185,13 +177,19 @@ Hook data can be passed as:
             // Read from stdin if available, otherwise use args
             let inputData = '';
 
-            if (process.stdin.isTTY === false) {
+            if (!process.stdin.isTTY) {
                 // Read from stdin
                 try {
-                    inputData = readFileSync(0, 'utf-8');
+                    inputData = readFileSync(0, 'utf8');
                 } catch (err) {
-                    console.error('Failed to read from stdin:', err);
-                    process.exit(1);
+                    const logEntry = {
+                        timestamp,
+                        type: 'raw',
+                        sessionId,
+                        data: { error: 'Failed to read from stdin' }
+                    };
+                    appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
+                    return;
                 }
             } else {
                 // Use command line args
@@ -206,22 +204,30 @@ Hook data can be passed as:
                     type: 'raw',
                     sessionId,
                     data: parsedData,
-                    inputData: inputData || '(empty)'
+                    inputData: inputData || '(empty)',
+                    debug: {
+                        isTTY: process.stdin.isTTY,
+                        args,
+                        inputSource: !process.stdin.isTTY ? 'stdin' : 'args'
+                    }
                 };
 
                 appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-                console.log('✓ Logged raw data');
             } catch (err) {
-                console.error('Failed to parse JSON:', err);
                 // Log as raw string if JSON parsing fails
                 const logEntry = {
                     timestamp,
                     type: 'raw',
                     sessionId,
-                    data: { raw: inputData }
+                    data: { raw: inputData },
+                    debug: {
+                        isTTY: process.stdin.isTTY,
+                        args,
+                        inputSource: !process.stdin.isTTY ? 'stdin' : 'args',
+                        parseError: 'JSON parse failed'
+                    }
                 };
                 appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
-                console.log('✓ Logged raw data (as string)');
             }
             break;
         }
