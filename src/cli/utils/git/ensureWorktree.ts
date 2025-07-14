@@ -1,6 +1,6 @@
 import { existsSync, removeSync } from 'fs-extra';
 import { symlink } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { STORAGE_BRANCH, STORAGE_PATH } from '../../config';
 import { log } from '../logger';
@@ -12,9 +12,6 @@ export async function ensureWorktree(branch: string, path: string): Promise<void
     log(`Ensuring worktree for branch '${branch}' at path '${path}'...`, 'info');
 
     const git = getGitInstance();
-
-    await git.raw(['worktree', 'prune']);
-
     const worktrees = await getWorktrees();
 
     // Find worktrees related to our branch and path

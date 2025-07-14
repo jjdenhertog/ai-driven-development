@@ -144,7 +144,8 @@ export async function executeTaskCommand(options: Options) {
         ///////////////////////////////////////////////////////////
         rmSync(worktreePath, { force: true, recursive: true });
         const git = getGitInstance();
-        await git.raw(['worktree', 'prune']);
+        await git.raw(['worktree', 'remove', worktreePath]);
+        await git.raw(['branch', '-D', branchName]);
 
     } catch (error) {
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
