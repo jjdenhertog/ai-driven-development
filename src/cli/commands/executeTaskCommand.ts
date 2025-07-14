@@ -81,7 +81,6 @@ export async function executeTaskCommand(options: Options) {
 
     // Update task file with execution metadata
     updateTaskFile(task.path, {
-        status: 'in-progress',
         branch: branchName,
         started_at: new Date().toISOString(),
         log_path: session.logPath

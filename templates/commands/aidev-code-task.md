@@ -13,7 +13,7 @@ You are a senior engineer implementing a specific task. You have deep knowledge 
 
 **IMMEDIATE VALIDATION:**
 If #$ARGUMENTS is empty or not provided:
-1. Output: "ERROR: No task filename provided. This command requires a task filename."
+1. Output: "No task filename provided. This command requires a task filename."
 2. Output: "Usage: /aidev-code-task <taskId-taskName>"
 3. STOP EXECUTION - Do not proceed with any other steps
 
@@ -35,7 +35,7 @@ Implements the task based on task type:
 if [ -d ".aidev-storage" ]; then
     AIDEV_DIR=".aidev-storage"
 else
-    echo "ERROR: Cannot find .aidev-storage directory"
+    echo "Cannot find .aidev-storage directory"
     exit 1
 fi
 
@@ -45,7 +45,7 @@ echo "✅ Found aidev directory at: $AIDEV_DIR"
 **SECOND: Check if task filename was provided**
 ```bash
 if [ -z "#$ARGUMENTS" ]; then
-  echo "ERROR: No task filename provided. This command requires a task filename."
+  echo "No task filename provided. This command requires a task filename."
   echo "Usage: /aidev-code-task <taskId-taskName>"
   exit 1
 fi
@@ -55,14 +55,14 @@ fi
 ```bash
 # Check if task JSON exists
 if [ ! -f "$AIDEV_DIR/tasks/#$ARGUMENTS.json" ]; then
-  echo "ERROR: Task not found: #$ARGUMENTS"
+  echo "Task not found: #$ARGUMENTS"
   echo "Task file does not exist at: $AIDEV_DIR/tasks/#$ARGUMENTS.json"
   exit 1
 fi
 
 # Check if task MD exists
 if [ ! -f "$AIDEV_DIR/tasks/#$ARGUMENTS.md" ]; then
-  echo "ERROR: Task specification not found: #$ARGUMENTS"
+  echo "Task specification not found: #$ARGUMENTS"
   echo "Task specification file does not exist at: $AIDEV_DIR/tasks/#$ARGUMENTS.md"
   exit 1
 fi
@@ -70,21 +70,21 @@ fi
 # Try to load and parse the task JSON
 TASK_JSON=$(cat $AIDEV_DIR/tasks/#$ARGUMENTS.json 2>/dev/null)
 if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to read task file: #$ARGUMENTS"
+  echo "Failed to read task file: #$ARGUMENTS"
   exit 1
 fi
 
 # Verify JSON is valid
 echo "$TASK_JSON" | jq . >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-  echo "ERROR: Task file contains invalid JSON: #$ARGUMENTS"
+  echo "Task file contains invalid JSON: #$ARGUMENTS"
   exit 1
 fi
 
 # Extract task ID from the JSON
 TASK_ID=$(echo "$TASK_JSON" | jq -r '.id')
 if [ -z "$TASK_ID" ] || [ "$TASK_ID" = "null" ]; then
-  echo "ERROR: Task JSON does not contain a valid 'id' field"
+  echo "Task JSON does not contain a valid 'id' field"
   exit 1
 fi
 
@@ -105,11 +105,11 @@ echo "📋 Task ID: $TASK_ID"
 </mandatory-checks>
 
 <abort-conditions>
-  ABORT IMMEDIATELY if no task argument: "ERROR: No task filename provided. Usage: /aidev-code-task <taskId-taskName>"
-  ABORT if task JSON missing: "ERROR: Task not found: #$ARGUMENTS"
-  ABORT if task MD missing: "ERROR: Task specification not found: #$ARGUMENTS"
-  ABORT if JSON cannot be read: "ERROR: Failed to read task file: #$ARGUMENTS"
-  ABORT if JSON is invalid: "ERROR: Task file contains invalid JSON: #$ARGUMENTS"
+  ABORT IMMEDIATELY if no task argument: "No task filename provided. Usage: /aidev-code-task <taskId-taskName>"
+  ABORT if task JSON missing: "Task not found: #$ARGUMENTS"
+  ABORT if task MD missing: "Task specification not found: #$ARGUMENTS"
+  ABORT if JSON cannot be read: "Failed to read task file: #$ARGUMENTS"
+  ABORT if JSON is invalid: "Task file contains invalid JSON: #$ARGUMENTS"
   ABORT if status != "pending": "Task #$ARGUMENTS status is [status], not pending"
   ABORT if dependency incomplete: "Dependency [id] is not completed"
   ABORT if PRP not created: "FATAL: PRP document was not generated - cannot proceed"
@@ -156,7 +156,7 @@ For all task types (pattern, feature, and instruction):
 #### 4.1 Read the PRP Template
 - Read the template from `$AIDEV_DIR/templates/automated-prp-template.md`
 - This template contains placeholder variables like `${FEATURE_OVERVIEW}`, `${TASK_NAME}`, etc.
-- **ABORT if template not found**: "ERROR: PRP template not found at $AIDEV_DIR/templates/automated-prp-template.md"
+- **ABORT if template not found**: "PRP template not found at $AIDEV_DIR/templates/automated-prp-template.md"
 
 #### 4.2 Gather Context for Template Variables
 Collect information to replace each placeholder:
@@ -207,7 +207,7 @@ Collect information to replace each placeholder:
 # Verify PRP was created (using extracted task ID)
 PRP_PATH="$AIDEV_DIR/task_output/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
-  echo "❌ FATAL ERROR: PRP was not created at $PRP_PATH"
+  echo "❌ FATAL: PRP was not created at $PRP_PATH"
   echo "The PRP document is MANDATORY for all task types."
   echo "Aborting task execution."
   exit 1
@@ -215,7 +215,7 @@ fi
 
 # Verify PRP has content
 if [ ! -s "$PRP_PATH" ]; then
-  echo "❌ FATAL ERROR: PRP file exists but is empty"
+  echo "❌ FATAL: PRP file exists but is empty"
   echo "The PRP document must contain the implementation plan."
   echo "Aborting task execution."
   exit 1
@@ -223,7 +223,7 @@ fi
 
 # Verify no placeholders remain
 if grep -q '\${[^}]*}' "$PRP_PATH"; then
-  echo "❌ FATAL ERROR: PRP contains unresolved placeholders"
+  echo "❌ FATAL: PRP contains unresolved placeholders"
   echo "All template variables must be replaced with actual values."
   echo "Found placeholders:"
   grep -o '\${[^}]*}' "$PRP_PATH" | head -5
@@ -435,7 +435,7 @@ fi
 # Verify last_result.md exists and has content (using extracted task ID)
 LAST_RESULT_PATH="$AIDEV_DIR/task_output/$TASK_ID/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
-  echo "ERROR: PR message (last_result.md) was not created or is empty!"
+  echo "PR message (last_result.md) was not created or is empty!"
   exit 1
 fi
 

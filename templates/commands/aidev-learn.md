@@ -38,7 +38,7 @@ Analyzes user changes to AI-generated code for a specific task, extracting learn
 if [ -d ".aidev-storage" ]; then
     AIDEV_DIR=".aidev-storage"
 else
-    echo "ERROR: Cannot find .aidev-storage directory"
+    echo "Cannot find .aidev-storage directory"
     exit 1
 fi
 
@@ -46,7 +46,7 @@ echo "✅ Found aidev directory at: $AIDEV_DIR"
 
 # 1. Validate task argument
 if [ -z "#$ARGUMENTS" ]; then
-  echo "ERROR: No task filename provided. Usage: /aidev-learn <taskId-taskName>"
+  echo "No task filename provided. Usage: /aidev-learn <taskId-taskName>"
   echo "FATAL: Cannot proceed without task identifier"
   exit 1
 fi
@@ -54,7 +54,7 @@ fi
 # 2. Extract and validate task ID
 TASK_ID=$(echo "#$ARGUMENTS" | cut -d'-' -f1)
 if [ -z "$TASK_ID" ] || ! [[ "$TASK_ID" =~ ^[0-9]+$ ]]; then
-  echo "ERROR: Invalid task ID format. Expected format: 001-task-name"
+  echo "Invalid task ID format. Expected format: 001-task-name"
   echo "FATAL: Cannot determine task ID from: #$ARGUMENTS"
   exit 1
 fi
@@ -68,7 +68,7 @@ for file in "$AIDEV_DIR/tasks/#$ARGUMENTS.json" "$AIDEV_DIR/tasks/#$ARGUMENTS.md
 done
 
 if [ ${#MISSING_FILES[@]} -gt 0 ]; then
-  echo "ERROR: Required files not found:"
+  echo "Required files not found:"
   for file in "${MISSING_FILES[@]}"; do
     echo "  - $file"
   done
@@ -78,14 +78,14 @@ fi
 
 # 4. Verify PRP is not empty
 if [ ! -s "$AIDEV_DIR/task_output/$TASK_ID/prp.md" ]; then
-  echo "ERROR: PRP file exists but is empty: $AIDEV_DIR/task_output/$TASK_ID/prp.md"
+  echo "PRP file exists but is empty: $AIDEV_DIR/task_output/$TASK_ID/prp.md"
   echo "FATAL: Cannot learn without implementation plan"
   exit 1
 fi
 
 # 5. Verify user_changes.json is valid JSON
 if ! jq . "$AIDEV_DIR/task_output/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
-  echo "ERROR: user_changes.json is not valid JSON"
+  echo "user_changes.json is not valid JSON"
   echo "FATAL: Cannot parse user changes"
   exit 1
 fi

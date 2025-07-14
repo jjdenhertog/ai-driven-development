@@ -43,8 +43,6 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
             fullOutput += data;
         }
     });
-
-    console.log(" fullOutput:", fullOutput)
     
     // Check if the task was successfully completed
     const success = fullOutput.toLowerCase().includes('task completed');
