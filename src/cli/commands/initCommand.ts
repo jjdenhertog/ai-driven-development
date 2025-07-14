@@ -158,6 +158,8 @@ export async function initCommand(options: Options): Promise<void> {
         ensureDirSync(claudeSettingsDir);
         
         // Define the hooks configuration
+        // Note: Claude Code passes hook data via $HOOK_INPUT env var and additional env vars like
+        // session_id, transcript_path, tool_name, tool_input, tool_response, hook_event_name
         const hooksConfig = {
             "PreToolUse": [
                 {
@@ -165,7 +167,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" tool_name=\"$tool_name\" tool_input=\"$tool_input\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -176,7 +178,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" tool_name=\"$tool_name\" tool_input=\"$tool_input\" tool_response=\"$tool_response\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -186,7 +188,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -196,7 +198,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -206,7 +208,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -217,7 +219,7 @@ export async function initCommand(options: Options): Promise<void> {
                     "hooks": [
                         {
                             "type": "command",
-                            "command": "echo '$HOOK_INPUT' | aidev log raw"
+                            "command": "session_id=\"$session_id\" transcript_path=\"$transcript_path\" hook_event_name=\"$hook_event_name\" echo '$HOOK_INPUT' | aidev log raw"
                         }
                     ]
                 }
@@ -235,49 +237,18 @@ export async function initCommand(options: Options): Promise<void> {
             }
         }
 
-        // Merge hooks configuration
+        // Ensure hooks object exists
         if (!settings.hooks) {
-            // No hooks exist, add all
-            settings.hooks = hooksConfig;
-            writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
-            log('Added Claude Code hooks configuration to ~/.claude/settings.json', 'success');
-        } else {
-            // Hooks exist, merge our logging hooks
-            let hooksAdded = false;
-            
-            // Helper function to check if our logging hook already exists
-            const hasLoggingHook = (hookArray: any[]): boolean => {
-                if (!Array.isArray(hookArray)) return false;
-                return hookArray.some(hook => 
-                    hook.hooks?.some((h: any) => 
-                        h.command?.includes('aidev log')
-                    )
-                );
-            };
-            
-            // Merge each hook type
-            for (const [hookType, hookConfig] of Object.entries(hooksConfig)) {
-                if (!settings.hooks[hookType]) {
-                    // Hook type doesn't exist, add it
-                    settings.hooks[hookType] = hookConfig;
-                    hooksAdded = true;
-                } else if (!hasLoggingHook(settings.hooks[hookType])) {
-                    // Hook type exists but doesn't have our logging hook
-                    if (Array.isArray(settings.hooks[hookType])) {
-                        // Add our hook config to existing array
-                        settings.hooks[hookType].push(...(hookConfig as any[]));
-                        hooksAdded = true;
-                    }
-                }
-            }
-            
-            if (hooksAdded) {
-                writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
-                log('Updated Claude Code hooks configuration in ~/.claude/settings.json', 'success');
-            } else {
-                log('Claude Code logging hooks already configured in ~/.claude/settings.json', 'info');
-            }
+            settings.hooks = {};
         }
+        
+        // Simply overwrite our hooks while preserving any others
+        for (const [hookType, hookConfig] of Object.entries(hooksConfig)) {
+            settings.hooks[hookType] = hookConfig;
+        }
+        
+        writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
+        log('Updated Claude Code hooks configuration in .claude/settings.json', 'success');
 
         log('aidev initialized successfully!', 'success');
         log('You can now use aidev commands in this directory.', 'info');
