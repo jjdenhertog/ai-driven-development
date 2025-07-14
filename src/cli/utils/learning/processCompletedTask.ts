@@ -1,12 +1,12 @@
 import { execSync } from 'node:child_process';
 
 import { Task } from '../../types/tasks/Task';
-import { executeClaudeCommand } from '../claude/executeClaudeCommand';
 import { createCommit } from '../git/createCommit';
 import { getUserChanges } from '../git/getUserChanges';
 import { log } from '../logger';
 import { saveUserChanges } from '../storage/saveUserChanges';
 import { updateTaskFile } from '../tasks/updateTaskFile';
+import { executeClaudeCommand } from '../../../claude-wrapper';
 
 export async function processCompletedTask(task: Task, dangerouslySkipPermission: boolean): Promise<void> {
     log(`Processing completed task: ${task.id} - ${task.name}`, 'success');
@@ -41,11 +41,11 @@ export async function processCompletedTask(task: Task, dangerouslySkipPermission
         if (dangerouslySkipPermission)
             args.push('--dangerously-skip-permissions');
 
-        await executeClaudeCommand({
-            command: `/aidev-learn ${task.id}-${task.name}`,
-            args,
-            taskId: task.id
-        });
+        // await executeClaudeCommand({
+        //     command: `/aidev-learn ${task.id}-${task.name}`,
+        //     args,
+        //     taskId: task.id
+        // });
 
         await setToArchiveAndPushAsync(task, `archive task ${task.id} - user changes learned`);
 
