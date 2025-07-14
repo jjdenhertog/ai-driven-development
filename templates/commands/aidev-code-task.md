@@ -211,14 +211,14 @@ Collect information to replace each placeholder:
 </prp-generation-constraints>
 
 #### 4.4 Save the Generated PRP
-- Create directory: `$AIDEV_DIR/task_output/$TASK_ID/` (using the ID extracted from JSON)
-- Save the completed PRP to: `$AIDEV_DIR/task_output/$TASK_ID/prp.md`
+- Create directory: `$AIDEV_DIR/tasks_output/$TASK_ID/` (using the ID extracted from JSON)
+- Save the completed PRP to: `$AIDEV_DIR/tasks_output/$TASK_ID/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
 
 **🛑 CRITICAL VALIDATION - MUST VERIFY PRP EXISTS:**
 ```bash
 # Verify PRP was created (using extracted task ID)
-PRP_PATH="$AIDEV_DIR/task_output/$TASK_ID/prp.md"
+PRP_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL: PRP was not created at $PRP_PATH"
   echo "The PRP document is MANDATORY for all task types."
@@ -290,7 +290,7 @@ This feature will add complete user authentication to the application, including
 **🛑 PRE-IMPLEMENTATION CHECKPOINT - VERIFY PRP EXISTS:**
 ```bash
 # Final PRP check before implementation (using extracted task ID)
-if [ ! -f "$AIDEV_DIR/task_output/$TASK_ID/prp.md" ]; then
+if [ ! -f "$AIDEV_DIR/tasks_output/$TASK_ID/prp.md" ]; then
   echo "❌ CANNOT PROCEED: No PRP document found"
   echo "Implementation is blocked until PRP is generated"
   echo "This is a mandatory requirement for ALL task types"
@@ -373,7 +373,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 
 ### 7. Create PR Message
 
-**CRITICAL**: Save PR message to `$AIDEV_DIR/task_output/$TASK_ID/last_result.md` (using the ID extracted from JSON)
+**CRITICAL**: Save PR message to `$AIDEV_DIR/tasks_output/$TASK_ID/last_result.md` (using the ID extracted from JSON)
 
 #### Pattern/Feature Tasks:
 ```markdown
@@ -435,7 +435,7 @@ Created documentation as specified
 
 ```bash
 # Verify PRP exists (final check - using extracted task ID)
-PRP_PATH="$AIDEV_DIR/task_output/$TASK_ID/prp.md"
+PRP_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL: Cannot finalize - PRP document is missing"
   echo "The PRP is a mandatory deliverable for all tasks"
@@ -443,7 +443,7 @@ if [ ! -f "$PRP_PATH" ]; then
 fi
 
 # Verify last_result.md exists and has content (using extracted task ID)
-LAST_RESULT_PATH="$AIDEV_DIR/task_output/$TASK_ID/last_result.md"
+LAST_RESULT_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   echo "PR message (last_result.md) was not created or is empty!"
   exit 1

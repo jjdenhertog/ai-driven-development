@@ -1,5 +1,7 @@
 import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
 import { containsExitKeyword } from './utils/containsExitKeyword';
+import { CompressedLogger } from './utils/CompressedLogger';
+import * as path from 'path';
 
 type Options = {
     cwd: string
@@ -8,6 +10,7 @@ type Options = {
     maxRetries?: number;
     retryDelay?: number;
     taskId?: string;
+    logPath?: string;
 }
 
 /**
@@ -17,7 +20,7 @@ type Options = {
  * Features:
  * - Full TTY support (ANSI codes, cursor control, etc.)
  * - Interactive input/output
- * - Output capture for logging
+ * - Compressed output capture for logging (deduplicates animation frames)
  * - Auto-exit on "task completed" keyword + 10s silence
  * - Automatic retry on failure
  * 
@@ -29,25 +32,42 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
         command,
         args,
         maxRetries = 3,
-        retryDelay = 5000
+        retryDelay = 5000,
+        taskId,
+        logPath
     } = options;
 
     let fullOutput = '';
+    
+    // Create compressed logger if log path provided
+    const logger = logPath ? new CompressedLogger(logPath) : null;
 
-    const result = await runClaudeWithRetry({
-        cwd,
-        command,
-        args,
-        maxRetries,
-        retryDelay,
-        onOutput: (data) => {
-            fullOutput += data;
+    try {
+        const result = await runClaudeWithRetry({
+            cwd,
+            command,
+            args,
+            maxRetries,
+            retryDelay,
+            onOutput: (data) => {
+                fullOutput += data;
+                
+                // Log compressed output
+                if (logger) {
+                    logger.log(data);
+                }
+            }
+        });
+        
+        // If auto-exit triggered, it means we detected success keywords
+        // Otherwise, check the output for success indicators
+        const success = result.wasAutoExited || containsExitKeyword(fullOutput);
+        
+        return { success, output: fullOutput };
+    } finally {
+        // Always close the logger
+        if (logger) {
+            logger.close();
         }
-    });
-    
-    // If auto-exit triggered, it means we detected success keywords
-    // Otherwise, check the output for success indicators
-    const success = result.wasAutoExited || containsExitKeyword(fullOutput);
-    
-    return { success, output: fullOutput };
+    }
 }

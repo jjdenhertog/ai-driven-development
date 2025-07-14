@@ -5,7 +5,7 @@ export function spawnClaudePty(cwd: string, command: string, args: string[]): IP
     // Build the full command array
     const fullCommand = ['claude', command];
     if (args.length > 0) {
-        fullCommand.push(...args);
+        fullCommand.push(...args, '--model=opus');
     }
     
     console.log(`Spawning Claude process... ${fullCommand.join(' ')}`);

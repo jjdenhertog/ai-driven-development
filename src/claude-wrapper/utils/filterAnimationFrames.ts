@@ -1,165 +1,171 @@
 /**
- * Filters out animation frames from Claude output while preserving meaningful content.
- * Animation frames are detected by looking for patterns that indicate full screen redraws.
+ * Filters out animation frames from Claude output using line similarity detection.
+ * This is a generic approach that works with any CLI tool's animated output.
  */
 
-const CURSOR_CONTROL_REGEX = /\[O\[I/g;
-const ANSI_ESCAPE_REGEX = /\x1b\[[0-9;]*[a-zA-Z]/g;
+import { LineSimilarityFilter } from './LineSimilarityFilter';
 
-interface OutputBuffer {
-    lastFrame: string;
-    lastFrameTime: number;
-    meaningfulOutput: string[];
-    recentLines: Set<string>;
-    lastMeaningfulLine: string;
-}
+const ANSI_ESCAPE_REGEX = /\x1b\[[0-9;]*[a-zA-Z]/g;
+const FRAME_BOUNDARY_REGEX = /(?:\x1b\[2K\x1b\[1A)+|\x1b\[H|\x1b\[\d+;\d+H/g;
 
 export class AnimationFilter {
-    private buffer: OutputBuffer = {
-        lastFrame: '',
-        lastFrameTime: 0,
-        meaningfulOutput: [],
-        recentLines: new Set<string>(),
-        lastMeaningfulLine: ''
-    };
+    private similarityFilter: LineSimilarityFilter;
+    private buffer: string = '';
+    private lastEmittedContent: string = '';
+
+    constructor() {
+        // Configure similarity filter for animation detection
+        this.similarityFilter = new LineSimilarityFilter({
+            threshold: 0.85, // Lines that are 85% similar are considered duplicates
+            windowSize: 10,  // Check against last 10 lines
+            minLineLength: 5,
+            stripAnsi: true
+        });
+    }
 
     /**
      * Process a chunk of output, filtering out animation frames
      */
     process(data: string): string {
-        const now = Date.now();
-
-        // Check if this looks like an animation frame update
-        if (this.isLikelyAnimationFrame(data)) {
-            // If we're getting rapid updates (< 100ms), it's likely animation
-            if (now - this.buffer.lastFrameTime < 100) {
-                this.buffer.lastFrame = data;
-                this.buffer.lastFrameTime = now;
-                // Return empty string to filter out this frame from logs
-                return '';
-            }
-        }
-
-        // Extract meaningful content from the data
-        const meaningful = this.extractMeaningfulContent(data);
-        if (meaningful) {
-            this.buffer.meaningfulOutput.push(meaningful);
-            this.buffer.lastFrameTime = now;
-            return meaningful + '\n';
-        }
-
-        // Default: include the data if we're not sure
-        return data;
-    }
-
-    /**
-     * Check if data appears to be an animation frame
-     */
-    private isLikelyAnimationFrame(data: string): boolean {
-        // Check for cursor control sequences
-        if (data.includes('[O[I')) {
-            return true;
-        }
-
-        const stripped = data.replace(ANSI_ESCAPE_REGEX, '').replace(/\[O\[I/g, '');
-
-        // Check for repetitive UI patterns
-        const lineCount = (stripped.match(/\n/g) || []).length;
-        const tryPromptCount = (stripped.match(/>\s*Try\s+"[^"]*"/g) || []).length;
-
-        // If we have many repeated "Try" prompts, it's likely an animation frame
-        if (tryPromptCount > 2 && tryPromptCount / Math.max(lineCount, 1) > 0.3) {
-            return true;
-        }
-
-        // Check for box drawing characters with minimal other content
-        const hasBoxDrawing = /[╭╮╰╯─│]/.test(data);
-        const strippedLength = stripped.trim().length;
-
-        // If it's mostly box drawing and ANSI codes, likely animation
-        if (hasBoxDrawing && strippedLength < 200) {
-            // Check for repeating patterns that suggest UI chrome
-            const hasUIPatterns = data.includes('for shortcuts') ||
-                data.includes('esc to interrupt') ||
-                data.includes('tokens') ||
-                data.includes('Waiting…') ||
-                data.includes('Running…');
-            return hasUIPatterns;
-        }
-
-        return false;
-    }
-
-    /**
-     * Extract meaningful content from output
-     */
-    private extractMeaningfulContent(data: string): string {
-        // Remove ANSI codes for analysis
-        const stripped = data.replace(ANSI_ESCAPE_REGEX, '').replace(/\[O\[I/g, '');
-
-        // Split into lines and filter
-        const lines = stripped.split('\n');
-        const meaningfulLines: string[] = [];
-
-        for (const line of lines) {
-            const trimmed = line.trim();
-
-            // Skip empty lines
-            if (!trimmed) continue;
-
-            // Skip UI chrome
-            if (trimmed.match(/^[╭╮╰╯─│┌┐└┘═║╔╗╚╝]+$/)) continue;
-            if (trimmed.includes('for shortcuts')) continue;
-            if (trimmed.includes('esc to interrupt')) continue;
-            if (trimmed.includes('Bypassing Permissions')) continue;
-
-            // Skip progress indicators
-            if (trimmed.match(/^[✻●]\s+\w+…?\s*\(/)) continue;
-
-            // Skip lines that start with > Try (these are UI prompts)
-            if (trimmed.match(/^│\s*>\s*Try\s+"[^"]+"\s*│$/)) continue;
-
-            // Skip tool status lines (Waiting, Running, etc.)
-            if (trimmed.match(/⎿\s*(Waiting|Running|✅)/)) continue;
-
-            // Check for duplicate content
-            const cleanLine = trimmed.replace(/^[●│\s]+/, '').replace(/\s*│\s*$/, '');
-
-            // Skip if we've seen this exact line recently
-            if (this.buffer.recentLines.has(cleanLine)) {
-                continue;
-            }
-
-            // Skip if it's the same as the last meaningful line
-            if (cleanLine === this.buffer.lastMeaningfulLine) {
-                continue;
-            }
-
-            // This is meaningful content
-            if (cleanLine.length > 5) { // Ignore very short fragments
-                meaningfulLines.push(cleanLine);
-                this.buffer.lastMeaningfulLine = cleanLine;
-
-                // Keep recent lines buffer small
-                this.buffer.recentLines.add(cleanLine);
-                if (this.buffer.recentLines.size > 50) {
-                    const firstLine = this.buffer.recentLines.values().next().value;
-                    if (firstLine)
-                        this.buffer.recentLines.delete(firstLine);
+        // Buffer data to handle partial lines
+        this.buffer += data;
+        
+        // Check if we have frame boundaries (terminal clear/cursor moves)
+        const hasBoundaries = FRAME_BOUNDARY_REGEX.test(this.buffer);
+        
+        if (hasBoundaries) {
+            // Split by frame boundaries
+            const frames = this.buffer.split(FRAME_BOUNDARY_REGEX);
+            this.buffer = frames.pop() || ''; // Keep last incomplete frame in buffer
+            
+            // Process each complete frame
+            const results: string[] = [];
+            for (const frame of frames) {
+                const filtered = this.processFrame(frame);
+                if (filtered) {
+                    results.push(filtered);
                 }
             }
+            
+            return results.join('\n').trim();
+        } else {
+            // No frame boundaries yet, check if we have complete lines
+            const lines = this.buffer.split('\n');
+            if (lines.length > 1) {
+                this.buffer = lines.pop() || ''; // Keep incomplete line in buffer
+                const completeLines = lines.join('\n');
+                return this.processFrame(completeLines);
+            }
+            
+            return ''; // Wait for more data
         }
+    }
 
-        return meaningfulLines.join('\n').trim();
+    /**
+     * Process a single frame of output
+     */
+    private processFrame(frame: string): string {
+        if (!frame.trim()) return '';
+        
+        // Use similarity filter to remove duplicate lines
+        const filtered = this.similarityFilter.process(frame);
+        
+        // Additional check: if the entire frame is too similar to last emitted content
+        if (this.isFrameSimilarToLast(filtered)) {
+            return '';
+        }
+        
+        this.lastEmittedContent = filtered;
+        return filtered;
+    }
+
+    /**
+     * Check if entire frame is similar to last emitted content
+     */
+    private isFrameSimilarToLast(content: string): boolean {
+        if (!this.lastEmittedContent || !content) return false;
+        
+        // Strip ANSI for comparison
+        const clean1 = content.replace(ANSI_ESCAPE_REGEX, '').trim();
+        const clean2 = this.lastEmittedContent.replace(ANSI_ESCAPE_REGEX, '').trim();
+        
+        // Quick length check - if very different lengths, probably different content
+        const lengthRatio = Math.min(clean1.length, clean2.length) / Math.max(clean1.length, clean2.length);
+        if (lengthRatio < 0.8) return false;
+        
+        // Calculate overall similarity
+        return this.calculateFrameSimilarity(clean1, clean2) > 0.9;
+    }
+
+    /**
+     * Calculate similarity between two frames
+     */
+    private calculateFrameSimilarity(frame1: string, frame2: string): number {
+        const lines1 = frame1.split('\n').filter(l => l.trim());
+        const lines2 = frame2.split('\n').filter(l => l.trim());
+        
+        // Different number of lines suggests different content
+        if (Math.abs(lines1.length - lines2.length) > 2) return 0;
+        
+        // Compare line by line
+        let similarLines = 0;
+        const maxLines = Math.max(lines1.length, lines2.length);
+        
+        for (let i = 0; i < Math.min(lines1.length, lines2.length); i++) {
+            // Simple character comparison for efficiency
+            const similarity = this.quickLineSimilarity(lines1[i], lines2[i]);
+            if (similarity > 0.8) {
+                similarLines++;
+            }
+        }
+        
+        return similarLines / maxLines;
+    }
+
+    /**
+     * Quick line similarity check
+     */
+    private quickLineSimilarity(line1: string, line2: string): number {
+        if (line1 === line2) return 1;
+        
+        const len1 = line1.length;
+        const len2 = line2.length;
+        const maxLen = Math.max(len1, len2);
+        
+        // Too different in length
+        if (Math.abs(len1 - len2) / maxLen > 0.3) return 0;
+        
+        // Count matching characters
+        let matches = 0;
+        const minLen = Math.min(len1, len2);
+        
+        for (let i = 0; i < minLen; i++) {
+            if (line1[i] === line2[i]) matches++;
+        }
+        
+        return matches / maxLen;
     }
 
     /**
      * Get any buffered output that should be flushed
      */
     flush(): string {
-        // Clear the duplicate tracking on flush
-        this.buffer.recentLines.clear();
-        this.buffer.lastMeaningfulLine = '';
-        return this.buffer.meaningfulOutput.join('\n');
+        const remaining = this.buffer.trim();
+        this.buffer = '';
+        
+        if (remaining) {
+            return this.processFrame(remaining);
+        }
+        
+        return '';
+    }
+
+    /**
+     * Reset the filter state
+     */
+    reset(): void {
+        this.buffer = '';
+        this.lastEmittedContent = '';
+        this.similarityFilter.reset();
     }
 }
