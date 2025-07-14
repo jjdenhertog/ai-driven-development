@@ -1,4 +1,4 @@
-Cab import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -9,7 +9,7 @@ import { homedir } from 'node:os';
 export function logCommand(args: string[]): void {
     // Parse command line arguments
     const command = args[0];
-    
+
     if (!command || command === 'help') {
         console.log(`
 aidev log - Capture output from Claude Code hooks
@@ -36,24 +36,24 @@ Hook data can be passed as:
 `);
         return;
     }
-    
+
     // Get log configuration
     const logDir = process.env.AIDEV_LOG_DIR || join(process.cwd(), 'debug_logs');
     const sessionId = process.env.AIDEV_SESSION_ID || new Date().toISOString().replace(/[:.]/g, '-');
     const logFile = join(logDir, `session-${sessionId}.log`);
-    
+
     // Ensure log directory exists
     if (!existsSync(logDir)) {
         mkdirSync(logDir, { recursive: true });
     }
-    
+
     const timestamp = new Date().toISOString();
-    
+
     // Helper function to parse hook data
     const parseHookData = (argsSlice: string[]): any => {
         const dataStr = argsSlice.join(' ');
         if (!dataStr) return {};
-        
+
         try {
             // Try to parse as JSON
             return JSON.parse(dataStr);
@@ -62,7 +62,7 @@ Hook data can be passed as:
             return { raw: dataStr };
         }
     };
-    
+
     switch (command) {
         case 'pre-tool': {
             const hookData = parseHookData(args.slice(1));
@@ -72,12 +72,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged PreToolUse hook');
             break;
         }
-        
+
         case 'post-tool': {
             const hookData = parseHookData(args.slice(1));
             const logEntry = {
@@ -86,12 +86,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged PostToolUse hook');
             break;
         }
-        
+
         case 'notification': {
             const hookData = parseHookData(args.slice(1));
             const logEntry = {
@@ -100,12 +100,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged Notification hook');
             break;
         }
-        
+
         case 'stop': {
             const hookData = parseHookData(args.slice(1));
             const logEntry = {
@@ -114,12 +114,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged Stop hook');
             break;
         }
-        
+
         case 'subagent-stop': {
             const hookData = parseHookData(args.slice(1));
             const logEntry = {
@@ -128,12 +128,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged SubagentStop hook');
             break;
         }
-        
+
         case 'pre-compact': {
             const hookData = parseHookData(args.slice(1));
             const logEntry = {
@@ -142,12 +142,12 @@ Hook data can be passed as:
                 sessionId,
                 ...hookData
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log('✓ Logged PreCompact hook');
             break;
         }
-        
+
         case 'session-start': {
             const logEntry = {
                 timestamp,
@@ -163,28 +163,28 @@ Hook data can be passed as:
                     )
                 }
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log(`✓ Session started: ${sessionId}`);
             break;
         }
-        
+
         case 'session-end': {
             const logEntry = {
                 timestamp,
                 type: 'session-end',
                 sessionId
             };
-            
+
             appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
             console.log(`✓ Session ended: ${sessionId}`);
             break;
         }
-        
+
         case 'raw': {
             // Read from stdin if available, otherwise use args
             let inputData = '';
-            
+
             if (process.stdin.isTTY === false) {
                 // Read from stdin
                 try {
@@ -197,7 +197,7 @@ Hook data can be passed as:
                 // Use command line args
                 inputData = args.slice(1).join(' ');
             }
-            
+
             try {
                 const parsedData = inputData ? JSON.parse(inputData) : {};
                 const logEntry = {
@@ -206,7 +206,7 @@ Hook data can be passed as:
                     sessionId,
                     data: parsedData
                 };
-                
+
                 appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
                 console.log('✓ Logged raw data');
             } catch (err) {
@@ -223,7 +223,7 @@ Hook data can be passed as:
             }
             break;
         }
-        
+
         default:
             console.error(`Unknown log command: ${command}`);
             process.exit(1);
