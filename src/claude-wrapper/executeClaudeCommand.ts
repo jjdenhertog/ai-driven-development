@@ -1,6 +1,7 @@
 import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
 import { containsExitKeyword } from './utils/containsExitKeyword';
 import { CompressedLogger } from './utils/CompressedLogger';
+import path from 'node:path';
 
 type Options = {
     cwd: string
@@ -32,13 +33,15 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
         args,
         maxRetries = 3,
         retryDelay = 5000,
-        logPath
+        taskId,
     } = options;
 
     let fullOutput = '';
     
-    // Create compressed logger if log path provided
-    const logger = logPath ? new CompressedLogger(logPath) : null;
+    // TEMPORARY TEST: Always create a test log to see the difference
+    const testLogPath = path.join(process.cwd(), '.aidev-storage', 'tasks_output', taskId || 'test', 'claude_test_output.log');
+    const logger = new CompressedLogger(testLogPath);
+    console.log(`\n[TEST MODE] Smart filtering enabled. Clean log will be written to: ${testLogPath}\n`);
 
     try {
         const result = await runClaudeWithRetry({
@@ -50,10 +53,8 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
             onOutput: (data) => {
                 fullOutput += data;
                 
-                // Log compressed output
-                if (logger) {
-                    logger.log(data);
-                }
+                // Always log to test file
+                logger.log(data);
             }
         });
         
@@ -64,8 +65,8 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
         return { success, output: fullOutput };
     } finally {
         // Always close the logger
-        if (logger) {
-            logger.close();
-        }
+        logger.close();
+        console.log(`\n[TEST MODE] Filtered log saved to: ${testLogPath}`);
+        console.log(`Compare with full output to see the filtering in action!`);
     }
 }

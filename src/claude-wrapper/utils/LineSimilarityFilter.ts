@@ -3,7 +3,7 @@
  * Uses a sliding window approach with configurable similarity threshold
  */
 
-export interface SimilarityOptions {
+export type SimilarityOptions = {
     threshold?: number; // Similarity threshold (0-1, default 0.85)
     windowSize?: number; // How many previous lines to check (default 5)
     minLineLength?: number; // Minimum line length to consider (default 5)
@@ -13,7 +13,7 @@ export interface SimilarityOptions {
 export class LineSimilarityFilter {
     private previousLines: string[] = [];
     private readonly options: Required<SimilarityOptions>;
-    private readonly ANSI_REGEX = /\x1b\[[0-9;]*[a-zA-Z]/g;
+    private readonly ANSI_REGEX = /\x1B\[[\d;]*[A-Za-z]/g;
 
     constructor(options: SimilarityOptions = {}) {
         this.options = {
@@ -104,6 +104,7 @@ export class LineSimilarityFilter {
         const maxLen = Math.max(str1.length, str2.length);
         
         let matches = 0;
+
         for (let i = 0; i < minLen; i++) {
             if (str1[i] === str2[i]) {
                 matches++;
@@ -119,6 +120,7 @@ export class LineSimilarityFilter {
     private longestCommonSubstringSimilarity(str1: string, str2: string): number {
         const lcs = this.longestCommonSubstring(str1, str2);
         const maxLength = Math.max(str1.length, str2.length);
+
         return lcs.length / maxLength;
     }
 
@@ -128,7 +130,8 @@ export class LineSimilarityFilter {
     private longestCommonSubstring(str1: string, str2: string): string {
         const m = str1.length;
         const n = str2.length;
-        const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+        const dp: number[][] = new Array(m + 1).fill(null)
+            .map(() => new Array(n + 1).fill(0));
         
         let maxLength = 0;
         let endPos = 0;

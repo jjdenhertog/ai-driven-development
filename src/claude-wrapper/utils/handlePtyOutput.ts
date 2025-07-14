@@ -1,7 +1,7 @@
 import { IPty } from 'node-pty';
 import { ProcessState } from '../types/ProcessState';
 import { shouldAutoExit } from './shouldAutoExit';
-import { AnimationFilter } from './filterAnimationFrames';
+import { SmartStreamFilter } from './SmartStreamFilter';
 
 export function handlePtyOutput(
     ptyProcess: IPty,
@@ -9,7 +9,7 @@ export function handlePtyOutput(
     onData: (data: string) => void
 ): void {
     let checkInterval: NodeJS.Timeout;
-    const animationFilter = new AnimationFilter();
+    const streamFilter = new SmartStreamFilter();
 
     // Set up stdin forwarding for interactivity
     process.stdin.setRawMode(true);
@@ -26,19 +26,18 @@ export function handlePtyOutput(
         // Always display to terminal (maintains full TTY features)
         process.stdout.write(data);
         
-        // Filter animation frames for logging
-        const filteredData = animationFilter.process(data);
+        // Update activity time
+        state.lastActivityTime = Date.now();
+        
+        // Filter data for logging using smart filter
+        const filteredData = streamFilter.process(data);
         
         if (filteredData) {
-            // Update state only with meaningful content
+            // Update state with meaningful content
             state.output += filteredData;
-            state.lastActivityTime = Date.now();
             
             // Capture filtered output for logging
             onData(filteredData);
-        } else {
-            // Even for animation frames, update activity time
-            state.lastActivityTime = Date.now();
         }
     });
 
@@ -71,10 +70,10 @@ export function handlePtyOutput(
         process.stdin.pause();
         
         // Flush any remaining buffered output
-        const remaining = animationFilter.flush();
+        const remaining = streamFilter.flush();
         if (remaining) {
-            state.output += '\n' + remaining;
-            onData('\n' + remaining);
+            state.output += `\n${  remaining}`;
+            onData(`\n${  remaining}`);
         }
     });
 }

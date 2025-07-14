@@ -1,4 +1,4 @@
-import { log } from 'console';
+import { log } from 'node:console';
 import { ProcessState } from '../types/ProcessState';
 import { handlePtyOutput } from './handlePtyOutput';
 import { sleep } from './sleep';
