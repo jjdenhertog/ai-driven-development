@@ -189,7 +189,7 @@ export class AggressiveLogFilter {
         while (cleaned.length > 0 && cleaned[0].trim() === '') {
             cleaned.shift();
         }
-        while (cleaned.length > 0 && cleaned.at(-1).trim() === '') {
+        while (cleaned.length > 0 && cleaned.at(-1)?.trim() === '') {
             cleaned.pop();
         }
         

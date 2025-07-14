@@ -155,10 +155,11 @@ export class FrameBasedFilter {
             if (this.frameBuffer.length >= this.options.maxFrameBuffer) {
                 // Emit the most recent frame from buffer
                 const latestFrame = this.frameBuffer.at(-1);
-                this.frameBuffer = [];
-                this.lastEmittedFrame = latestFrame;
-
-                return this.formatOutput(latestFrame);
+                if (latestFrame) {
+                    this.frameBuffer = [];
+                    this.lastEmittedFrame = latestFrame;
+                    return this.formatOutput(latestFrame);
+                }
             }
             
             return null;
@@ -258,7 +259,9 @@ export class FrameBasedFilter {
         // Process any buffered frames
         if (this.frameBuffer.length > 0) {
             const latestFrame = this.frameBuffer.at(-1);
-            results.push(this.formatOutput(latestFrame));
+            if (latestFrame) {
+                results.push(this.formatOutput(latestFrame));
+            }
         }
         
         // Reset state
