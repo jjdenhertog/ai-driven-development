@@ -2,21 +2,16 @@ import * as pty from 'node-pty';
 import { IPty } from 'node-pty';
 
 export function spawnClaudePty(cwd: string, command: string, args: string[]): IPty {
-    // Properly escape arguments for bash -c
-    const escapedArgs = args.map(arg => {
-        // If arg contains spaces or special characters, wrap in quotes
-        if (arg.includes(' ') || arg.includes('&') || arg.includes('|') || arg.includes(';')) {
-            return `"${arg.replace(/"/g, '\\"')}"`;
-        }
-        
-        return arg;
-    });
+    // Build the full command array
+    const fullCommand = ['claude', command];
+    if (args.length > 0) {
+        fullCommand.push(...args);
+    }
     
-    const claudeCommand = `claude ${command} ${escapedArgs.join(' ')}`;
+    console.log(`Spawning Claude process... ${fullCommand.join(' ')}`);
     
-    console.log(`Spawning Claude process... ${claudeCommand}`);
-    
-    const ptyProcess = pty.spawn('bash', ['-c', claudeCommand], {
+    // Use execvp style spawning instead of bash -c to avoid shell parsing issues
+    const ptyProcess = pty.spawn(fullCommand[0], fullCommand.slice(1), {
         name: 'xterm-256color',
         cols: process.stdout.columns || 80,
         rows: process.stdout.rows || 30,
