@@ -41,7 +41,7 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
     // TEMPORARY TEST: Always create a test log to see the difference
     const testLogPath = path.join(process.cwd(), '.aidev-storage', 'tasks_output', taskId || 'test', 'claude_test_output.log');
     const logger = new CompressedLogger(testLogPath);
-    console.log(`\n[TEST MODE] Smart filtering enabled. Clean log will be written to: ${testLogPath}\n`);
+    // Test mode: Smart filtering enabled. Clean log will be written to testLogPath
 
     try {
         const result = await runClaudeWithRetry({
@@ -66,7 +66,6 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
     } finally {
         // Always close the logger
         logger.close();
-        console.log(`\n[TEST MODE] Filtered log saved to: ${testLogPath}`);
-        console.log(`Compare with full output to see the filtering in action!`);
+        // Test mode complete: Filtered log saved to testLogPath
     }
 }
