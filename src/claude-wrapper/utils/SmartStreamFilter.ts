@@ -10,7 +10,10 @@ type StreamState = {
     greetingBoxLines: string[];
     hasShownGreeting: boolean;
     lastToolOutput: string | null;
+    lastResultLine: string | null;
     consecutiveDuplicates: number;
+    currentToolName: string | null;
+    currentToolStarted: boolean;
 }
 
 export class SmartStreamFilter {
@@ -21,7 +24,10 @@ export class SmartStreamFilter {
         greetingBoxLines: [],
         hasShownGreeting: false,
         lastToolOutput: null,
-        consecutiveDuplicates: 0
+        lastResultLine: null,
+        consecutiveDuplicates: 0,
+        currentToolName: null,
+        currentToolStarted: false
     };
     
     private buffer: string = '';
@@ -75,7 +81,7 @@ export class SmartStreamFilter {
             case 'tool':
                 return this.handleToolLine(line, cleanLine);
             case 'result':
-                return line; // Always show results
+                return this.handleResultLine(line, cleanLine);
             case 'tip':
                 return line; // Show tips
             case 'empty':
@@ -154,18 +160,15 @@ export class SmartStreamFilter {
      * Handle status lines (only emit when they change significantly)
      */
     private handleStatusLine(line: string, cleanLine: string): string | null {
-        // Extract the base pattern without numbers
-        const basePattern = cleanLine.replace(/\d+/g, 'N');
-        
-        // If it's the same pattern as last time, skip it
-        if (this.state.lastStatusLine === basePattern) {
-            return null;
+        // Only show final status lines like "✻ Stewing… (17s · ↑ 201 tokens · esc to interrupt · offline)"
+        // Skip intermediate animation frames
+        if (cleanLine.includes('…') && cleanLine.includes('tokens')) {
+            // This looks like a final status, show it
+            this.state.lastStatusLine = cleanLine;
+            return line;
         }
         
-        this.state.lastStatusLine = basePattern;
-        this.state.consecutiveDuplicates = 0;
-        
-        // For now, skip all status lines - they're just animations
+        // Skip all other status animations
         return null;
     }
 
@@ -188,10 +191,57 @@ export class SmartStreamFilter {
      * Handle tool lines
      */
     private handleToolLine(line: string, cleanLine: string): string | null {
-        // Reset duplicate tracking for new content
+        // Extract tool name if this is a new tool invocation
+        const toolMatch = cleanLine.match(/^●\s*([A-Za-z]+)\s*\(/);
+        if (toolMatch) {
+            this.state.currentToolName = toolMatch[1];
+            this.state.currentToolStarted = true;
+            this.state.lastResultLine = null; // Reset for new tool
+            return line; // Show tool invocation
+        }
+        
+        // Skip duplicate tool lines
+        if (this.state.lastToolOutput === cleanLine) {
+            return null;
+        }
+        
+        this.state.lastToolOutput = cleanLine;
         this.state.consecutiveDuplicates = 0;
 
         return line;
+    }
+
+    /**
+     * Handle result lines (filter duplicates like "Waiting..." and "Running...")
+     */
+    private handleResultLine(line: string, cleanLine: string): string | null {
+        // Remove the ⎿ prefix and trim
+        const resultContent = cleanLine.replace(/^⎿\s*/, '').trim();
+        
+        // Skip intermediate states like "Waiting..." and "Running..."
+        if (resultContent.match(/^(Waiting|Running)…$/)) {
+            return null;
+        }
+        
+        // Skip if it's the same as the last result
+        if (this.state.lastResultLine === resultContent) {
+            return null;
+        }
+        
+        // Check if this is a final result (has checkmark or specific content)
+        const isFinalResult = resultContent.includes('✅') || 
+                            resultContent.includes('Found') ||
+                            resultContent.includes('provided') ||
+                            resultContent.includes('Allowed') ||
+                            !resultContent.includes('…');
+        
+        if (isFinalResult) {
+            this.state.lastResultLine = resultContent;
+            this.state.consecutiveDuplicates = 0;
+            return line;
+        }
+        
+        return null;
     }
 
     /**
@@ -296,7 +346,10 @@ export class SmartStreamFilter {
             greetingBoxLines: [],
             hasShownGreeting: false,
             lastToolOutput: null,
-            consecutiveDuplicates: 0
+            lastResultLine: null,
+            consecutiveDuplicates: 0,
+            currentToolName: null,
+            currentToolStarted: false
         };
     }
 }

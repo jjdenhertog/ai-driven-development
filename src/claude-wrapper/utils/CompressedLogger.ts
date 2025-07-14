@@ -10,6 +10,7 @@ export class CompressedLogger {
     private writeStream: fs.WriteStream | null = null;
     private flushInterval: NodeJS.Timeout | null = null;
     private pendingWrites: string[] = [];
+    private hasWrittenSessionStart = false;
     
     private readonly FLUSH_INTERVAL = 2000; // Flush every 2 seconds
 
@@ -33,10 +34,11 @@ export class CompressedLogger {
     log(content: string): void {
         if (!content) return;
         
-        // Add timestamp to the beginning of the session if this is the first write
-        if (this.pendingWrites.length === 0 && !content.includes('[2025')) {
+        // Add timestamp only once at the very beginning of the session
+        if (!this.hasWrittenSessionStart) {
             const timestamp = new Date().toISOString();
             this.pendingWrites.push(`[${timestamp}] Session started\n`);
+            this.hasWrittenSessionStart = true;
         }
         
         this.pendingWrites.push(content);
