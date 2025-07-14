@@ -1,6 +1,6 @@
 /**
- * Smart real-time stream filter that handles Claude's output intelligently
- * Tracks state and only emits meaningful changes
+ * Terminal output reconstructor that captures the final state after animations
+ * Instead of filtering in real-time, this builds the final terminal state
  */
 
 type StreamState = {
@@ -72,9 +72,13 @@ export class SmartStreamFilter {
     }
 
     /**
-     * Process incoming data stream and return only meaningful content
+     * Process incoming data stream - captures all output for final reconstruction
      */
     process(chunk: string): string {
+        // During execution, we don't emit anything - just capture
+        // The final output will be reconstructed when flush() is called
+        this.buffer += chunk;
+        return ''; // Return empty during processing
         // Quick check: if chunk contains clear+move sequences, it's likely an animation update
         const hasClearAndMove = chunk.includes('\x1B[2K') && chunk.includes('\x1B[1A');
         
@@ -135,7 +139,7 @@ export class SmartStreamFilter {
         for (const line of lines) {
             const filtered = this.filterLine(line);
             if (filtered !== null) {
-                output.push(filtered);
+                output.push(filtered as string);
             }
         }
         
@@ -445,9 +449,17 @@ export class SmartStreamFilter {
     }
 
     /**
-     * Flush any remaining content
+     * Reconstruct the final terminal output from all captured data
      */
     flush(): string {
+        // Now reconstruct the final state from all the captured output
+        return this.reconstructFinalOutput();
+    }
+    
+    /**
+     * Reconstruct the final output by simulating terminal behavior
+     */
+    private reconstructFinalOutput(): string {
         const output: string[] = [];
         
         // Flush buffer

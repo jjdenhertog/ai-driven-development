@@ -1,7 +1,7 @@
 import { IPty } from 'node-pty';
 import { ProcessState } from '../types/ProcessState';
 import { shouldAutoExit } from './shouldAutoExit';
-import { SmartStreamFilter } from './SmartStreamFilter';
+import { VirtualTerminalCapture } from './VirtualTerminalCapture';
 
 export function handlePtyOutput(
     ptyProcess: IPty,
@@ -9,7 +9,7 @@ export function handlePtyOutput(
     onData: (data: string) => void
 ): void {
     let checkInterval: NodeJS.Timeout;
-    const streamFilter = new SmartStreamFilter();
+    const virtualTerminal = new VirtualTerminalCapture();
 
     // Set up stdin forwarding for interactivity
     process.stdin.setRawMode(true);
@@ -29,16 +29,11 @@ export function handlePtyOutput(
         // Update activity time
         state.lastActivityTime = Date.now();
         
-        // Filter data for logging using smart filter
-        const filteredData = streamFilter.process(data);
+        // Feed data to virtual terminal (it maintains the screen state)
+        virtualTerminal.write(data);
         
-        if (filteredData) {
-            // Update state with meaningful content
-            state.output += filteredData;
-            
-            // Capture filtered output for logging
-            onData(filteredData);
-        }
+        // We don't emit anything during execution - just capture
+        // The final output will be retrieved when the process exits
     });
 
     // Check for auto-exit conditions
@@ -69,12 +64,13 @@ export function handlePtyOutput(
         process.stdin.setRawMode(false);
         process.stdin.pause();
         
-        // Flush any remaining buffered output
-        const remaining = streamFilter.flush();
-        if (remaining) {
-            state.output += `\n${  remaining}`;
-            onData(`\n${  remaining}`);
-        }
+        // Get the final terminal output - what the user saw
+        const finalOutput = virtualTerminal.getFinalOutput();
         
+        // Update state with the final output
+        state.output = finalOutput;
+        
+        // Send the final output to the logger
+        onData(finalOutput);
     });
 }
