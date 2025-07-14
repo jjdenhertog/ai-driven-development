@@ -107,6 +107,15 @@ export async function executeTaskCommand(options: Options) {
             status: 'failed'
         });
 
+        const git = getGitInstance();
+        try {
+            await git.raw(['worktree', 'remove', '--force', worktreePath]);
+        } catch (_error) {
+            rmSync(worktreePath, { force: true, recursive: true });
+        }
+
+        await git.raw(['branch', '-D', branchName, '--force']);
+
         return;
     }
 
@@ -142,10 +151,14 @@ export async function executeTaskCommand(options: Options) {
         ///////////////////////////////////////////////////////////
         // Remove work tree
         ///////////////////////////////////////////////////////////
-        rmSync(worktreePath, { force: true, recursive: true });
         const git = getGitInstance();
-        await git.raw(['worktree', 'remove', worktreePath]);
-        await git.raw(['branch', '-D', branchName]);
+        try {
+            await git.raw(['worktree', 'remove', '--force', worktreePath]);
+        } catch (_error) {
+            rmSync(worktreePath, { force: true, recursive: true });
+        }
+
+        await git.raw(['branch', '-D', branchName, '--force']);
 
     } catch (error) {
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
