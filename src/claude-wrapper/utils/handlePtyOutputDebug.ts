@@ -2,28 +2,28 @@ import { IPty } from 'node-pty';
 import { ProcessState } from '../types/ProcessState';
 import { shouldAutoExit } from './shouldAutoExit';
 import { SmartStreamFilter } from './SmartStreamFilter';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { DebugTerminalCapture } from './DebugTerminalCapture';
 
-// Debug logging for terminal capture analysis
-const debugPath = path.join(process.cwd(), 'debug-terminal-capture.jsonl');
-const debugFile = fs.createWriteStream(debugPath, { flags: 'a' });
-let debugChunkCount = 0;
-
-debugFile.write(`{"event": "session_start", "timestamp": "${new Date().toISOString()}", "pid": ${process.pid}}\n`);
-console.error(`[DEBUG] Terminal capture debug enabled. Writing to: ${debugPath}`);
-
-function debugLog(data: any): void {
-    debugFile.write(JSON.stringify(data) + '\n');
-}
-
-export function handlePtyOutput(
+/**
+ * Debug version of handlePtyOutput that captures detailed debugging information
+ * while still running the normal output handling
+ */
+export function handlePtyOutputDebug(
     ptyProcess: IPty,
     state: ProcessState,
-    onData: (data: string) => void
+    onData: (data: string) => void,
+    debugSessionId?: string
 ): void {
     let checkInterval: NodeJS.Timeout;
     const streamFilter = new SmartStreamFilter();
+    
+    // Initialize debug capture
+    const debugCapture = new DebugTerminalCapture(
+        debugSessionId || `debug-${Date.now()}`
+    );
+    
+    console.error(`[DEBUG] Terminal capture debug session started: ${debugSessionId || 'auto-generated'}`);
+    console.error(`[DEBUG] Check debug-terminal-logs/ directory for detailed logs`);
 
     // Set up stdin forwarding for interactivity
     process.stdin.setRawMode(true);
@@ -37,28 +37,8 @@ export function handlePtyOutput(
 
     // Handle PTY output
     ptyProcess.onData((data) => {
-        // Debug logging
-        debugChunkCount++;
-        const escapeSequences: string[] = [];
-        const regex = /\x1B\[[\d;]*[A-Za-z]/g;
-        let match;
-        while ((match = regex.exec(data)) !== null) {
-            escapeSequences.push(match[0]);
-        }
-        
-        debugLog({
-            event: 'raw_chunk',
-            chunkNumber: debugChunkCount,
-            timestamp: new Date().toISOString(),
-            length: data.length,
-            hex: Buffer.from(data).toString('hex').substring(0, 200), // First 200 chars of hex
-            escapeSequences,
-            visibleText: data.replace(/\x1B\[[\d;]*[A-Za-z]/g, '').replace(/\r/g, '\\r').replace(/\n/g, '\\n').trim(),
-            containsCR: data.includes('\r'),
-            containsLF: data.includes('\n'),
-            containsClearLine: data.includes('\x1B[2K'),
-            containsMoveUp: data.includes('\x1B[1A')
-        });
+        // Log to debug capture FIRST
+        debugCapture.processChunk(data);
         
         // Always display to terminal (maintains full TTY features)
         process.stdout.write(data);
@@ -68,15 +48,6 @@ export function handlePtyOutput(
         
         // Filter data for logging using smart filter
         const filteredData = streamFilter.process(data);
-        
-        if (filteredData) {
-            debugLog({
-                event: 'filtered_output',
-                timestamp: new Date().toISOString(),
-                filteredLength: filteredData.length,
-                filteredText: filteredData.substring(0, 200) // First 200 chars
-            });
-        }
         
         if (filteredData) {
             // Update state with meaningful content
@@ -122,13 +93,8 @@ export function handlePtyOutput(
             onData(`\n${  remaining}`);
         }
         
-        // Close debug file
-        debugLog({
-            event: 'session_end',
-            timestamp: new Date().toISOString(),
-            totalChunks: debugChunkCount
-        });
-        debugFile.end();
-        console.error('[DEBUG] Terminal capture debug session ended');
+        // Close debug capture
+        debugCapture.close();
+        console.error(`[DEBUG] Terminal capture debug session ended`);
     });
 }
