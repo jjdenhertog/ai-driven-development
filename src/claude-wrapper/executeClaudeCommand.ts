@@ -2,6 +2,7 @@ import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
 import { containsExitKeyword } from './utils/containsExitKeyword';
 import { CompressedLogger } from './utils/CompressedLogger';
 import path from 'node:path';
+import fs from 'node:fs';
 
 type Options = {
     cwd: string
@@ -40,7 +41,7 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
     
     // TEMPORARY TEST: Always create a test log to see the difference
     const testLogPath = path.join(process.cwd(), '.aidev-storage', 'tasks_output', taskId || 'test', 'claude_test_output.log');
-    const logger = new CompressedLogger(testLogPath);
+    const logger = CompressedLogger.getInstance(testLogPath);
     // Test mode: Smart filtering enabled. Clean log will be written to testLogPath
 
     try {
@@ -55,6 +56,10 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
                 
                 // Always log to test file
                 logger.log(data);
+                
+                // Debug: also write raw filtered output to separate file
+                const debugFilteredPath = path.join(process.cwd(), 'debug-filtered-output.txt');
+                fs.appendFileSync(debugFilteredPath, data);
             }
         });
         

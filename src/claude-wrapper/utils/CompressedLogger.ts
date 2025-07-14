@@ -13,8 +13,9 @@ export class CompressedLogger {
     private hasWrittenSessionStart = false;
     
     private readonly FLUSH_INTERVAL = 2000; // Flush every 2 seconds
+    private static instances = new Map<string, CompressedLogger>();
 
-    constructor(private readonly logPath: string) {
+    private constructor(private readonly logPath: string) {
         // Ensure directory exists
         const dir = path.dirname(logPath);
         if (!fs.existsSync(dir)) {
@@ -26,6 +27,16 @@ export class CompressedLogger {
         
         // Set up periodic flush
         this.flushInterval = setInterval(() => this.flush(), this.FLUSH_INTERVAL);
+    }
+    
+    /**
+     * Get or create a logger instance (singleton per path)
+     */
+    static getInstance(logPath: string): CompressedLogger {
+        if (!this.instances.has(logPath)) {
+            this.instances.set(logPath, new CompressedLogger(logPath));
+        }
+        return this.instances.get(logPath)!;
     }
 
     /**
@@ -84,5 +95,8 @@ export class CompressedLogger {
 
         // Clear memory
         this.pendingWrites = [];
+        
+        // Remove from instances
+        CompressedLogger.instances.delete(this.logPath);
     }
 }

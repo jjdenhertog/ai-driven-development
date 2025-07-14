@@ -4,41 +4,124 @@
  */
 
 type StreamState = {
-    lastStatusLine: string | null;
-    lastPromptLine: string | null;
+    // Greeting box handling
     inGreetingBox: boolean;
     greetingBoxLines: string[];
     hasShownGreeting: boolean;
-    lastToolOutput: string | null;
-    lastResultLine: string | null;
-    consecutiveDuplicates: number;
-    currentToolName: string | null;
-    currentToolStarted: boolean;
+    
+    // Animation tracking
+    currentAnimationType: string | null; // 'Herding', 'Ideating', etc.
+    lastEmittedTokenCount: number;
+    animationStartTime: number;
+    
+    // Tool execution tracking
+    currentToolSignature: string | null;
+    inToolExecution: boolean;
+    
+    // Result tracking
+    lastResultContent: string | null;
+    
+    // General state
+    lastCleanLine: string;
+    consecutiveEmptyLines: number;
 }
 
 export class SmartStreamFilter {
     private state: StreamState = {
-        lastStatusLine: null,
-        lastPromptLine: null,
         inGreetingBox: false,
         greetingBoxLines: [],
         hasShownGreeting: false,
-        lastToolOutput: null,
-        lastResultLine: null,
-        consecutiveDuplicates: 0,
-        currentToolName: null,
-        currentToolStarted: false
+        currentAnimationType: null,
+        lastEmittedTokenCount: 0,
+        animationStartTime: 0,
+        currentToolSignature: null,
+        inToolExecution: false,
+        lastResultContent: null,
+        lastCleanLine: '',
+        consecutiveEmptyLines: 0
     };
     
     private buffer: string = '';
-    // eslint-disable-next-line no-control-regex
     private readonly ANSI_ESCAPE_REGEX = /\x1B\[[\d;]*[A-Za-z]/g;
+    private readonly CURSOR_CONTROL_REGEX = /\x1B\[\?[\d]+[hl]/g;
+    
+    // Debug logging
+    private debugLog: (data: any) => void = () => {};
+    private debugEnabled = false;
+    
+    constructor() {
+        // Enable debug logging if file exists
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const debugPath = path.join(process.cwd(), 'debug-filter.jsonl');
+            const debugFile = fs.createWriteStream(debugPath, { flags: 'a' });
+            this.debugEnabled = true;
+            this.debugLog = (data: any) => {
+                debugFile.write(JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    ...data
+                }) + '\n');
+            };
+            this.debugLog({ event: 'filter_initialized' });
+        } catch (e) {
+            // Debug logging not available
+        }
+    }
 
     /**
      * Process incoming data stream and return only meaningful content
      */
     process(chunk: string): string {
-        // Add to buffer
+        // Quick check: if chunk contains clear+move sequences, it's likely an animation update
+        const hasClearAndMove = chunk.includes('\x1B[2K') && chunk.includes('\x1B[1A');
+        
+        if (this.debugEnabled) {
+            this.debugLog({
+                event: 'process_chunk',
+                chunkLength: chunk.length,
+                hasClearAndMove,
+                preview: chunk.substring(0, 100).replace(/\x1B/g, '\\x1B')
+            });
+        }
+        
+        // For animation chunks, we want to be more selective
+        if (hasClearAndMove) {
+            // Extract the meaningful content from the chunk
+            const lines = chunk.split('\n');
+            const meaningfulLines: string[] = [];
+            
+            for (const line of lines) {
+                const cleaned = this.cleanLine(line);
+                const shouldEmit = this.shouldEmitAnimationLine(line, cleaned);
+                
+                if (this.debugEnabled) {
+                    this.debugLog({
+                        event: 'animation_line',
+                        cleaned,
+                        shouldEmit,
+                        reason: this.getFilterReason(cleaned)
+                    });
+                }
+                
+                if (shouldEmit) {
+                    meaningfulLines.push(line);
+                }
+            }
+            
+            const result = meaningfulLines.length > 0 ? meaningfulLines.join('\n') + '\n' : '';
+            if (this.debugEnabled && result) {
+                this.debugLog({
+                    event: 'animation_output',
+                    linesEmitted: meaningfulLines.length,
+                    preview: result.substring(0, 100)
+                });
+            }
+            
+            return result;
+        }
+        
+        // Normal processing for non-animation chunks
         this.buffer += chunk;
         
         // Process complete lines
@@ -54,260 +137,302 @@ export class SmartStreamFilter {
             }
         }
         
-        return output.length > 0 ? `${output.join('\n')  }\n` : '';
+        return output.length > 0 ? output.join('\n') + '\n' : '';
+    }
+
+    /**
+     * Clean a line by removing ANSI codes and control sequences
+     */
+    private cleanLine(line: string): string {
+        return line
+            .replace(this.ANSI_ESCAPE_REGEX, '')
+            .replace(this.CURSOR_CONTROL_REGEX, '')
+            .replace(/\r/g, '')
+            .trim();
+    }
+
+    /**
+     * Get debug reason for filtering decision
+     */
+    private getFilterReason(cleanLine: string): string {
+        if (cleanLine.startsWith('● ')) return 'tool_invocation';
+        if (cleanLine.startsWith('⎿ ')) {
+            const content = cleanLine.substring(2).trim();
+            if (content === 'Waiting…' || content === 'Running…') return 'intermediate_result';
+            if (content.includes('✅')) return 'final_result';
+            return 'result_line';
+        }
+        if (/^[✻·]\s+\w+…/.test(cleanLine)) return 'status_animation';
+        if (this.isUIChrome(cleanLine)) return 'ui_chrome';
+        if (!cleanLine) return 'empty_line';
+        return 'content';
+    }
+
+    /**
+     * Determine if an animation line should be emitted
+     */
+    private shouldEmitAnimationLine(line: string, cleanLine: string): boolean {
+        // Tool invocations - always show new ones
+        if (cleanLine.startsWith('● ')) {
+            const toolSig = cleanLine.substring(0, 50);
+            if (toolSig !== this.state.currentToolSignature) {
+                this.state.currentToolSignature = toolSig;
+                this.state.inToolExecution = true;
+                
+                if (this.debugEnabled) {
+                    this.debugLog({
+                        event: 'new_tool',
+                        toolSig,
+                        previousTool: this.state.currentToolSignature
+                    });
+                }
+                
+                return true;
+            }
+            return false; // Skip duplicate tool lines
+        }
+        
+        // Results - only show final states
+        if (cleanLine.startsWith('⎿ ')) {
+            const resultContent = cleanLine.substring(2).trim();
+            
+            // Skip intermediate states
+            if (resultContent === 'Waiting…' || resultContent === 'Running…') {
+                return false;
+            }
+            
+            // Show final results
+            if (resultContent.includes('✅') || resultContent.includes('Found') || 
+                resultContent.includes('Allowed') || resultContent.includes('provided')) {
+                this.state.lastResultContent = resultContent;
+                this.state.inToolExecution = false;
+                
+                if (this.debugEnabled) {
+                    this.debugLog({
+                        event: 'final_result',
+                        resultContent
+                    });
+                }
+                
+                return true;
+            }
+        }
+        
+        // Status animations (Herding, Ideating, etc.)
+        const statusMatch = cleanLine.match(/^[✻·]\s+(\w+)…/);
+        if (statusMatch) {
+            const animationType = statusMatch[1];
+            const tokenMatch = cleanLine.match(/(\d+)\s+tokens/);
+            const tokenCount = tokenMatch ? parseInt(tokenMatch[1]) : 0;
+            
+            // Show when animation type changes
+            if (animationType !== this.state.currentAnimationType) {
+                this.state.currentAnimationType = animationType;
+                this.state.lastEmittedTokenCount = tokenCount;
+                this.state.animationStartTime = Date.now();
+                
+                if (this.debugEnabled) {
+                    this.debugLog({
+                        event: 'animation_type_change',
+                        from: this.state.currentAnimationType,
+                        to: animationType,
+                        tokens: tokenCount
+                    });
+                }
+                
+                return true;
+            }
+            
+            // Show periodic updates (every 50 tokens or 5 seconds)
+            const timeDiff = Date.now() - this.state.animationStartTime;
+            const tokenDiff = tokenCount - this.state.lastEmittedTokenCount;
+            
+            if (tokenDiff >= 50 || timeDiff >= 5000 || cleanLine.includes('offline')) {
+                this.state.lastEmittedTokenCount = tokenCount;
+                this.state.animationStartTime = Date.now();
+                
+                if (this.debugEnabled) {
+                    this.debugLog({
+                        event: 'animation_update',
+                        reason: tokenDiff >= 50 ? 'token_threshold' : timeDiff >= 5000 ? 'time_threshold' : 'offline',
+                        tokenDiff,
+                        timeDiff
+                    });
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Regular content
+        return this.shouldShowLine(cleanLine);
     }
 
     /**
      * Filter a single line based on its content and context
      */
     private filterLine(line: string): string | null {
-        const cleanLine = line.replace(this.ANSI_ESCAPE_REGEX, '').trim();
+        const cleanLine = this.cleanLine(line);
+        
+        // Skip empty lines (but allow some for formatting)
+        if (!cleanLine) {
+            this.state.consecutiveEmptyLines++;
+            return this.state.consecutiveEmptyLines <= 1 ? '' : null;
+        }
+        
+        this.state.consecutiveEmptyLines = 0;
         
         // Handle greeting box
-        if (this.isGreetingBoxStart(line) || this.state.inGreetingBox) {
+        if (!this.state.hasShownGreeting && (this.isGreetingBoxStart(cleanLine) || this.state.inGreetingBox)) {
             return this.handleGreetingBox(line, cleanLine);
         }
         
-        // Check line type
-        const lineType = this.getLineType(cleanLine);
-        
-        switch (lineType) {
-            case 'status':
-                return this.handleStatusLine(line, cleanLine);
-            case 'prompt':
-                return this.handlePromptLine(line, cleanLine);
-            case 'command':
-                return line; // Always show commands
-            case 'tool':
-                return this.handleToolLine(line, cleanLine);
-            case 'result':
-                return this.handleResultLine(line, cleanLine);
-            case 'tip':
-                return line; // Show tips
-            case 'empty':
-                return this.handleEmptyLine();
-            case 'ui_chrome':
-                return null; // Filter out UI chrome
-            default:
-                return this.handleContentLine(line, cleanLine);
-        }
-    }
-
-    /**
-     * Determine the type of line
-     */
-    private getLineType(cleanLine: string): string {
-        // Status lines (✻ Baking...)
-        if (/^[·✻]\s+\w+…?\s*\(/.test(cleanLine)) {
-            return 'status';
-        }
-        
-        // Prompt lines (│ > Try...)
-        if (/[>│]\s*Try\s+"[^"]+"/.test(cleanLine)) {
-            return 'prompt';
-        }
-        
-        // Commands (> /aidev-code-task)
-        if (/^>\s*\//.test(cleanLine)) {
-            return 'command';
-        }
-        
-        // Tool invocations (● Bash...)
-        if (/^●\s*/.test(cleanLine)) {
-            return 'tool';
-        }
-        
-        // Results (⎿ ...)
-        if (/^⎿\s*/.test(cleanLine)) {
-            return 'result';
-        }
-        
-        // Tips (※ ...)
-        if (cleanLine.startsWith('※')) {
-            return 'tip';
-        }
-        
-        // Empty line
-        if (!cleanLine) {
-            return 'empty';
-        }
-        
-        // UI chrome (box drawing, shortcuts, etc)
+        // Filter out UI chrome
         if (this.isUIChrome(cleanLine)) {
-            return 'ui_chrome';
-        }
-        
-        return 'content';
-    }
-
-    /**
-     * Check if line is UI chrome
-     */
-    private isUIChrome(cleanLine: string): boolean {
-        return !!(
-            /^[─│┌┐└┘═║╔╗╚╝╭╮╯╰]+$/.test(cleanLine) ||
-            cleanLine.startsWith("? for shortcuts") ||
-            /Bypassing Permissions/.test(cleanLine) ||
-            /IDE (dis)?connected/.test(cleanLine) ||
-            /In \d+.*\.json$/.test(cleanLine) ||
-            /Press Ctrl-C/.test(cleanLine) ||
-            /^\[[\d?]+[hl]/.test(cleanLine) ||
-            /^if \[.*]; then…\)$/.test(cleanLine)
-        );
-    }
-
-    /**
-     * Handle status lines (only emit when they change significantly)
-     */
-    private handleStatusLine(line: string, cleanLine: string): string | null {
-        // Only show final status lines like "✻ Stewing… (17s · ↑ 201 tokens · esc to interrupt · offline)"
-        // Skip intermediate animation frames
-        if (cleanLine.includes('…') && cleanLine.includes('tokens')) {
-            // This looks like a final status, show it
-            this.state.lastStatusLine = cleanLine;
-            return line;
-        }
-        
-        // Skip all other status animations
-        return null;
-    }
-
-    /**
-     * Handle prompt lines (only show once)
-     */
-    private handlePromptLine(line: string, cleanLine: string): string | null {
-        const promptContent = cleanLine.replace(/[>│]\s*/, '').trim();
-        
-        if (this.state.lastPromptLine === promptContent) {
+            if (this.debugEnabled) {
+                this.debugLog({
+                    event: 'filtered_ui_chrome',
+                    line: cleanLine,
+                    pattern: this.getUIPatternMatch(cleanLine)
+                });
+            }
             return null;
         }
         
-        this.state.lastPromptLine = promptContent;
-
-        return null; // Don't show prompts - they're just UI
-    }
-
-    /**
-     * Handle tool lines
-     */
-    private handleToolLine(line: string, cleanLine: string): string | null {
-        // Extract tool name if this is a new tool invocation
-        const toolMatch = cleanLine.match(/^●\s*([A-Za-z]+)\s*\(/);
-        if (toolMatch) {
-            this.state.currentToolName = toolMatch[1];
-            this.state.currentToolStarted = true;
-            this.state.lastResultLine = null; // Reset for new tool
-            return line; // Show tool invocation
-        }
-        
-        // Skip duplicate tool lines
-        if (this.state.lastToolOutput === cleanLine) {
+        // Check if we should show this line
+        if (!this.shouldShowLine(cleanLine)) {
+            if (this.debugEnabled) {
+                this.debugLog({
+                    event: 'filtered_line',
+                    line: cleanLine,
+                    reason: 'shouldShowLine_false'
+                });
+            }
             return null;
         }
         
-        this.state.lastToolOutput = cleanLine;
-        this.state.consecutiveDuplicates = 0;
-
+        // Update last clean line
+        this.state.lastCleanLine = cleanLine;
+        
+        if (this.debugEnabled) {
+            this.debugLog({
+                event: 'emitted_line',
+                cleanLine,
+                type: this.getFilterReason(cleanLine)
+            });
+        }
+        
         return line;
     }
 
     /**
-     * Handle result lines (filter duplicates like "Waiting..." and "Running...")
+     * Check if line is part of greeting box
      */
-    private handleResultLine(line: string, cleanLine: string): string | null {
-        // Remove the ⎿ prefix and trim
-        const resultContent = cleanLine.replace(/^⎿\s*/, '').trim();
-        
-        // Skip intermediate states like "Waiting..." and "Running..."
-        if (resultContent.match(/^(Waiting|Running)…$/)) {
-            return null;
-        }
-        
-        // Skip if it's the same as the last result
-        if (this.state.lastResultLine === resultContent) {
-            return null;
-        }
-        
-        // Check if this is a final result (has checkmark or specific content)
-        const isFinalResult = resultContent.includes('✅') || 
-                            resultContent.includes('Found') ||
-                            resultContent.includes('provided') ||
-                            resultContent.includes('Allowed') ||
-                            !resultContent.includes('…');
-        
-        if (isFinalResult) {
-            this.state.lastResultLine = resultContent;
-            this.state.consecutiveDuplicates = 0;
-            return line;
-        }
-        
-        return null;
+    private isGreetingBoxStart(cleanLine: string): boolean {
+        return cleanLine.startsWith('╭') || cleanLine.includes('Welcome to Claude Code');
     }
 
     /**
-     * Handle empty lines (limit consecutive empties)
-     */
-    private handleEmptyLine(): string | null {
-        this.state.consecutiveDuplicates++;
-
-        return this.state.consecutiveDuplicates <= 1 ? '' : null;
-    }
-
-    /**
-     * Handle greeting box
+     * Handle greeting box lines
      */
     private handleGreetingBox(line: string, cleanLine: string): string | null {
-        if (!this.state.hasShownGreeting) {
-            if (!this.state.inGreetingBox && this.isGreetingBoxStart(line)) {
-                this.state.inGreetingBox = true;
+        if (!this.state.inGreetingBox && this.isGreetingBoxStart(cleanLine)) {
+            this.state.inGreetingBox = true;
+            this.state.greetingBoxLines = [];
+        }
+        
+        if (this.state.inGreetingBox) {
+            this.state.greetingBoxLines.push(line);
+            
+            // Check if end of greeting box
+            if (cleanLine.startsWith('╰') || cleanLine.includes('────╯')) {
+                this.state.inGreetingBox = false;
+                this.state.hasShownGreeting = true;
+                
+                // Return all greeting lines at once
+                const greeting = this.state.greetingBoxLines.join('\n');
+                this.state.greetingBoxLines = [];
+                return greeting;
             }
             
-            if (this.state.inGreetingBox) {
-                this.state.greetingBoxLines.push(line);
-                
-                // Check if end of greeting box
-                if (cleanLine.includes('cwd:') || /^[└╰]/.test(cleanLine)) {
-                    this.state.inGreetingBox = false;
-                    this.state.hasShownGreeting = true;
-                    
-                    // Emit all greeting lines at once
-                    const greeting = this.state.greetingBoxLines.join('\n');
-                    this.state.greetingBoxLines = [];
-
-                    return greeting;
-                }
-                
-                return null; // Buffer until complete
-            }
+            return null; // Buffer until complete
         }
         
         return null;
     }
 
     /**
-     * Check if line starts a greeting box
+     * Get which UI pattern matched
      */
-    private isGreetingBoxStart(line: string): boolean {
-        const clean = line.replace(this.ANSI_ESCAPE_REGEX, '');
-
-        return !!(/^\s*[┌╭]/.test(clean) || clean.includes('Welcome to'));
+    private getUIPatternMatch(cleanLine: string): string {
+        const patterns: Array<[RegExp, string]> = [
+            [/^[│╭╮╯╰─]+$/, 'box_drawing'],
+            [/^>\s*Try\s+"[^"]+"/, 'try_suggestion'],
+            [/\?\s*for shortcuts/, 'shortcuts_hint'],
+            [/Bypassing Permissions/, 'permissions'],
+            [/IDE\s+(dis)?connected/, 'ide_status'],
+            [/In\s+[\w-]+\.json$/, 'json_reference'],
+            [/Press Ctrl-C/, 'control_hint'],
+            [/^[?⧉]\s/, 'ui_indicator'],
+            [/if\s*\[.*\];\s*then…\)$/, 'partial_bash']
+        ];
+        
+        for (const [pattern, name] of patterns) {
+            if (pattern.test(cleanLine)) {
+                return name;
+            }
+        }
+        return 'unknown';
     }
 
     /**
-     * Handle regular content lines
+     * Check if line is UI chrome that should be filtered
      */
-    private handleContentLine(line: string, cleanLine: string): string | null {
-        // Check for duplicate content
-        if (this.state.lastToolOutput === cleanLine) {
-            this.state.consecutiveDuplicates++;
+    private isUIChrome(cleanLine: string): boolean {
+        // Filter patterns
+        const chromePatterns = [
+            /^[│╭╮╯╰─]+$/,                    // Just box drawing
+            /^>\s*Try\s+"[^"]+"/,             // Try suggestions
+            /\?\s*for shortcuts/,              // Shortcuts hint
+            /Bypassing Permissions/,           // Permission notices
+            /IDE\s+(dis)?connected/,           // IDE status
+            /In\s+[\w-]+\.json$/,              // JSON file references
+            /Press Ctrl-C/,                    // Control hints
+            /^[?⧉]\s/,                        // UI indicators
+            /if\s*\[.*\];\s*then…\)$/         // Partial bash
+        ];
+        
+        return chromePatterns.some(pattern => pattern.test(cleanLine));
+    }
 
-            return this.state.consecutiveDuplicates <= 3 ? null : line;
+    /**
+     * Determine if a line should be shown
+     */
+    private shouldShowLine(cleanLine: string): boolean {
+        // Always show certain patterns
+        const alwaysShow = [
+            /^>\s*\//,                        // Commands
+            /^●\s/,                           // Tool invocations
+            /^⎿\s/,                           // Results
+            /^※/,                             // Tips
+            /^[✻·]\s+\w+…/,                   // Status lines (handled specially)
+            /Welcome to Claude Code/,          // Greeting
+            /cwd:/,                           // Working directory
+        ];
+        
+        if (alwaysShow.some(pattern => pattern.test(cleanLine))) {
+            return true;
         }
         
-        this.state.lastToolOutput = cleanLine;
-        this.state.consecutiveDuplicates = 0;
-
-        return line;
+        // Skip if it's the same as the last line (duplicate)
+        if (cleanLine === this.state.lastCleanLine) {
+            return false;
+        }
+        
+        // Show other content that's not UI chrome
+        return cleanLine.length > 0 && !this.isUIChrome(cleanLine);
     }
 
     /**
@@ -330,7 +455,7 @@ export class SmartStreamFilter {
         }
         
         this.reset();
-
+        
         return output.join('\n');
     }
 
@@ -340,16 +465,17 @@ export class SmartStreamFilter {
     reset(): void {
         this.buffer = '';
         this.state = {
-            lastStatusLine: null,
-            lastPromptLine: null,
             inGreetingBox: false,
             greetingBoxLines: [],
             hasShownGreeting: false,
-            lastToolOutput: null,
-            lastResultLine: null,
-            consecutiveDuplicates: 0,
-            currentToolName: null,
-            currentToolStarted: false
+            currentAnimationType: null,
+            lastEmittedTokenCount: 0,
+            animationStartTime: 0,
+            currentToolSignature: null,
+            inToolExecution: false,
+            lastResultContent: null,
+            lastCleanLine: '',
+            consecutiveEmptyLines: 0
         };
     }
 }

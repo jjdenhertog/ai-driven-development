@@ -27,7 +27,8 @@
       "Bash(awk:*)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(diff:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }
