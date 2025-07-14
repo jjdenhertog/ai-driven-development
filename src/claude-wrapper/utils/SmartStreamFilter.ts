@@ -176,15 +176,19 @@ export class SmartStreamFilter {
     private shouldEmitAnimationLine(line: string, cleanLine: string): boolean {
         // Tool invocations - always show new ones
         if (cleanLine.startsWith('● ')) {
-            const toolSig = cleanLine.substring(0, 50);
-            if (toolSig !== this.state.currentToolSignature) {
-                this.state.currentToolSignature = toolSig;
+            // Extract just the tool name to avoid false duplicates from partial content
+            const toolMatch = cleanLine.match(/^●\s+(\w+)/);
+            const toolName = toolMatch ? toolMatch[1] : cleanLine.substring(0, 50);
+            
+            if (toolName !== this.state.currentToolSignature) {
+                this.state.currentToolSignature = toolName;
                 this.state.inToolExecution = true;
                 
                 if (this.debugEnabled) {
                     this.debugLog({
                         event: 'new_tool',
-                        toolSig,
+                        toolName,
+                        cleanLine,
                         previousTool: this.state.currentToolSignature
                     });
                 }
@@ -192,6 +196,14 @@ export class SmartStreamFilter {
                 return true;
             }
             return false; // Skip duplicate tool lines
+        }
+        
+        // Skip tool continuation lines that are duplicates
+        if (this.state.inToolExecution && /^\s{10,}/.test(line) && cleanLine.endsWith('…)')) {
+            // This looks like a tool continuation line
+            if (cleanLine === this.state.lastCleanLine) {
+                return false; // Skip duplicate continuation
+            }
         }
         
         // Results - only show final states
@@ -272,6 +284,17 @@ export class SmartStreamFilter {
             return null;
         }
         
+        // Also filter lines that start with many spaces followed by content (likely right-aligned UI)
+        if (/^\s{50,}/.test(line)) {
+            if (this.debugEnabled) {
+                this.debugLog({
+                    event: 'filtered_right_aligned_ui',
+                    line: cleanLine
+                });
+            }
+            return null;
+        }
+        
         // Track if we've seen a command
         if (cleanLine.startsWith('>') && cleanLine.includes('/')) {
             this.state.hasSeenCommand = true;
@@ -345,13 +368,18 @@ export class SmartStreamFilter {
     private getUIPatternMatch(cleanLine: string): string {
         const patterns: Array<[RegExp, string]> = [
             [/^[│╭╮╯╰─]+$/, 'box_drawing'],
-            [/>\s*Try\s+"[^"]+"/, 'try_suggestion'],  // Removed ^ to match anywhere
+            [/^│\s*>/, 'input_field'],
+            [/>\s*Try\s+"[^"]+"/, 'try_suggestion'],
             [/\?\s*for shortcuts/, 'shortcuts_hint'],
             [/Bypassing Permissions/, 'permissions'],
             [/IDE\s+(dis)?connected/, 'ide_status'],
             [/In\s+[\w-]+\.json$/, 'json_reference'],
             [/Press Ctrl-C/, 'control_hint'],
             [/^[?⧉]\s/, 'ui_indicator'],
+            [/⏵⏵\s*auto-accept/, 'auto_accept'],
+            [/line selected$/, 'line_selected'],
+            [/Approaching.*usage limit/, 'usage_limit_warning'],
+            [/\/model to use/, 'model_suggestion'],
             [/if\s*\[.*\];\s*then…\)$/, 'partial_bash']
         ];
         
@@ -370,13 +398,18 @@ export class SmartStreamFilter {
         // Filter patterns
         const chromePatterns = [
             /^[│╭╮╯╰─]+$/,                    // Just box drawing
-            />\s*Try\s+"[^"]+"/,              // Try suggestions (removed ^ to match anywhere)
+            /^│\s*>/,                         // Input field line starting with │ >
+            />\s*Try\s+"[^"]+"/,              // Try suggestions
             /\?\s*for shortcuts/,              // Shortcuts hint
             /Bypassing Permissions/,           // Permission notices
             /IDE\s+(dis)?connected/,           // IDE status
             /In\s+[\w-]+\.json$/,              // JSON file references
             /Press Ctrl-C/,                    // Control hints
             /^[?⧉]\s/,                        // UI indicators
+            /⏵⏵\s*auto-accept/,               // Auto-accept indicator
+            /line selected$/,                  // Line selected indicator
+            /Approaching.*usage limit/,        // Usage limit warnings
+            /\/model to use/,                  // Model suggestions
             /if\s*\[.*\];\s*then…\)$/         // Partial bash
         ];
         
