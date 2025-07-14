@@ -2,7 +2,6 @@ import { runClaudeWithRetry } from './utils/runClaudeWithRetry';
 import { containsExitKeyword } from './utils/containsExitKeyword';
 import { CompressedLogger } from './utils/CompressedLogger';
 import path from 'node:path';
-import fs from 'node:fs';
 
 type Options = {
     cwd: string
@@ -56,10 +55,6 @@ export async function executeClaudeCommand(options: Options): Promise<{ success:
                 
                 // Always log to test file
                 logger.log(data);
-                
-                // Debug: also write raw filtered output to separate file
-                const debugFilteredPath = path.join(process.cwd(), 'debug-filtered-output.txt');
-                fs.appendFileSync(debugFilteredPath, data);
             }
         });
         

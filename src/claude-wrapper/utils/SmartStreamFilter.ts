@@ -11,8 +11,9 @@ type StreamState = {
     
     // Animation tracking
     currentAnimationType: string | null; // 'Herding', 'Ideating', etc.
-    lastEmittedTokenCount: number;
-    animationStartTime: number;
+    lastStatusLine: string | null;      // Buffer the last status line
+    statusLineRaw: string | null;       // Raw status line with ANSI codes
+    hasSeenCommand: boolean;            // Whether we've seen a command yet
     
     // Tool execution tracking
     currentToolSignature: string | null;
@@ -32,8 +33,9 @@ export class SmartStreamFilter {
         greetingBoxLines: [],
         hasShownGreeting: false,
         currentAnimationType: null,
-        lastEmittedTokenCount: 0,
-        animationStartTime: 0,
+        lastStatusLine: null,
+        statusLineRaw: null,
+        hasSeenCommand: false,
         currentToolSignature: null,
         inToolExecution: false,
         lastResultContent: null,
@@ -218,51 +220,20 @@ export class SmartStreamFilter {
             }
         }
         
-        // Status animations (Herding, Ideating, etc.)
+        // Status animations (Herding, Ideating, etc.) - always filter out
         const statusMatch = cleanLine.match(/^[✻·]\s+(\w+)…/);
         if (statusMatch) {
-            const animationType = statusMatch[1];
-            const tokenMatch = cleanLine.match(/(\d+)\s+tokens/);
-            const tokenCount = tokenMatch ? parseInt(tokenMatch[1]) : 0;
-            
-            // Show when animation type changes
-            if (animationType !== this.state.currentAnimationType) {
-                this.state.currentAnimationType = animationType;
-                this.state.lastEmittedTokenCount = tokenCount;
-                this.state.animationStartTime = Date.now();
-                
-                if (this.debugEnabled) {
-                    this.debugLog({
-                        event: 'animation_type_change',
-                        from: this.state.currentAnimationType,
-                        to: animationType,
-                        tokens: tokenCount
-                    });
-                }
-                
-                return true;
+            if (this.debugEnabled) {
+                this.debugLog({
+                    event: 'filtered_status_line',
+                    cleanLine
+                });
             }
-            
-            // Show periodic updates (every 50 tokens or 5 seconds)
-            const timeDiff = Date.now() - this.state.animationStartTime;
-            const tokenDiff = tokenCount - this.state.lastEmittedTokenCount;
-            
-            if (tokenDiff >= 50 || timeDiff >= 5000 || cleanLine.includes('offline')) {
-                this.state.lastEmittedTokenCount = tokenCount;
-                this.state.animationStartTime = Date.now();
-                
-                if (this.debugEnabled) {
-                    this.debugLog({
-                        event: 'animation_update',
-                        reason: tokenDiff >= 50 ? 'token_threshold' : timeDiff >= 5000 ? 'time_threshold' : 'offline',
-                        tokenDiff,
-                        timeDiff
-                    });
-                }
-                
-                return true;
-            }
-            
+            return false;  // Never show status lines
+        }
+        
+        // Filter UI chrome even in animation chunks
+        if (this.isUIChrome(cleanLine)) {
             return false;
         }
         
@@ -299,6 +270,11 @@ export class SmartStreamFilter {
                 });
             }
             return null;
+        }
+        
+        // Track if we've seen a command
+        if (cleanLine.startsWith('>') && cleanLine.includes('/')) {
+            this.state.hasSeenCommand = true;
         }
         
         // Check if we should show this line
@@ -369,7 +345,7 @@ export class SmartStreamFilter {
     private getUIPatternMatch(cleanLine: string): string {
         const patterns: Array<[RegExp, string]> = [
             [/^[│╭╮╯╰─]+$/, 'box_drawing'],
-            [/^>\s*Try\s+"[^"]+"/, 'try_suggestion'],
+            [/>\s*Try\s+"[^"]+"/, 'try_suggestion'],  // Removed ^ to match anywhere
             [/\?\s*for shortcuts/, 'shortcuts_hint'],
             [/Bypassing Permissions/, 'permissions'],
             [/IDE\s+(dis)?connected/, 'ide_status'],
@@ -394,7 +370,7 @@ export class SmartStreamFilter {
         // Filter patterns
         const chromePatterns = [
             /^[│╭╮╯╰─]+$/,                    // Just box drawing
-            /^>\s*Try\s+"[^"]+"/,             // Try suggestions
+            />\s*Try\s+"[^"]+"/,              // Try suggestions (removed ^ to match anywhere)
             /\?\s*for shortcuts/,              // Shortcuts hint
             /Bypassing Permissions/,           // Permission notices
             /IDE\s+(dis)?connected/,           // IDE status
@@ -454,6 +430,19 @@ export class SmartStreamFilter {
             output.push(...this.state.greetingBoxLines);
         }
         
+        // Add the last status line at the very end
+        if (this.state.statusLineRaw && this.state.hasSeenCommand) {
+            output.push(''); // Empty line before status
+            output.push(this.state.statusLineRaw);
+            
+            if (this.debugEnabled) {
+                this.debugLog({
+                    event: 'flushed_final_status',
+                    statusLine: this.state.lastStatusLine
+                });
+            }
+        }
+        
         this.reset();
         
         return output.join('\n');
@@ -469,8 +458,9 @@ export class SmartStreamFilter {
             greetingBoxLines: [],
             hasShownGreeting: false,
             currentAnimationType: null,
-            lastEmittedTokenCount: 0,
-            animationStartTime: 0,
+            lastStatusLine: null,
+            statusLineRaw: null,
+            hasSeenCommand: false,
             currentToolSignature: null,
             inToolExecution: false,
             lastResultContent: null,
