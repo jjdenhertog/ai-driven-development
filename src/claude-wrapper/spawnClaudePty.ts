@@ -26,8 +26,10 @@ export function spawnClaudePty(cwd: string, command: string, args: string[]): IP
         process.stdin.setRawMode(true);
     }
 
-    // Pipe stdin to PTY
-    process.stdin.pipe(ptyProcess);
+    // Forward stdin to PTY
+    process.stdin.on('data', (data) => {
+        ptyProcess.write(data.toString());
+    });
 
     // Handle terminal resize
     process.stdout.on('resize', () => {
