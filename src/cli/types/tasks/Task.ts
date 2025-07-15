@@ -3,7 +3,7 @@ export type Task = {
     id: string;
     name: string;
     path: string;
-    status: 'pending' | 'in-progress' | 'review' | 'completed' | 'learned' | 'archived';
+    status: 'pending' | 'completed' | 'archived';
     description?: string;
     dependencies?: string[];
     branch?: string;

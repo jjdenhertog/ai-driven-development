@@ -456,30 +456,47 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
     const hasErrors = timeline.some(entry => entry.type === 'error');
     if (hasErrors) return false;
 
-    // 2. Check TodoWrite tool completions
+    // 2. Check if session ended during tool execution (abrupt ending)
+    const lastTimelineEntry = timeline[timeline.length - 1];
+    if (lastTimelineEntry && lastTimelineEntry.type === 'tool') {
+        // Session ended during a tool execution - this is likely an abrupt termination
+        return false;
+    }
+
+    // 3. Check TodoWrite tool completions
     const todoWriteEntries = timeline.filter(entry => entry.name === 'TodoWrite' && entry.details);
     if (todoWriteEntries.length > 0) {
         // Get the last TodoWrite entry
         const lastTodoEntry = todoWriteEntries[todoWriteEntries.length - 1];
         if (lastTodoEntry.details && Array.isArray(lastTodoEntry.details)) {
             const todos = lastTodoEntry.details;
-            const allCompleted = todos.every(todo => todo.status === 'completed');
+            const totalTodos = todos.length;
+            const completedTodos = todos.filter(todo => todo.status === 'completed').length;
             const hasInProgress = todos.some(todo => todo.status === 'in_progress');
             const hasPending = todos.some(todo => todo.status === 'pending');
 
-            // If all todos are completed, it's likely successful
-            if (allCompleted && todos.length > 0) return true;
+            // If all todos are completed, it's successful
+            if (completedTodos === totalTodos && totalTodos > 0) return true;
 
-            // If there are still pending or in-progress todos, it might not be complete
-            if (hasInProgress || hasPending) {
-                // But we need to check if the last messages indicate completion
-                // Continue to keyword analysis below
+            // If less than 50% of todos are completed, it's likely unsuccessful
+            if (totalTodos > 0 && completedTodos / totalTodos < 0.8) {
+                return false;
+            }
+
+            // If there are still in-progress todos at the end, it's incomplete
+            if (hasInProgress && lastTimelineEntry === lastTodoEntry) {
+                return false;
             }
         }
     }
 
-    // 3. Analyze the last few assistant messages for success/failure keywords
+    // 4. Analyze the last few assistant messages for success/failure keywords
     const lastMessages = extractLastAssistantMessages(transcriptEntries, 5);
+
+    // If there are no assistant messages after tool executions, likely incomplete
+    if (lastMessages.length === 0 && timeline.some(entry => entry.type === 'tool')) {
+        return false;
+    }
 
     // Success keywords (case-insensitive)
     const successKeywords = [
@@ -516,7 +533,7 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
         }
     }
 
-    // 4. Check if the session ended abruptly (very few timeline entries)
+    // 5. Check if the session ended abruptly (very few timeline entries)
     if (timeline.length < 3) {
         return false; // Likely an early termination
     }
@@ -526,8 +543,9 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
         return false;
     }
 
-    // Default to true if we have more success indicators or no clear failure
-    return successScore > 0 || (failureScore === 0 && timeline.length > 5);
+    // Only default to true if we have clear success indicators
+    // Don't assume success just because there are no failures
+    return successScore > 0;
 }
 
 function extractLastAssistantMessages(transcriptEntries: TranscriptEntry[], count: number): string[] {

@@ -21,9 +21,7 @@ export async function createCommit(
             fullMessage += `\n\n${body}`;
 
         // Execute commit with AI author
-        await git.commit(fullMessage, undefined, {
-            '--author': 'AI <noreply@anthropic.com>'
-        });
+        await git.commit(fullMessage);
 
         // Get the commit hash
         const commitHash = await git.revparse(['HEAD']);

@@ -8,7 +8,7 @@ export async function hasUnresolvedDependencies(task: Task): Promise<boolean> {
 
     for (const depId of task.dependencies) {
         const depTask = await getTaskById({ taskId: depId });
-        if (!depTask || depTask.status !== 'completed') {
+        if (!depTask || depTask.status !== 'archived') {
             return true;
         }
     }

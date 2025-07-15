@@ -1,3 +1,4 @@
+import { MAIN_BRANCH } from '../../config';
 import { getGitInstance } from './getGitInstance';
 
 export type CommitInfo = {
@@ -32,63 +33,57 @@ export const AI_COMMIT_PATTERNS = [
 export async function getUserChanges(branch: string, taskId: string): Promise<UserChanges | null> {
     try {
         const git = getGitInstance();
-        const mainBranch = 'main';
+        const mainBranch = MAIN_BRANCH;
         
-        // Find the merge commit for this task
-        const pattern = `Merge pull request.*${taskId}`;
-        const mergeCommitResult = await git.raw([
-            'log',
-            `--grep=${pattern}`,
-            '--merges',
-            '--pretty=format:%H',
-            '-n', '1',
-            mainBranch
-        ]);
+        console.log("mainBranch:", mainBranch)
+        console.log("branch:", branch)
         
-        const mergeCommit = mergeCommitResult.trim();
-        if (!mergeCommit) {
+        // Check if the branch exists on origin
+        try {
+            await git.raw(['rev-parse', `origin/${branch}`]);
+        } catch {
+            console.log("Branch doesn't exist on origin")
             return null;
         }
-
-        // Get the merge base (the original commit before task changes)
-        const mergeBaseResult = await git.raw([
-            'merge-base',
-            `${mergeCommit}^1`,
-            `${mergeCommit}^2`
-        ]);
-        const mergeBase = mergeBaseResult.trim();
-
-        // Get all commits from the PR
-        const commitsResult = await git.raw([
+        
+        // Get all commits that are in main and contain the task ID in the commit message
+        const commitsInMainResult = await git.raw([
             'log',
-            `${mergeBase}..${mergeCommit}^2`,
+            `origin/${mainBranch}`,
+            '--grep',
+            taskId,
             '--pretty=format:%H|%an|%ad|%s',
             '--date=iso-strict'
         ]);
         
-        const commits: CommitInfo[] = commitsResult.trim().split('\n').filter(Boolean).map(line => {
-            const [hash, author, date, message] = line.split('|');
-            return { hash, author, date, message };
-        });
-
-        if (commits.length === 0) {
+        if (!commitsInMainResult.trim()) {
+            console.log("No commits found for this task in main branch")
             return null;
         }
+        
+        // Parse all commits related to this task
+        const commits = commitsInMainResult.trim().split('\n')
+            .filter(Boolean)
+            .map(line => {
+                const [hash, author, date, message] = line.split('|');
+                return { hash, author, date, message };
+            });
 
-        // Filter out AI-generated commits
+
+        // Filter out AI-generated commits (those containing "(AI-generated)")
         const userCommits = commits.filter(commit => {
-            const isAICommit = AI_COMMIT_PATTERNS.some(pattern => 
-                commit.message.toLowerCase().includes(pattern.toLowerCase()) ||
-                commit.author.toLowerCase().includes('ai') ||
-                commit.author.toLowerCase().includes('bot')
-            );
-            return !isAICommit;
+            return !commit.message.includes('(AI-generated)');
         });
+
+        if (userCommits.length === 0) {
+            return null;
+        }
 
         // Get file changes for all user commits
         const fileChanges: FileChange[] = [];
         const processedFiles = new Set<string>();
 
+        // For each user commit, get the changes
         for (const commit of userCommits) {
             // Get list of changed files for this commit
             const changedFilesResult = await git.raw([
@@ -99,26 +94,30 @@ export async function getUserChanges(branch: string, taskId: string): Promise<Us
                 commit.hash
             ]);
             
-            const changedFiles = changedFilesResult.trim().split('\n').filter(Boolean);
+            const changedFiles = changedFilesResult.trim().split('\n')
+                .filter(Boolean);
 
-            // Get diff for each file
+            // Get diff for each file (showing changes introduced by this commit)
             for (const file of changedFiles) {
-                if (!processedFiles.has(file)) {
-                    processedFiles.add(file);
-                    try {
-                        const diffResult = await git.raw([
-                            'diff',
-                            `${mergeBase}..${commit.hash}`,
-                            '--',
-                            file
-                        ]);
-                        fileChanges.push({
-                            file,
-                            diff: diffResult
-                        });
-                    } catch {
-                        // Skip files that can't be diffed
-                    }
+                if (processedFiles.has(file)) {
+                    continue;
+                }
+                
+                processedFiles.add(file);
+                try {
+                    // Get the diff for this specific commit
+                    const diffResult = await git.raw([
+                        'show',
+                        commit.hash,
+                        '--',
+                        file
+                    ]);
+                    fileChanges.push({
+                        file,
+                        diff: diffResult
+                    });
+                } catch {
+                    // Skip files that can't be diffed
                 }
             }
         }
@@ -130,7 +129,7 @@ export async function getUserChanges(branch: string, taskId: string): Promise<Us
             fileChanges,
             analyzedAt: new Date().toISOString()
         };
-    } catch (error) {
+    } catch (_error) {
         return null;
     }
 }

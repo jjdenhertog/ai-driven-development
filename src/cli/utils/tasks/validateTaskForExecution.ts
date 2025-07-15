@@ -24,13 +24,6 @@ export async function validateTaskForExecution(options: Options): Promise<Task> 
     if (!expectedStatuses.includes(task.status)) {
         const customMessage = errorMessage || `Task ${task.id} has status '${task.status}', expected one of: ${expectedStatuses.join(', ')}`;
 
-        // Special handling for in-progress tasks with force option
-        if (task.status === 'in-progress' && !force && expectedStatuses.includes('pending')) {
-            log(customMessage, 'warn');
-            log('   Use --force to override', 'warn');
-            throw new Error('Task already in progress');
-        }
-
         log(customMessage, 'error');
         throw new Error(customMessage);
     }

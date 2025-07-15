@@ -13,10 +13,18 @@ import { loadTaskFromFile } from "./loadTaskFromFile";
 type Options = {
     status?: 'pending' | 'in-progress' | 'completed';
     refresh?: boolean;
+    pull?: boolean;
 }
 
 export async function getTasks(options: Options = {}): Promise<Task[]> {
-    const { status, refresh = false } = options;
+    const { status, refresh = false, pull = false } = options;
+
+    if (pull && !refresh){
+        const pullResult = await pullBranch(STORAGE_BRANCH, STORAGE_PATH);
+        if (pullResult.success) {
+            log('Pulled latest task updates', 'success');
+        }
+    }
 
     // Sync worktree if refresh is requested
     if (refresh)

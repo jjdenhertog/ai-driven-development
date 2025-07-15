@@ -1,13 +1,16 @@
 import { readFileSync } from 'fs-extra';
 
 import { Task } from '../types/tasks/Task';
-import { checkCommitExists } from '../utils/git/checkCommitExists';
+import { checkBranchMerged } from '../utils/git/checkBranchMerged';
+// import { checkCommitExists } from '../utils/git/checkCommitExists';
 /* eslint-disable max-depth */
 import { checkGitAuth } from '../utils/git/checkGitAuth';
-import { processCompletedTask } from '../utils/learning/processCompletedTask';
+// import { processCompletedTask } from '../utils/learning/processCompletedTask';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
 import { getTasks } from '../utils/tasks/getTasks';
+import { getUserChanges } from '../utils/git/getUserChanges';
+import { MAIN_BRANCH } from '../config';
 
 type Options = {
     dangerouslySkipPermission: boolean
@@ -25,7 +28,7 @@ export async function learningCommand(options: Options) {
     // Switch to main branch
     log('Learning command started. Monitoring for completed tasks...', 'success');
 
-    if(dangerouslySkipPermission)
+    if (dangerouslySkipPermission)
         log('Dangerously skipping permission checks of Claude Code', 'warn');
 
     const allTasks = await getTasks();
@@ -34,7 +37,7 @@ export async function learningCommand(options: Options) {
     const iterationAfterFullReload = 30;
     let iteration = 0;
 
-    const mainBranch = 'main';
+    const mainBranch = MAIN_BRANCH;
 
     try {
         // eslint-disable-next-line no-constant-condition
@@ -64,12 +67,26 @@ export async function learningCommand(options: Options) {
                 for (const task of completedTasks) {
                     try {
                         // Check if this task has already been processed and committed to main branch
-                        if (await checkCommitExists(task.id, mainBranch)) {
-                            log(`Task ${task.id} already has a commit on main branch. Skipping...`, 'warn');
-                            continue;
+                        // if (await checkCommitExists(task.id, mainBranch)) {
+                        //     log(`Task ${task.id} already has a commit on main branch. Skipping...`, 'warn');
+                        //     continue;
+                        // }
+
+                        // Check if the task branch has been merged into main branch
+                        if (task.branch && await checkBranchMerged(task.branch, mainBranch)) {
+
+                            const userChanges = await getUserChanges(task.branch, task.id);
+                            // TODO: Process user changes here
+                            log(`User changes found for task ${task.id}:`, 'info');
+                            if (userChanges) {
+                                log(`  - ${userChanges.commits.length} user commits`, 'info');
+                                log(`  - ${userChanges.fileChanges.length} files changed`, 'info');
+                            }
+
+                            throw new Error("Implement here");
                         }
-                        
-                        await processCompletedTask(task, dangerouslySkipPermission);
+
+                        // await processCompletedTask(task, dangerouslySkipPermission);
                     } catch (error) {
 
                         log(`Error processing task ${task.id}: ${String(error)}`, 'error');

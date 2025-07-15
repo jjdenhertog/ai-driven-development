@@ -1,4 +1,4 @@
-import { rmSync } from 'fs-extra';
+import { existsSync, rmSync } from 'fs-extra';
 
 import { checkGitAuth } from '../utils/git/checkGitAuth';
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -9,7 +9,7 @@ import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
 import { ensureBranch } from '../utils/git/ensureBranch';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
-import { getGitInstance } from '../utils/git/getGitInstance';
+import { cleanupGitInstances, getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { pullBranch } from '../utils/git/pullBranch';
 import { pushBranch } from '../utils/git/pushBranch';
@@ -21,6 +21,7 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
+import { join } from 'node:path';
 
 type Options = {
     taskId: string
@@ -46,7 +47,7 @@ export async function executeTaskCommand(options: Options) {
     // Validate the task - expecting pending or in-progress status
     const task = await validateTaskForExecution({
         taskId,
-        expectedStatuses: ['pending', 'in-progress'],
+        expectedStatuses: ['pending'],
         force,
         refresh: true
     });
@@ -136,6 +137,9 @@ export async function executeTaskCommand(options: Options) {
 
         await git.raw(['branch', '-D', branchName, '--force']);
 
+        // Clean up git instances to allow process to exit
+        await cleanupGitInstances();
+
         return;
     }
 
@@ -151,13 +155,18 @@ export async function executeTaskCommand(options: Options) {
         });
 
         log(`Committing and pushing changes...`, 'info', undefined, logPath);
+        // Remove the stoarge path
+        const storagePath = join(worktreePath, '.aidev-storage');
+        if (existsSync(storagePath))
+            rmSync(storagePath, { force: true, recursive: true });
+
         await stageAllFiles(worktreePath)
         await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
             prefix: 'feat',
             cwd: worktreePath
         });
         const pushResult = await pushBranch(branchName, worktreePath);
-        if (!pushResult.success) 
+        if (!pushResult.success)
             log(`Failed to push changes to remote: ${pushResult.error}`, 'error', undefined, logPath);
 
 
@@ -183,4 +192,7 @@ export async function executeTaskCommand(options: Options) {
     } catch (error) {
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
+
+    // Clean up git instances to allow process to exit
+    await cleanupGitInstances();
 }

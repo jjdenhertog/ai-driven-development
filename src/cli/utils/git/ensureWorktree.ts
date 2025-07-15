@@ -8,7 +8,7 @@ import { addToGitignore } from './addToGitignore';
 import { getGitInstance } from './getGitInstance';
 import { getWorktrees } from './getWorktrees';
 
-export async function ensureWorktree(branch: string, path: string): Promise<void> {
+export async function ensureWorktree(branch: string, path: string, skipSymlink: boolean = false): Promise<void> {
     log(`Ensuring worktree for branch '${branch}' at path '${path}'...`, 'info');
 
     const git = getGitInstance();
@@ -36,7 +36,7 @@ export async function ensureWorktree(branch: string, path: string): Promise<void
     log(`Creating worktree at ${path}...`, 'info');
     await git.raw(['worktree', 'add', path, branch]);
 
-    if (branch !== STORAGE_BRANCH) {
+    if (branch !== STORAGE_BRANCH && !skipSymlink) {
         // Create a symlink to storage branch
         const symlinkPath = join(path, '.aidev-storage');
 

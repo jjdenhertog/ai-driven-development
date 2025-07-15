@@ -1,15 +1,11 @@
-import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync, readJsonSync } from 'fs-extra';
+import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
 
-import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_FOLDER, STORAGE_PATH } from '../config';
-import { addToGitignore } from '../utils/git/addToGitignore';
+import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_PATH } from '../config';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { ensureOrphanBranch } from '../utils/git/ensureOrphanBranch';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
 import { isInWorktree } from '../utils/git/isInWorktree';
-/* eslint-disable unicorn/prefer-module */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { log } from '../utils/logger';
 
 type Options = {
@@ -38,7 +34,6 @@ export async function initCommand(options: Options): Promise<void> {
         if (!existsSync(STORAGE_PATH))
             throw new Error(`${STORAGE_PATH} directory not found.`);
 
-
         /////////////////////////////////////////////
         //
         // SETUP CONFIG FILE
@@ -66,6 +61,7 @@ export async function initCommand(options: Options): Promise<void> {
         /////////////////////////////////////////////
 
         // The templates folder is at the root of the package (../../templates from dist/commands/)
+        // eslint-disable-next-line unicorn/prefer-module
         const packageRoot = join(__dirname, '..', '..', '..');
         const templatesRoot = join(packageRoot, 'templates');
 
@@ -147,7 +143,7 @@ export async function initCommand(options: Options): Promise<void> {
         
     } catch (error) {
         removeSync(STORAGE_PATH);
-        log(`Failed to initialize aidev: ${error}`, 'error');
+        log(`Failed to initialize aidev: ${error instanceof Error ? error.message : String(error)}`, 'error');
         throw error;
     }
 }

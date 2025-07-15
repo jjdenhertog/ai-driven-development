@@ -11,9 +11,12 @@ import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
 import { executeTaskCommand } from "./commands/executeTaskCommand";
 import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
-import { logCommand } from "./commands/log";
+import { logCommand } from "./commands/logCommand";
+import { openCommand } from "./commands/openCommand";
 import { logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
+import { closeCommand } from "./commands/closeCommand";
+import { saveCommand } from "./commands/saveCommand";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', '..', 'package.json');
@@ -189,6 +192,58 @@ program
     .action(async () => {
         try {
             await clearCommand()
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    })
+
+// Open command
+program
+    .command('open <taskId>')
+    .description('Open a task worktree by ID, name, or "id-name" format')
+    .action(async (taskId: string) => {
+        try {
+            await openCommand({
+                taskId
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    })
+
+program
+    .command('close <taskId>')
+    .description('Close a task worktree by ID, name, or "id-name" format')
+    .action(async (taskId: string) => {
+        try {
+            await closeCommand({
+                taskId
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    })
+
+program
+    .command('save <taskId>')
+    .description('Save a task worktree by ID, name, or "id-name" format')
+    .action(async (taskId: string) => {
+        try {
+            await saveCommand({
+                taskId
+            })
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);

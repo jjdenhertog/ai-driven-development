@@ -9,8 +9,7 @@ export async function checkCommitExists(taskId: string, mainBranch: string): Pro
             'log',
             mainBranch,
             `--grep=archive task ${taskId}`,
-            '--oneline',
-            '--author=AI <noreply@anthropic.com>'
+            '--oneline'
         ]);
         
         return result.trim().length > 0;
