@@ -32,6 +32,11 @@ export function waitForExit(ptyProcess: IPty): Promise<number> {
                 silenceTimer = null;
             }
             
+            // Restore stdin to normal mode
+            if (process.stdin.isTTY && process.stdin.setRawMode) {
+                process.stdin.setRawMode(false);
+            }
+            
             // Kill the process if it's still running
             if (ptyProcess.pid) {
                 try {
@@ -53,12 +58,6 @@ export function waitForExit(ptyProcess: IPty): Promise<number> {
             exitCode = code || 0;
             cleanup();
             resolve(exitCode);
-        });
-        
-        // Handle stdin
-        process.stdin.on('data', (data) => {
-            ptyProcess.write(data.toString());
-            resetSilenceTimer();
         });
         
         // Start the initial silence timer

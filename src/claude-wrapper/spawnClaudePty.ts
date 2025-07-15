@@ -21,6 +21,14 @@ export function spawnClaudePty(cwd: string, command: string, args: string[]): IP
         }
     });
 
+    // Set stdin to raw mode to properly handle arrow keys
+    if (process.stdin.isTTY) {
+        process.stdin.setRawMode(true);
+    }
+
+    // Pipe stdin to PTY
+    process.stdin.pipe(ptyProcess);
+
     // Handle terminal resize
     process.stdout.on('resize', () => {
         ptyProcess.resize(
