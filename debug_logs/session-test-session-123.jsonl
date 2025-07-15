@@ -1,0 +1,1 @@
+{"timestamp":"2025-07-15T07:03:23.700Z","type":"raw-istty-true","sessionId":"test-session-123","data":{"session_id":"test-session-123","hook_event_name":"PreToolUse","tool_name":"Grep"},"inputData":"{\"session_id\":\"test-session-123\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Grep\"}\n","debug":{"inputSource":"stdin"}}

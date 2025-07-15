@@ -13,6 +13,7 @@ import { pushBranch } from '../utils/git/pushBranch';
 import { stageAllFiles } from '../utils/git/stageAllFiles';
 import { log } from "../utils/logger";
 import { createSession } from '../utils/storage/createSession';
+import { createSessionReport } from '../utils/storage/createSessionReport';
 import { logToSession } from '../utils/storage/logToSession';
 import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
@@ -101,6 +102,10 @@ export async function executeTaskCommand(options: Options) {
     
     // We no longer capture output - hooks will handle logging
     logToSession(session.logPath, `\nClaude command exited with code: ${result.exitCode}`);
+    
+    // Create session report from debug logs and transcript
+    log('Creating session report...', 'info');
+    await createSessionReport(task.id, task.name, worktreePath);
 
     if (result.exitCode !== 0) {
         log(`Claude command exited with code ${result.exitCode}`, 'error');

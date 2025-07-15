@@ -158,7 +158,10 @@ export async function initCommand(options: Options): Promise<void> {
         ensureDirSync(claudeSettingsDir);
         
         // Define the hooks configuration
-        // Note: Claude Code passes hook data via stdin as JSON, not environment variables
+        // Only log essential hooks for meaningful insights:
+        // - PreToolUse: What tool is about to run and its inputs
+        // - PostToolUse: Tool results and timing
+        // - Notification: Claude's status messages and progress updates
         const hooksConfig = {
             "PreToolUse": [
                 {
@@ -184,37 +187,6 @@ export async function initCommand(options: Options): Promise<void> {
             ],
             "Notification": [
                 {
-                    "hooks": [
-                        {
-                            "type": "command",
-                            "command": "aidev log raw"
-                        }
-                    ]
-                }
-            ],
-            "Stop": [
-                {
-                    "hooks": [
-                        {
-                            "type": "command",
-                            "command": "aidev log raw"
-                        }
-                    ]
-                }
-            ],
-            "SubagentStop": [
-                {
-                    "hooks": [
-                        {
-                            "type": "command",
-                            "command": "aidev log raw"
-                        }
-                    ]
-                }
-            ],
-            "PreCompact": [
-                {
-                    "matcher": "*",
                     "hooks": [
                         {
                             "type": "command",

@@ -166,12 +166,11 @@ program
 
 // Log command - for capturing output from Claude Code hooks
 program
-    .command('log <subcommand> [args...]')
+    .command('log')
     .description('Capture and log output from Claude Code hooks')
-    .allowUnknownOption()
-    .action((subcommand, args) => {
+    .action(() => {
         try {
-            logCommand([subcommand, ...args]);
+            logCommand();
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);
