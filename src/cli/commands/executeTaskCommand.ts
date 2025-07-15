@@ -110,12 +110,14 @@ export async function executeTaskCommand(options: Options) {
 
     // Create session report from debug logs and transcript
     log('Creating session report...', 'info', undefined, logPath);
-    await createSessionReport({
+    const sessionReport = await createSessionReport({
         taskId: task.id,
         taskName: task.name,
         worktreePath,
-        logsDir
+        logsDir,
+        exitCode: result.exitCode
     });
+    console.log(" sessionReport:", sessionReport)
 
     // Remove hooks for claude
     removeHooks(worktreePath);
@@ -151,7 +153,7 @@ export async function executeTaskCommand(options: Options) {
         });
 
 
-        log(`Committing and pushingchanges...`, 'info', undefined, logPath);
+        log(`Committing and pushing changes...`, 'info', undefined, logPath);
         await stageAllFiles(worktreePath)
         await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
             prefix: 'feat',
@@ -164,7 +166,7 @@ export async function executeTaskCommand(options: Options) {
         if (checkGitAuth()) {
             log(`Creating PR...`, 'info', undefined, logPath);
             await createTaskPR(task, branchName, worktreePath);
-        } 
+        }
 
         ///////////////////////////////////////////////////////////
         // Remove work tree
