@@ -63,6 +63,7 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
                 force,
                 dangerouslySkipPermission
             });
+            log(`Task ${task.id} - ${task.name} executed`, 'success');
 
             return { taskExecuted: true, noTasksFound: false };
         }
@@ -75,6 +76,8 @@ export async function executeNextTaskCommand(options: Options): Promise<ExecuteN
             dryRun,
             force
         });
+        
+        log(`Task ${task.id} - ${task.name} executed`, 'success');
 
         return { taskExecuted: !dryRun, noTasksFound: false };
     }
