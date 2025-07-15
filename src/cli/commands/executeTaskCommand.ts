@@ -117,12 +117,10 @@ export async function executeTaskCommand(options: Options) {
         logsDir,
         exitCode: result.exitCode
     });
-    console.log(" sessionReport:", sessionReport)
-
     // Remove hooks for claude
     removeHooks(worktreePath);
 
-    if (result.exitCode !== 0) {
+    if (!sessionReport.success) {
         log(`Claude command failed`, 'error', undefined, logPath);
         updateTaskFile(task.path, {
             status: 'failed'
@@ -152,14 +150,15 @@ export async function executeTaskCommand(options: Options) {
             status: 'completed'
         });
 
-
         log(`Committing and pushing changes...`, 'info', undefined, logPath);
         await stageAllFiles(worktreePath)
         await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
             prefix: 'feat',
             cwd: worktreePath
         });
-        await pushBranch(branchName, worktreePath);
+        const pushResult = await pushBranch(branchName, worktreePath);
+        if (!pushResult.success) 
+            log(`Failed to push changes to remote: ${pushResult.error}`, 'error', undefined, logPath);
 
 
         // Create PR
