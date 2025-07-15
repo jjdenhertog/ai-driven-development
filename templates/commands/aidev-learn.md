@@ -34,15 +34,13 @@ Analyzes user changes to AI-generated code for a specific task, extracting learn
 ```bash
 # CRITICAL: Pre-flight validation - MUST NOT PROCEED if any check fails
 
-# 0. Resolve path to .aidev-storage directory
-if [ -d ".aidev-storage" ]; then
-    AIDEV_DIR=".aidev-storage"
-else
-    echo "Cannot find .aidev-storage directory"
+# 0. Verify .aidev-storage directory exists
+if [ ! -d ".aidev-storage" ]; then
+    echo "ERROR: Cannot find .aidev-storage directory"
     exit 1
 fi
 
-echo "✅ Found aidev directory at: $AIDEV_DIR"
+echo "✅ Found .aidev-storage directory"
 
 # 1. Validate task argument
 if [ -z "#$ARGUMENTS" ]; then
@@ -61,7 +59,7 @@ fi
 
 # 3. Check ALL required files exist before proceeding
 MISSING_FILES=()
-for file in "$AIDEV_DIR/tasks/#$ARGUMENTS.json" "$AIDEV_DIR/tasks/#$ARGUMENTS.md" "$AIDEV_DIR/tasks_output/$TASK_ID/prp.md" "$AIDEV_DIR/tasks_output/$TASK_ID/user_changes.json"; do
+for file in ".aidev-storage/tasks/#$ARGUMENTS.json" ".aidev-storage/tasks/#$ARGUMENTS.md" ".aidev-storage/tasks_output/$TASK_ID/prp.md" ".aidev-storage/tasks_output/$TASK_ID/user_changes.json"; do
   if [ ! -f "$file" ]; then
     MISSING_FILES+=("$file")
   fi
@@ -77,14 +75,14 @@ if [ ${#MISSING_FILES[@]} -gt 0 ]; then
 fi
 
 # 4. Verify PRP is not empty
-if [ ! -s "$AIDEV_DIR/tasks_output/$TASK_ID/prp.md" ]; then
-  echo "PRP file exists but is empty: $AIDEV_DIR/tasks_output/$TASK_ID/prp.md"
+if [ ! -s ".aidev-storage/tasks_output/$TASK_ID/prp.md" ]; then
+  echo "PRP file exists but is empty: .aidev-storage/tasks_output/$TASK_ID/prp.md"
   echo "FATAL: Cannot learn without implementation plan"
   exit 1
 fi
 
 # 5. Verify user_changes.json is valid JSON
-if ! jq . "$AIDEV_DIR/tasks_output/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
+if ! jq . ".aidev-storage/tasks_output/$TASK_ID/user_changes.json" >/dev/null 2>&1; then
   echo "user_changes.json is not valid JSON"
   echo "FATAL: Cannot parse user changes"
   exit 1
@@ -98,19 +96,19 @@ echo "📁 All required files present and valid"
 <mandatory-checks>
   □ Task argument provided
   □ Task JSON/MD files exist
-  □ PRP exists at `$AIDEV_DIR/tasks_output/$TASK_ID/prp.md`
-  □ User changes exist at `$AIDEV_DIR/tasks_output/$TASK_ID/user_changes.json`
+  □ PRP exists at `.aidev-storage/tasks_output/$TASK_ID/prp.md`
+  □ User changes exist at `.aidev-storage/tasks_output/$TASK_ID/user_changes.json`
 </mandatory-checks>
 </pre-flight-validation>
 
 ### 1. Context Loading
 
 #### 1.1 Load Task Context
-- Read task specification from `$AIDEV_DIR/tasks/#$ARGUMENTS.md`
+- Read task specification from `.aidev-storage/tasks/#$ARGUMENTS.md`
 - Extract task type, objectives, and requirements
 
 #### 1.2 Load PRP
-- Read PRP from `$AIDEV_DIR/tasks_output/$TASK_ID/prp.md`
+- Read PRP from `.aidev-storage/tasks_output/$TASK_ID/prp.md`
 - Understand the AI's implementation plan and decisions
 
 #### 1.3 Load User Changes
@@ -128,14 +126,14 @@ echo "📁 All required files present and valid"
 
 ```bash
 # Check for existing patterns database
-if [ -f "$AIDEV_DIR/patterns/learned-patterns.json" ]; then
+if [ -f ".aidev-storage/patterns/learned-patterns.json" ]; then
   echo "✅ Found existing patterns database"
-  PATTERN_COUNT=$(jq '.patterns | length' $AIDEV_DIR/patterns/learned-patterns.json)
+  PATTERN_COUNT=$(jq '.patterns | length' .aidev-storage/patterns/learned-patterns.json)
   echo "📊 Existing patterns: $PATTERN_COUNT"
 else
   echo "📝 Creating new patterns database"
-  mkdir -p $AIDEV_DIR/patterns
-  echo '{"patterns": {}, "antipatterns": {}, "statistics": {"totalPatterns": 0, "totalAntipatterns": 0, "lastLearningSession": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "tasksAnalyzed": [], "averageConfidence": 0}}' > $AIDEV_DIR/patterns/learned-patterns.json
+  mkdir -p .aidev-storage/patterns
+  echo '{"patterns": {}, "antipatterns": {}, "statistics": {"totalPatterns": 0, "totalAntipatterns": 0, "lastLearningSession": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "tasksAnalyzed": [], "averageConfidence": 0}}' > .aidev-storage/patterns/learned-patterns.json
 fi
 ```
 
@@ -205,9 +203,9 @@ Generates pattern:
 
 ```bash
 # Check for duplicates in JSON database
-if [ -f "$AIDEV_DIR/patterns/learned-patterns.json" ]; then
+if [ -f ".aidev-storage/patterns/learned-patterns.json" ]; then
   for pattern_rule in "${NEW_PATTERN_RULES[@]}"; do
-    SIMILAR=$(jq --arg rule "$pattern_rule" '.patterns | to_entries | map(select(.value.rule | contains($rule))) | .key' $AIDEV_DIR/patterns/learned-patterns.json)
+    SIMILAR=$(jq --arg rule "$pattern_rule" '.patterns | to_entries | map(select(.value.rule | contains($rule))) | .key' .aidev-storage/patterns/learned-patterns.json)
     if [ -n "$SIMILAR" ]; then
       echo "📌 Found similar pattern: $SIMILAR"
       # Increment frequency and update confidence
@@ -220,7 +218,7 @@ fi
 
 ### 6. Update Learning Database
 
-Update `$AIDEV_DIR/patterns/learned-patterns.json`:
+Update `.aidev-storage/patterns/learned-patterns.json`:
 
 ```json
 {

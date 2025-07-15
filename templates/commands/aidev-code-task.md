@@ -42,17 +42,15 @@ Implements the task based on task type:
 
 ### 0. Pre-Flight Check
 
-**FIRST: Resolve path to .aidev-storage directory**
+**FIRST: Check for .aidev-storage directory**
 ```bash
-# Resolve path to .aidev-storage directory
-if [ -d ".aidev-storage" ]; then
-    AIDEV_DIR=".aidev-storage"
-else
-    echo "Cannot find .aidev-storage directory"
+# Verify .aidev-storage directory exists
+if [ ! -d ".aidev-storage" ]; then
+    echo "ERROR: Cannot find .aidev-storage directory"
     exit 1
 fi
 
-echo "✅ Found aidev directory at: $AIDEV_DIR"
+echo "✅ Found .aidev-storage directory"
 ```
 
 **SECOND: Check if task filename was provided**
@@ -67,21 +65,21 @@ fi
 **THIRD: Check if task files exist and can be loaded**
 ```bash
 # Check if task JSON exists
-if [ ! -f "$AIDEV_DIR/tasks/#$ARGUMENTS.json" ]; then
+if [ ! -f ".aidev-storage/tasks/#$ARGUMENTS.json" ]; then
   echo "Task not found: #$ARGUMENTS"
-  echo "Task file does not exist at: $AIDEV_DIR/tasks/#$ARGUMENTS.json"
+  echo "Task file does not exist at: .aidev-storage/tasks/#$ARGUMENTS.json"
   exit 1
 fi
 
 # Check if task MD exists
-if [ ! -f "$AIDEV_DIR/tasks/#$ARGUMENTS.md" ]; then
+if [ ! -f ".aidev-storage/tasks/#$ARGUMENTS.md" ]; then
   echo "Task specification not found: #$ARGUMENTS"
-  echo "Task specification file does not exist at: $AIDEV_DIR/tasks/#$ARGUMENTS.md"
+  echo "Task specification file does not exist at: .aidev-storage/tasks/#$ARGUMENTS.md"
   exit 1
 fi
 
 # Try to load and parse the task JSON
-TASK_JSON=$(cat $AIDEV_DIR/tasks/#$ARGUMENTS.json 2>/dev/null)
+TASK_JSON=$(cat .aidev-storage/tasks/#$ARGUMENTS.json 2>/dev/null)
 if [ $? -ne 0 ]; then
   echo "Failed to read task file: #$ARGUMENTS"
   exit 1
@@ -108,9 +106,9 @@ echo "📋 Task ID: $TASK_ID"
 <pre-flight-validation>
 <mandatory-checks>
   □ Task argument provided (MUST CHECK: #$ARGUMENTS is not empty)
-  □ Task JSON file exists at `$AIDEV_DIR/tasks/#$ARGUMENTS.json`
+  □ Task JSON file exists at `.aidev-storage/tasks/#$ARGUMENTS.json`
   □ Task JSON is valid and can be parsed
-  □ Task MD file exists at `$AIDEV_DIR/tasks/#$ARGUMENTS.md`
+  □ Task MD file exists at `.aidev-storage/tasks/#$ARGUMENTS.md`
   □ Task status == "pending" (quote from JSON)
   □ All task dependencies completed (verify each by ID)
   □ Required patterns exist (quote file:line for each)
@@ -145,8 +143,8 @@ echo "📋 Task ID: $TASK_ID"
 - Design with extensibility in mind for future requirements
 
 #### 1.3 Load Project Context
-- Load preferences from `$AIDEV_DIR/preferences/`
-- Load patterns from `$AIDEV_DIR/patterns/established/` and `$AIDEV_DIR/patterns/learned/`
+- Load preferences from `.aidev-storage/preferences/`
+- Load patterns from `.aidev-storage/patterns/established/` and `.aidev-storage/patterns/learned/`
 - Analyze existing codebase for reusable components and patterns
 - Identify existing utilities and APIs to avoid duplication
 
@@ -167,9 +165,9 @@ echo "📋 Task ID: $TASK_ID"
 For all task types (pattern, feature, and instruction):
 
 #### 4.1 Read the PRP Template
-- Read the template from `$AIDEV_DIR/templates/automated-prp-template.md`
+- Read the template from `.aidev-storage/templates/automated-prp-template.md`
 - This template contains placeholder variables like `${FEATURE_OVERVIEW}`, `${TASK_NAME}`, etc.
-- **ABORT if template not found**: "PRP template not found at $AIDEV_DIR/templates/automated-prp-template.md"
+- **ABORT if template not found**: "PRP template not found at .aidev-storage/templates/automated-prp-template.md"
 
 #### 4.2 Gather Context for Template Variables
 Collect information to replace each placeholder:
@@ -183,10 +181,10 @@ Collect information to replace each placeholder:
 - `${ESTIMATED_LINES}`: Based on task type (Pattern: 50-100, Feature: 200-500, Instruction: N/A)
 - `${CODEBASE_ANALYSIS}`: Results from analyzing existing code
 - `${EXTERNAL_RESEARCH}`: Any research needed for the implementation
-- `${ESTABLISHED_PATTERNS}`: Content from `$AIDEV_DIR/patterns/established/`
-- `${LEARNED_PATTERNS}`: Content from `$AIDEV_DIR/patterns/learned/`
+- `${ESTABLISHED_PATTERNS}`: Content from `.aidev-storage/patterns/established/`
+- `${LEARNED_PATTERNS}`: Content from `.aidev-storage/patterns/learned/`
 - `${SESSION_CONTEXT}`: Current session ID and timestamp
-- `${EXAMPLE_REFERENCES}`: Relevant examples from `$AIDEV_DIR/examples/`
+- `${EXAMPLE_REFERENCES}`: Relevant examples from `.aidev-storage/examples/`
 - `${PROJECT_ANALYSIS}`: Analysis of existing utilities, components, APIs
 - And all other variables in the template...
 
@@ -211,14 +209,14 @@ Collect information to replace each placeholder:
 </prp-generation-constraints>
 
 #### 4.4 Save the Generated PRP
-- Create directory: `$AIDEV_DIR/tasks_output/$TASK_ID/` (using the ID extracted from JSON)
-- Save the completed PRP to: `$AIDEV_DIR/tasks_output/$TASK_ID/prp.md`
+- Create directory: `.aidev-storage/tasks_output/$TASK_ID/` (using the ID extracted from JSON)
+- Save the completed PRP to: `.aidev-storage/tasks_output/$TASK_ID/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
 
 **🛑 CRITICAL VALIDATION - MUST VERIFY PRP EXISTS:**
 ```bash
 # Verify PRP was created (using extracted task ID)
-PRP_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/prp.md"
+PRP_PATH=".aidev-storage/tasks_output/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL: PRP was not created at $PRP_PATH"
   echo "The PRP document is MANDATORY for all task types."
@@ -290,7 +288,7 @@ This feature will add complete user authentication to the application, including
 **🛑 PRE-IMPLEMENTATION CHECKPOINT - VERIFY PRP EXISTS:**
 ```bash
 # Final PRP check before implementation (using extracted task ID)
-if [ ! -f "$AIDEV_DIR/tasks_output/$TASK_ID/prp.md" ]; then
+if [ ! -f ".aidev-storage/tasks_output/$TASK_ID/prp.md" ]; then
   echo "❌ CANNOT PROCEED: No PRP document found"
   echo "Implementation is blocked until PRP is generated"
   echo "This is a mandatory requirement for ALL task types"
@@ -373,7 +371,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 
 ### 7. Create PR Message
 
-**CRITICAL**: Save PR message to `$AIDEV_DIR/tasks_output/$TASK_ID/last_result.md` (using the ID extracted from JSON)
+**CRITICAL**: Save PR message to `.aidev-storage/tasks_output/$TASK_ID/last_result.md` (using the ID extracted from JSON)
 
 #### Pattern/Feature Tasks:
 ```markdown
@@ -435,7 +433,7 @@ Created documentation as specified
 
 ```bash
 # Verify PRP exists (final check - using extracted task ID)
-PRP_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/prp.md"
+PRP_PATH=".aidev-storage/tasks_output/$TASK_ID/prp.md"
 if [ ! -f "$PRP_PATH" ]; then
   echo "❌ FATAL: Cannot finalize - PRP document is missing"
   echo "The PRP is a mandatory deliverable for all tasks"
@@ -443,7 +441,7 @@ if [ ! -f "$PRP_PATH" ]; then
 fi
 
 # Verify last_result.md exists and has content (using extracted task ID)
-LAST_RESULT_PATH="$AIDEV_DIR/tasks_output/$TASK_ID/last_result.md"
+LAST_RESULT_PATH=".aidev-storage/tasks_output/$TASK_ID/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   echo "PR message (last_result.md) was not created or is empty!"
   exit 1
@@ -495,6 +493,6 @@ echo "AI Development command was successful"
 - **Status Updates**: Do not update task status - this is handled by the parent process
 - **PR Message**: MUST create `last_result.md` before marking as review
 - **Testing**: Only create tests if testing infrastructure exists
-- **Patterns**: Follow established patterns from `$AIDEV_DIR/patterns/`
+- **Patterns**: Follow established patterns from `.aidev-storage/patterns/`
 - **Changes**: Save all changes to files
 - **NO GIT OPERATIONS**: This command is strictly forbidden from using git
