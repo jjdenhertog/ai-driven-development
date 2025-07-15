@@ -1,5 +1,7 @@
-export function log(message: string, type: 'info' | 'warn' | 'success' | 'error' = 'info', prefix: string = '[aidev]') {
-    
+import { appendFileSync } from "fs-extra";
+
+export function log(message: string, type: 'info' | 'warn' | 'success' | 'error' = 'info', prefix: string = '[aidev]', logPath?: string) {
+
     let styledMessage = message;
     switch (type) {
         case 'warn':
@@ -15,8 +17,16 @@ export function log(message: string, type: 'info' | 'warn' | 'success' | 'error'
             styledMessage = `${prefix} ${message}`;
             break;
     }
-    
+
     console.log(styledMessage);
+
+    if (logPath) {
+        appendFileSync(logPath, `${JSON.stringify({
+            type,
+            message: styledMessage,
+            timestamp: new Date().toISOString()
+        })}\n`);
+    }
 }
 
 export function logError(message: string, prefix: string = '[aidev]') {

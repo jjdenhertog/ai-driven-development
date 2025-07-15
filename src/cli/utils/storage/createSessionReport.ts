@@ -1,6 +1,5 @@
 import { ensureDirSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs-extra';
 import { dirname, join } from 'node:path';
-import { TASKS_OUTPUT_DIR } from '../../config';
 import { log } from '../logger';
 
 type TimelineEntry = {
@@ -65,32 +64,44 @@ type TranscriptEntry = {
 /**
  * Creates a session report from debug logs and transcript files
  */
-export async function createSessionReport(
-    taskId: string,
-    taskName: string,
-    worktreePath: string
-): Promise<void> {
+type Options = {
+    taskId: string;
+    taskName: string;
+    worktreePath: string;
+    logsDir: string;
+}
+
+export async function createSessionReport(options: Options): Promise<void> {
+    const { taskId, taskName, worktreePath, logsDir } = options;
+    const debugLogsPath = join(worktreePath, 'debug_logs');
+    const outputPath = join(logsDir, 'claude.json');
+    ensureDirSync(logsDir);
+
     try {
-        const debugLogsPath = join(worktreePath, 'debug_logs');
-        const outputDir = join(TASKS_OUTPUT_DIR, taskId);
-        const outputPath = join(outputDir, 'session.json');
-        
-        // Ensure output directory exists
-        ensureDirSync(outputDir);
 
         // Check if debug logs directory exists
         if (!existsSync(debugLogsPath)) {
             log('No debug logs found, creating error report', 'warn');
-            await saveErrorReport(taskId, taskName, 'Debug logs directory not found', outputPath);
+            await saveErrorReport({
+                taskId,
+                taskName,
+                errorMessage: 'Debug logs directory not found',
+                outputPath: join(logsDir, 'claude.json')
+            });
 
             return;
-        }
+        }   
 
         // Find the first log file
         const logFiles = readdirSync(debugLogsPath).filter(f => f.endsWith('.jsonl'));
         if (logFiles.length === 0) {
             log('No log files found in debug_logs', 'warn');
-            await saveErrorReport(taskId, taskName, 'No log files found in debug_logs directory', outputPath);
+            await saveErrorReport({
+                taskId,
+                taskName,
+                errorMessage: 'No log files found in debug_logs directory',
+                outputPath: join(logsDir, 'claude.json')
+            });
 
             return;
         }
@@ -116,7 +127,12 @@ export async function createSessionReport(
         const sessionId = logEntries.find(entry => entry.sessionId)?.sessionId;
         if (!sessionId) {
             log('Could not find session ID in logs', 'warn');
-            await saveErrorReport(taskId, taskName, 'Session ID not found in logs', outputPath);
+            await saveErrorReport({
+                taskId,
+                taskName,
+                errorMessage: 'Session ID not found in logs',
+                outputPath: join(logsDir, 'claude.json')
+            });
 
             return;
         }
@@ -163,12 +179,10 @@ export async function createSessionReport(
 
     } catch (error) {
         log(`Error creating session report: ${String(error)}`, 'error');
-        await saveErrorReport(
-            taskId, 
-            taskName, 
-            `Failed to create session report: ${error instanceof Error ? error.message : String(error)}`,
-            join(TASKS_OUTPUT_DIR, taskId, 'session.json')
-        );
+        await saveErrorReport({
+            errorMessage: `Failed to create session report: ${error instanceof Error ? error.message : String(error)}`,
+            outputPath
+        });
     }
 }
 
@@ -412,16 +426,20 @@ function calculateTotalTokens(transcriptEntries: TranscriptEntry[]): number {
     return total;
 }
 
-async function saveErrorReport(
-    taskId: string,
-    taskName: string,
-    errorMessage: string,
-    outputPath: string
-): Promise<void> {
+type SaveErrorReportOptions = {
+    taskId?: string;
+    taskName?: string;
+    errorMessage: string;
+    outputPath: string;
+}
+
+async function saveErrorReport(options: SaveErrorReportOptions): Promise<void> {
+    const { taskId, taskName, errorMessage, outputPath } = options;
+
     const report: SessionReport = {
         session_id: 'unknown',
-        task_id: taskId,
-        task_name: taskName,
+        task_id: taskId || 'unknown',
+        task_name: taskName || 'unknown',
         user_prompt: 'Unable to retrieve user prompt',
         timeline: [{
             type: 'error',
