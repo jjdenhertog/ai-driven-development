@@ -1,0 +1,55 @@
+// Example CSS Module demonstrating styling patterns
+.ExampleComponent {
+  padding: 16px;
+  background: rgb(var(--color-background-paper));
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .title {
+    margin-bottom: 16px;
+    color: rgb(var(--color-primary));
+  }
+
+  .list {
+    padding: 0;
+    margin: 0;
+  }
+
+  .listItem {
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(var(--color-primary), 0.1);
+    }
+
+    &[aria-selected="true"] {
+      background-color: rgba(var(--color-primary), 0.2);
+      border-left: 3px solid rgb(var(--color-primary));
+    }
+  }
+
+  .empty {
+    text-align: center;
+    padding: 32px;
+    color: rgb(var(--color-text-secondary));
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .ExampleComponent {
+    padding: 8px;
+
+    .title {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+// Dark mode support via data-theme
+[data-theme="dark"] {
+  .ExampleComponent {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}

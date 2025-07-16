@@ -1,0 +1,9 @@
+{
+    "id": "102",
+    "name": "pattern-testing",
+    "type": "pattern",
+    "dependencies": ["003"],
+    "estimated_lines": 200,
+    "priority": "medium",
+    "status": "pending"
+}

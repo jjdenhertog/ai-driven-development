@@ -1,0 +1,127 @@
+{
+  "patterns": {
+    "four-space-indentation": {
+      "id": "four-space-indentation",
+      "description": "Use 4 spaces for indentation instead of 2",
+      "category": "style",
+      "examples": ["app/globals.css:1-29", "app/layout.tsx:8-27", "app/page.tsx:3-25", "src/lib/theme.ts:7-58", "src/providers/ThemeProvider.tsx:7-20"],
+      "confidence": 0.95,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 5,
+      "implementation": "Configure editor/formatter to use 4 spaces for indentation",
+      "rule": "Always use 4 spaces for indentation in all TypeScript, JavaScript, and CSS files",
+      "antiPattern": "Using 2 spaces or tabs for indentation",
+      "reason": "Project standard for consistent code formatting and improved readability",
+      "contexts": ["typescript", "javascript", "css", "react-components"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "export function Component() {\n    return (\n        <div>\n            Content\n        </div>\n    );\n}",
+        "bad": "export function Component() {\n  return (\n    <div>\n      Content\n    </div>\n  );\n}"
+      }
+    },
+    "readonly-react-props": {
+      "id": "readonly-react-props",
+      "description": "Mark React component props as readonly",
+      "category": "typescript",
+      "examples": ["app/layout.tsx:13-15", "src/providers/ThemeProvider.tsx:7-9"],
+      "confidence": 0.9,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 2,
+      "implementation": "Define component props with readonly modifier for all properties",
+      "rule": "Always use readonly for React component prop types to prevent accidental mutations",
+      "antiPattern": "Defining props without readonly modifier",
+      "reason": "Prevents accidental prop mutations and enforces immutability",
+      "contexts": ["react-components", "typescript"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "type ComponentProps = {\n    readonly children: React.ReactNode;\n    readonly title: string;\n};",
+        "bad": "interface ComponentProps {\n  children: React.ReactNode;\n  title: string;\n}"
+      }
+    },
+    "explicit-type-definitions": {
+      "id": "explicit-type-definitions",
+      "description": "Use explicit type definitions instead of inline types",
+      "category": "typescript",
+      "examples": ["app/layout.tsx:13-15", "src/providers/ThemeProvider.tsx:7-9"],
+      "confidence": 0.85,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 2,
+      "implementation": "Define types explicitly before component declaration",
+      "rule": "Extract inline type definitions to named types for better reusability and clarity",
+      "antiPattern": "Using inline type definitions in function parameters",
+      "reason": "Improves code readability, reusability, and makes types more maintainable",
+      "contexts": ["react-components", "typescript"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "type RootLayoutProps = {\n    readonly children: React.ReactNode;\n};\n\nexport default function RootLayout(props: RootLayoutProps) {",
+        "bad": "export default function RootLayout({\n  children,\n}: Readonly<{\n  children: React.ReactNode;\n}>) {"
+      }
+    },
+    "destructure-props-early": {
+      "id": "destructure-props-early",
+      "description": "Destructure props at the beginning of React components",
+      "category": "patterns",
+      "examples": ["app/layout.tsx:17-18", "src/providers/ThemeProvider.tsx:11-12"],
+      "confidence": 0.75,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 2,
+      "implementation": "Destructure props immediately after function declaration",
+      "rule": "Destructure component props at the start of the function body for clarity",
+      "antiPattern": "Destructuring props in the function parameters",
+      "reason": "Improves readability and makes prop usage more explicit",
+      "contexts": ["react-components"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "export function Component(props: ComponentProps) {\n    const { title, children } = props;\n    return <div>{title}</div>;\n}",
+        "bad": "export function Component({ title, children }: ComponentProps) {\n    return <div>{title}</div>;\n}"
+      }
+    },
+    "alphabetical-imports": {
+      "id": "alphabetical-imports",
+      "description": "Order named imports alphabetically",
+      "category": "style",
+      "examples": ["app/page.tsx:1"],
+      "confidence": 0.7,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 1,
+      "implementation": "Sort named imports within curly braces alphabetically",
+      "rule": "Keep named imports in alphabetical order for consistency",
+      "antiPattern": "Random or unordered named imports",
+      "reason": "Improves code organization and makes imports easier to scan",
+      "contexts": ["imports", "typescript", "javascript"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "import { Box, Container, Paper, Typography } from '@mui/material';",
+        "bad": "import { Box, Container, Typography, Paper } from '@mui/material';"
+      }
+    },
+    "trailing-comma-arrays": {
+      "id": "trailing-comma-arrays",
+      "description": "Remove trailing commas in single-line arrays",
+      "category": "style",
+      "examples": ["src/lib/theme.ts:35"],
+      "confidence": 0.65,
+      "lastUpdated": "2025-07-16T09:45:00Z",
+      "occurrences": 1,
+      "implementation": "Remove trailing commas from arrays that fit on a single line",
+      "rule": "Use trailing commas only in multi-line arrays, not single-line arrays",
+      "antiPattern": "Having trailing commas in single-line arrays",
+      "reason": "Consistent array formatting based on line structure",
+      "contexts": ["typescript", "javascript"],
+      "sources": ["001-setup-nextjs-project"],
+      "codeExample": {
+        "good": "const fonts = ['Arial', 'Helvetica', 'sans-serif'];",
+        "bad": "const fonts = ['Arial', 'Helvetica', 'sans-serif',];"
+      }
+    }
+  },
+  "antipatterns": {},
+  "statistics": {
+    "totalPatterns": 6,
+    "totalAntipatterns": 0,
+    "lastLearningSession": "2025-07-16T09:45:00Z",
+    "tasksAnalyzed": ["001-setup-nextjs-project"],
+    "averageConfidence": 0.78,
+    "highConfidencePatterns": 2
+  }
+}

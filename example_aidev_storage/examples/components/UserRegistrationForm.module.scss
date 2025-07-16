@@ -1,0 +1,71 @@
+// Following CSS Modules pattern from preferences
+.RegistrationForm {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgb(var(--color-background-paper));
+  
+  .title {
+    text-align: center;
+    margin-bottom: 24px;
+    color: rgb(var(--color-primary));
+  }
+
+  .stepper {
+    margin-bottom: 32px;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stepContent {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stepTitle {
+    margin-bottom: 16px;
+    color: rgb(var(--color-text-primary));
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .notificationSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: rgba(var(--color-primary), 0.05);
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--color-divider), 0.2);
+  }
+}
+
+// Dark mode adjustments
+[data-theme="dark"] {
+  .RegistrationForm {
+    .notificationSection {
+      background: rgba(var(--color-primary), 0.1);
+    }
+  }
+}

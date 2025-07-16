@@ -91,6 +91,9 @@ export async function executeTaskCommand(options: Options) {
     // Step 3: Execute Claude
     log('Starting Claude with aidev-code-task command...', 'success', undefined, logPath);
 
+    if (dangerouslySkipPermission)
+        log('Dangerously skipping permission checks of Claude Code', 'warn', undefined, logPath);
+
     const args = [];
     if (dangerouslySkipPermission)
         args.push('--dangerously-skip-permissions');

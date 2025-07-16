@@ -1,0 +1,11 @@
+{
+  "id": "003",
+  "name": "setup-testing-framework",
+  "type": "feature",
+  "dependencies": ["001"],
+  "estimated_lines": 200,
+  "priority": "high",
+  "status": "pending",
+  "branch": "ai/003-setup-testing-framework",
+  "started_at": "2025-07-16T12:04:41.626Z"
+}

@@ -1,0 +1,9 @@
+{
+    "id": "202",
+    "name": "feature-job-queue-processing",
+    "type": "feature",
+    "dependencies": ["201", "101"],
+    "estimated_lines": 600,
+    "priority": "critical",
+    "status": "pending"
+}

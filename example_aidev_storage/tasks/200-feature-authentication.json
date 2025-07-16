@@ -1,0 +1,9 @@
+{
+    "id": "200",
+    "name": "feature-authentication",
+    "type": "feature",
+    "dependencies": ["001", "002", "004", "100"],
+    "estimated_lines": 400,
+    "priority": "critical",
+    "status": "pending"
+}
