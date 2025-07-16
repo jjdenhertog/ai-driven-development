@@ -27,6 +27,7 @@ type SessionReport = {
     end_time?: string;
     total_duration_ms?: number;
     success?: boolean;
+    success_reason?: string;
     timeline: TimelineEntry[];
     metadata?: {
         claude_version?: string;
@@ -243,7 +244,7 @@ function buildSessionReport(
     )];
 
     // Determine success based on multiple factors
-    const success = determineSuccess({
+    const successResult = determineSuccess({
         exitCode,
         timeline,
         transcriptEntries
@@ -257,7 +258,8 @@ function buildSessionReport(
         start_time: startTime,
         end_time: endTime,
         total_duration_ms: totalDuration,
-        success,
+        success: successResult.success,
+        success_reason: successResult.reason,
         timeline,
         metadata: {
             exit_code: exitCode,
@@ -447,20 +449,33 @@ type DetermineSuccessOptions = {
     transcriptEntries: TranscriptEntry[];
 }
 
-function determineSuccess(options: DetermineSuccessOptions): boolean {
+type DetermineSuccessResult = {
+    success: boolean;
+    reason: string;
+}
+
+function determineSuccess(options: DetermineSuccessOptions): DetermineSuccessResult {
     const { timeline, transcriptEntries } = options;
 
     // Since exitCode is always 0 due to manual killing, we need to analyze the timeline
 
     // 1. Check for error entries in timeline
     const hasErrors = timeline.some(entry => entry.type === 'error');
-    if (hasErrors) return false;
+    if (hasErrors) {
+        return {
+            success: false,
+            reason: 'Timeline contains error entries'
+        };
+    }
 
     // 2. Check if session ended during tool execution (abrupt ending)
     const lastTimelineEntry = timeline[timeline.length - 1];
     if (lastTimelineEntry && lastTimelineEntry.type === 'tool') {
         // Session ended during a tool execution - this is likely an abrupt termination
-        return false;
+        return {
+            success: false,
+            reason: `Session ended abruptly during ${lastTimelineEntry.name} tool execution`
+        };
     }
 
     // 3. Check TodoWrite tool completions
@@ -476,16 +491,27 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
             const hasPending = todos.some(todo => todo.status === 'pending');
 
             // If all todos are completed, it's successful
-            if (completedTodos === totalTodos && totalTodos > 0) return true;
+            if (completedTodos === totalTodos && totalTodos > 0) {
+                return {
+                    success: true,
+                    reason: `All ${totalTodos} todos completed successfully`
+                };
+            }
 
-            // If less than 50% of todos are completed, it's likely unsuccessful
+            // If less than 80% of todos are completed, it's likely unsuccessful
             if (totalTodos > 0 && completedTodos / totalTodos < 0.8) {
-                return false;
+                return {
+                    success: false,
+                    reason: `Only ${completedTodos} out of ${totalTodos} todos completed (${Math.round(completedTodos / totalTodos * 100)}%)`
+                };
             }
 
             // If there are still in-progress todos at the end, it's incomplete
             if (hasInProgress && lastTimelineEntry === lastTodoEntry) {
-                return false;
+                return {
+                    success: false,
+                    reason: 'Session ended with todos still in progress'
+                };
             }
         }
     }
@@ -495,7 +521,10 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
 
     // If there are no assistant messages after tool executions, likely incomplete
     if (lastMessages.length === 0 && timeline.some(entry => entry.type === 'tool')) {
-        return false;
+        return {
+            success: false,
+            reason: 'No completion messages found after tool executions'
+        };
     }
 
     // Success keywords (case-insensitive)
@@ -535,17 +564,33 @@ function determineSuccess(options: DetermineSuccessOptions): boolean {
 
     // 5. Check if the session ended abruptly (very few timeline entries)
     if (timeline.length < 3) {
-        return false; // Likely an early termination
+        return {
+            success: false,
+            reason: 'Session terminated early with minimal activity'
+        };
     }
 
     // Make a decision based on the scores
     if (failureScore > successScore) {
-        return false;
+        return {
+            success: false,
+            reason: `Failure indicators detected (${failureScore} failure keywords vs ${successScore} success keywords)`
+        };
     }
 
     // Only default to true if we have clear success indicators
     // Don't assume success just because there are no failures
-    return successScore > 0;
+    if (successScore > 0) {
+        return {
+            success: true,
+            reason: `Success indicators found (${successScore} success keywords)`
+        };
+    }
+
+    return {
+        success: false,
+        reason: 'No clear success indicators found'
+    };
 }
 
 function extractLastAssistantMessages(transcriptEntries: TranscriptEntry[], count: number): string[] {
@@ -589,6 +634,7 @@ async function saveErrorReport(options: SaveErrorReportOptions): Promise<Session
         task_name: taskName || 'unknown',
         user_prompt: 'Unable to retrieve user prompt',
         success: false,
+        success_reason: errorMessage,
         timeline: [{
             type: 'error',
             timestamp: new Date().toISOString(),

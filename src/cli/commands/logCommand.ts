@@ -2,7 +2,7 @@ import { ensureDirSync } from 'fs-extra';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export function logCommand(): void {
+export async function logCommand(): Promise<void> {
     // Get log configuration
     const logDir = process.env.AIDEV_LOG_DIR || join(process.cwd(), 'debug_logs');
     

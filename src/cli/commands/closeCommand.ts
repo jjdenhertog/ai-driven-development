@@ -1,6 +1,8 @@
-import { rmSync } from 'fs-extra';
+import { existsSync, rmSync } from 'fs-extra';
+import { join } from 'node:path';
+import { TASKS_OUTPUT_DIR } from '../config';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
-import { cleanupGitInstances, getGitInstance } from '../utils/git/getGitInstance';
+import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getTasks } from '../utils/tasks/getTasks';
@@ -47,6 +49,17 @@ export async function closeCommand(options: Options) {
 
     const git = getGitInstance();
     
+    // Clean up any task-specific output directories
+    const taskOutputPath = join(process.cwd(), '.aidev-storage', 'tasks_output', task.id);
+    if (existsSync(taskOutputPath)) {
+        try {
+            rmSync(taskOutputPath, { force: true, recursive: true });
+            log(`Removed task output directory: ${taskOutputPath}`, 'success');
+        } catch (error) {
+            log(`Failed to remove task output directory: ${error instanceof Error ? error.message : 'Unknown error'}`, 'warn');
+        }
+    }
+    
     try {
         // First try to remove the worktree using git
         await git.raw(['worktree', 'remove', '--force', worktreePath]);
@@ -68,7 +81,4 @@ export async function closeCommand(options: Options) {
             log(error.message, 'warn');
         }
     }
-
-    // Clean up git instances to allow process to exit
-    await cleanupGitInstances();
 }

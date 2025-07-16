@@ -1,6 +1,5 @@
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
-import { cleanupGitInstances } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getBranchName } from '../utils/tasks/getBranchName';
@@ -48,7 +47,7 @@ export async function openCommand(options: Options) {
     log(`Setting up worktree for branch '${branchName}' at '${worktreePath}'...`, 'info');
 
     try {
-        await ensureWorktree(branchName, worktreePath);
+        await ensureWorktree(branchName, worktreePath, true);
         log(`Worktree created successfully at: ${worktreePath}`, 'success');
 
         log(`You can now navigate to the worktree with: cd ${worktreePath}`, 'info');
@@ -60,6 +59,4 @@ export async function openCommand(options: Options) {
         throw error;
     }
 
-    // Clean up git instances to allow process to exit
-    await cleanupGitInstances();
 }

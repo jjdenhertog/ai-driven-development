@@ -9,8 +9,16 @@ import { checkGitAuth } from '../utils/git/checkGitAuth';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
 import { getTasks } from '../utils/tasks/getTasks';
-import { getUserChanges } from '../utils/git/getUserChanges';
+import { getCommits } from '../utils/git/getCommits';
 import { MAIN_BRANCH } from '../config';
+import { saveUserChanges } from '../utils/storage/saveUserChanges';
+import { saveStorageChanges } from '../utils/storage/saveStorageChanges';
+import { executeClaudeCommand } from '../../claude-wrapper';
+import { createSession } from '../utils/storage/createSession';
+import addHooks from '../utils/claude/addHooks';
+import removeHooks from '../utils/claude/removeHooks';
+import { createSessionReport } from '../utils/storage/createSessionReport';
+import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 
 type Options = {
     dangerouslySkipPermission: boolean
@@ -73,18 +81,80 @@ export async function learningCommand(options: Options) {
                         // }
 
                         // Check if the task branch has been merged into main branch
-                        if (task.branch && await checkBranchMerged(task.branch, mainBranch)) {
+                        if (!task.branch) {
+                            log(`Task ${task.id} has no branch associated. Skipping...`, 'warn');
+                            continue;
+                        }
 
-                            const userChanges = await getUserChanges(task.branch, task.id);
-                            // TODO: Process user changes here
-                            log(`User changes found for task ${task.id}:`, 'info');
-                            if (userChanges) {
-                                log(`  - ${userChanges.commits.length} user commits`, 'info');
-                                log(`  - ${userChanges.fileChanges.length} files changed`, 'info');
+                        const isMerged = await checkBranchMerged(task.branch, mainBranch);
+                        if (!isMerged) {
+                            log(`Task ${task.id} branch '${task.branch}' is not merged into ${mainBranch}. Skipping...`, 'info');
+                            continue;
+                        }
+
+                        // Branch is merged, now get the commits
+                        log(`Task ${task.id} branch '${task.branch}' is merged. Processing commits...`, 'info');
+                        const commits = await getCommits(task.branch);
+
+                        if (!commits || commits.length === 0) {
+                            log(`No commits found for task ${task.id}`, 'warn');
+                            continue;
+                        }
+
+                        const userCommits = commits.filter(commit => !commit.isAI);
+                        const aiCommits = commits.filter(commit => commit.isAI);
+
+                        log(`Found ${commits.length} commits (${userCommits.length} user, ${aiCommits.length} AI) for task ${task.id}`, 'info');
+
+                        if (userCommits.length > 0) {
+
+                            const worktreePath = process.cwd();
+
+                            const { logsDir, logPath } = createSession(task.id);
+                            log(`Processing ${userCommits.length} user commits for learning...`, 'info', undefined, logPath);
+
+                            // Add hooks for claude command
+                            addHooks(worktreePath);
+
+                            try {
+
+                                await saveStorageChanges();
+
+                                saveUserChanges(task.id, userCommits);
+
+                                const args = [];
+                                if (dangerouslySkipPermission)
+                                    args.push('--dangerously-skip-permissions');
+
+                                const result = await executeClaudeCommand({
+                                    cwd: worktreePath,
+                                    command: `/aidev-learn ${task.id}-${task.name}`,
+                                    args,
+                                });
+
+                                await createSessionReport({
+                                    taskId: task.id,
+                                    taskName: task.name,
+                                    worktreePath,
+                                    logsDir,
+                                    exitCode: result.exitCode
+                                });
+
+                                updateTaskFile(task.path, {
+                                    status: 'archived'
+                                });
+
+
+                            } catch (_e) {
+                                log(`Error processing task ${task.id}: ${String(_e)}`, 'error', undefined, logPath);
                             }
 
-                            throw new Error("Implement here");
+                            removeHooks(worktreePath);
+
                         }
+
+
+                        throw new Error("TODO: Implement learning from commits here");
 
                         // await processCompletedTask(task, dangerouslySkipPermission);
                     } catch (error) {
@@ -95,6 +165,9 @@ export async function learningCommand(options: Options) {
             }
 
             // Sleep for 30 seconds before next check
+
+            console.log("Sleeping for 300 seconds, waiting for next iteration");
+
             iteration++;
             await sleep(300_000);
         }

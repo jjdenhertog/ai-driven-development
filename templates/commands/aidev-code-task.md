@@ -213,6 +213,21 @@ Collect information to replace each placeholder:
 - Save the completed PRP to: `.aidev-storage/tasks_output/$TASK_ID/prp.md`
 - The PRP should be a complete, actionable document with no placeholders
 
+#### 4.5 Initialize Decision Tree
+- Create decision tree file: `.aidev-storage/tasks_output/$TASK_ID/decision_tree.jsonl`
+- Record the initial decision to start the task:
+
+```bash
+# Initialize decision tree with first entry
+DECISION_TREE_PATH=".aidev-storage/tasks_output/$TASK_ID/decision_tree.jsonl"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Create first decision entry
+echo "{\"timestamp\":\"$TIMESTAMP\",\"phase\":\"initialization\",\"decision\":\"start_task\",\"context\":{\"task_id\":\"$TASK_ID\",\"task_type\":\"$(echo "$TASK_JSON" | jq -r '.type')\",\"status\":\"beginning\"},\"reasoning\":\"Task validated and PRP generated successfully\",\"alternatives_considered\":[],\"confidence\":1.0}" > "$DECISION_TREE_PATH"
+
+echo "✅ Decision tree initialized at: $DECISION_TREE_PATH"
+```
+
 **🛑 CRITICAL VALIDATION - MUST VERIFY PRP EXISTS:**
 ```bash
 # Verify PRP was created (using extracted task ID)
@@ -245,12 +260,81 @@ fi
 echo "✅ PRP validation passed - proceeding with implementation"
 ```
 
-#### 4.5 Follow the Generated PRP
+#### 4.6 Follow the Generated PRP
 - Use the generated PRP as your implementation guide
 - The PRP contains specific validation checkpoints - follow them
 - Design with future tasks in mind for extensibility
 - For instruction tasks, focus on documentation structure and completeness
 - **NEVER proceed without a valid PRP document**
+
+### 4A. Decision Tree Tracking
+
+**CRITICAL: Throughout the implementation, you MUST record key decisions in the decision tree**
+
+#### Decision Tree Entry Format (JSONL)
+Each line in the decision tree file should be a JSON object with this structure:
+```json
+{
+  "timestamp": "ISO-8601 timestamp",
+  "phase": "research|design|implementation|validation|troubleshooting",
+  "decision": "short description of the decision",
+  "context": {
+    "file": "file being worked on (if applicable)",
+    "line_range": "lines affected (if applicable)",
+    "component": "component/module name",
+    "related_decisions": ["previous decision IDs if this builds on them"]
+  },
+  "reasoning": "why this approach was chosen",
+  "alternatives_considered": [
+    {
+      "option": "alternative approach",
+      "reason_rejected": "why it wasn't chosen"
+    }
+  ],
+  "confidence": 0.0-1.0,
+  "impact": "low|medium|high",
+  "reversible": true|false,
+  "tags": ["architecture", "pattern", "library", "api", "error-handling", etc.]
+}
+```
+
+#### When to Record Decisions
+Record a decision when you:
+- Choose between multiple implementation approaches
+- Select a specific pattern or library
+- Design an API or interface
+- Handle an error or edge case
+- Make assumptions about requirements
+- Encounter and resolve ambiguity
+- Change direction based on discoveries
+- Make performance or security trade-offs
+
+#### Recording Decisions During Implementation
+```bash
+# Function to append decision to tree
+record_decision() {
+  local PHASE="$1"
+  local DECISION="$2"
+  local REASONING="$3"
+  local CONFIDENCE="$4"
+  local IMPACT="${5:-medium}"
+  
+  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  DECISION_ENTRY=$(jq -n \
+    --arg ts "$TIMESTAMP" \
+    --arg ph "$PHASE" \
+    --arg dec "$DECISION" \
+    --arg reas "$REASONING" \
+    --arg conf "$CONFIDENCE" \
+    --arg imp "$IMPACT" \
+    '{timestamp: $ts, phase: $ph, decision: $dec, reasoning: $reas, confidence: ($conf | tonumber), impact: $imp}')
+  
+  echo "$DECISION_ENTRY" >> "$DECISION_TREE_PATH"
+}
+
+# Example usage during implementation
+record_decision "design" "Use singleton pattern for API client" "Ensures single connection pool and consistent configuration" "0.9" "high"
+```
 
 #### Example of a Properly Generated PRP
 After replacing all placeholders, the PRP should look like this (partial example):
@@ -294,10 +378,28 @@ if [ ! -f ".aidev-storage/tasks_output/$TASK_ID/prp.md" ]; then
   echo "This is a mandatory requirement for ALL task types"
   exit 1
 fi
+
+# Verify decision tree exists
+if [ ! -f ".aidev-storage/tasks_output/$TASK_ID/decision_tree.jsonl" ]; then
+  echo "❌ CANNOT PROCEED: No decision tree found"
+  echo "Decision tracking is mandatory for audit trail"
+  exit 1
+fi
+
 echo "✅ PRP document verified - proceeding with implementation"
+echo "✅ Decision tree active - recording implementation choices"
 ```
 
 <implementation-rules>
+<decision-tracking>
+  During ALL implementation phases, record decisions:
+  □ Pattern selection → record_decision "design" "Selected X pattern" "reason" confidence
+  □ Library choice → record_decision "implementation" "Using library Y" "reason" confidence
+  □ API design → record_decision "design" "API structure: {...}" "reason" confidence
+  □ Error handling → record_decision "implementation" "Handle error via Z" "reason" confidence
+  □ Performance trade-offs → record_decision "implementation" "Chose approach A over B" "reason" confidence
+</decision-tracking>
+
 <pattern-tasks>
   Requirements:
   □ Implementation EXACTLY 50-100 lines (count required)
@@ -305,11 +407,13 @@ echo "✅ PRP document verified - proceeding with implementation"
   □ Self-contained with no external dependencies
   □ Match existing pattern from preferences (quote source)
   □ Export pattern for use by other code
+  □ Record pattern selection decision in tree
   
   Verification after creation:
   □ Line count: wc -l [file] must show 50-100
   □ Pattern matches preference: side-by-side comparison
   □ Usage example runs without errors
+  □ Decision tree has pattern choice recorded
 </pattern-tasks>
 
 <feature-tasks>
@@ -388,6 +492,10 @@ echo "✅ PRP document verified - proceeding with implementation"
 - [Components created/modified]
 - [Tests added if applicable]
 
+### Key Decisions Made
+[Extract 3-5 most important decisions from decision tree]
+- **[Decision]**: [Brief reasoning]
+
 ### Validation
 - [ ] All tests pass (if testing exists)
 - [ ] Linting clean
@@ -396,6 +504,7 @@ echo "✅ PRP document verified - proceeding with implementation"
 ### Session
 - Session ID: [timestamp]
 - PRP: [path to PRP]
+- Decision Tree: [path to decision tree] ([number] decisions recorded)
 ```
 
 #### Instruction Tasks:
@@ -429,7 +538,7 @@ Created documentation as specified
 
 ### 9. Finalization
 
-**CRITICAL**: Verify both PRP and PR message were created before updating status
+**CRITICAL**: Verify PRP, decision tree, and PR message were created before updating status
 
 ```bash
 # Verify PRP exists (final check - using extracted task ID)
@@ -440,6 +549,21 @@ if [ ! -f "$PRP_PATH" ]; then
   exit 1
 fi
 
+# Verify decision tree exists and has meaningful content
+DECISION_TREE_PATH=".aidev-storage/tasks_output/$TASK_ID/decision_tree.jsonl"
+if [ ! -f "$DECISION_TREE_PATH" ]; then
+  echo "❌ FATAL: Cannot finalize - Decision tree is missing"
+  echo "Decision tracking is mandatory for audit trail"
+  exit 1
+fi
+
+# Count decisions made (should be more than just initialization)
+DECISION_COUNT=$(wc -l < "$DECISION_TREE_PATH")
+if [ "$DECISION_COUNT" -lt 2 ]; then
+  echo "⚠️  WARNING: Only $DECISION_COUNT decision(s) recorded"
+  echo "Consider if all key decisions were tracked"
+fi
+
 # Verify last_result.md exists and has content (using extracted task ID)
 LAST_RESULT_PATH=".aidev-storage/tasks_output/$TASK_ID/last_result.md"
 if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
@@ -447,8 +571,12 @@ if [ ! -f "$LAST_RESULT_PATH" ] || [ ! -s "$LAST_RESULT_PATH" ]; then
   exit 1
 fi
 
+# Record final decision
+record_decision "finalization" "Task completed successfully" "All validations passed, deliverables created" "1.0" "high"
+
 echo "✅ Task #$ARGUMENTS completed successfully"
 echo "📝 PR message saved to: $LAST_RESULT_PATH"
+echo "🌳 Decision tree saved to: $DECISION_TREE_PATH ($DECISION_COUNT decisions)"
 echo ""
 echo "AI Development command was successful"
 ```

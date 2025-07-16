@@ -17,6 +17,7 @@ import { logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 import { closeCommand } from "./commands/closeCommand";
 import { saveCommand } from "./commands/saveCommand";
+import { cleanupGitInstances } from "./utils/git/getGitInstance";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', '..', 'package.json');
@@ -47,6 +48,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 // Execute task command
@@ -72,6 +75,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 // Execute next task command
@@ -95,6 +100,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 // Loop tasks command
@@ -146,6 +153,8 @@ program
                 await sleep(TASK_EXECUTION_DELAY);
             }
         }
+
+        
     })
 
 // Learning command
@@ -165,15 +174,18 @@ program
                 logError(String(error));
             }
         }
+
+        console.log("Cleaning up git instances");
+        await cleanupGitInstances();
     })
 
 // Log command - for capturing output from Claude Code hooks
 program
     .command('log')
     .description('Capture and log output from Claude Code hooks')
-    .action(() => {
+    .action(async () => {
         try {
-            logCommand();
+            await logCommand();
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);
@@ -181,8 +193,9 @@ program
                 logError(String(error));
             }
             
-            process.exit(1);
         }
+
+        await cleanupGitInstances();
     });
 
 // Clear command
@@ -199,6 +212,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 // Open command
@@ -234,6 +249,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 program
@@ -251,6 +268,8 @@ program
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
     })
 
 program.parse(process.argv);

@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 
 import { Task } from '../../types/tasks/Task';
 import { createCommit } from '../git/createCommit';
-import { getUserChanges } from '../git/getUserChanges';
+import { getCommits } from '../git/getCommits';
 import { log } from '../logger';
 import { saveUserChanges } from '../storage/saveUserChanges';
 import { updateTaskFile } from '../tasks/updateTaskFile';
@@ -21,9 +21,9 @@ export async function processCompletedTask(task: Task, dangerouslySkipPermission
         // Analyze user changes using available information
         log(`Analyzing user changes for task ${task.id}...`, 'info');
 
-        const userChanges = await getUserChanges(task.branch, task.id);
+        const userChanges = await getCommits(task.branch);
 
-        if (!userChanges || userChanges.fileChanges.length === 0) {
+        if (!userChanges || userChanges.length === 0) {
             log(`No user changes detected for task ${task.id}. Task was merged as-is.`, 'info');
 
             // Update task status to archived
@@ -33,7 +33,7 @@ export async function processCompletedTask(task: Task, dangerouslySkipPermission
         }
 
         // Save user changes to JSON
-        log(`Found ${userChanges.fileChanges.length} file changes to learn from`, 'info');
+        log(`Found ${userChanges.length} file changes to learn from`, 'info');
         saveUserChanges(task.id, userChanges);
 
         const args = [];

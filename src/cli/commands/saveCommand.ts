@@ -1,7 +1,6 @@
 import { existsSync, rmSync } from 'node:fs';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
-import { cleanupGitInstances } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { pushBranch } from '../utils/git/pushBranch';
 import { stageAllFiles } from '../utils/git/stageAllFiles';
@@ -65,6 +64,4 @@ export async function saveCommand(options: Options) {
 
     log(`Comitted and pushed task ${task.id} - ${task.name}`, 'success');
 
-    // Clean up git instances to allow process to exit
-    await cleanupGitInstances();
 }

@@ -1,6 +1,6 @@
 import { ensureDirSync, existsSync, readJsonSync, writeFileSync } from "fs-extra";
-import { log } from "node:console";
 import { join } from "node:path";
+import { log } from "../logger";
 
 export default function addHooks(path:string) {
     const claudeSettingsPath = join(path, '.claude', 'settings.json');
@@ -72,7 +72,4 @@ export default function addHooks(path:string) {
 
     writeFileSync(claudeSettingsPath, JSON.stringify(settings, null, 2));
     log('Updated Claude Code hooks configuration in .claude/settings.json', 'success');
-
-    log('aidev initialized successfully!', 'success');
-    log('You can now use aidev commands in this directory.', 'info');
 }

@@ -2,6 +2,7 @@ import { existsSync, rmSync } from 'fs-extra';
 
 import { checkGitAuth } from '../utils/git/checkGitAuth';
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { join } from 'node:path';
 import { executeClaudeCommand } from '../../claude-wrapper';
 import addHooks from '../utils/claude/addHooks';
 import removeHooks from '../utils/claude/removeHooks';
@@ -9,7 +10,7 @@ import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
 import { ensureBranch } from '../utils/git/ensureBranch';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
-import { cleanupGitInstances, getGitInstance } from '../utils/git/getGitInstance';
+import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { pullBranch } from '../utils/git/pullBranch';
 import { pushBranch } from '../utils/git/pushBranch';
@@ -21,7 +22,6 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
-import { join } from 'node:path';
 
 type Options = {
     taskId: string
@@ -137,9 +137,6 @@ export async function executeTaskCommand(options: Options) {
 
         await git.raw(['branch', '-D', branchName, '--force']);
 
-        // Clean up git instances to allow process to exit
-        await cleanupGitInstances();
-
         return;
     }
 
@@ -193,6 +190,4 @@ export async function executeTaskCommand(options: Options) {
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
 
-    // Clean up git instances to allow process to exit
-    await cleanupGitInstances();
 }

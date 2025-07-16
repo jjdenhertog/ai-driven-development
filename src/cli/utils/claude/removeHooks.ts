@@ -1,6 +1,6 @@
 import { existsSync, readJsonSync, writeFileSync } from "fs-extra";
-import { log } from "node:console";
 import { join } from "node:path";
+import { log } from "../logger";
 
 export default function removeHooks(path:string) {
     const claudeSettingsPath = join(path, '.claude', 'settings.json');
