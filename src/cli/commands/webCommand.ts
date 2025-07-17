@@ -26,13 +26,22 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
         log('Starting AIdev web interface...', 'info')
 
         // Navigate to web directory - handle both development and production paths
-        let webDir = path.join(__dirname, '..', '..', '..', 'src', 'web')
-    
-        // Check if running from dist (production)
-        if (!await fs.access(webDir).then(() => true)
-            .catch(() => false)) {
-            // In production, web files are at node_modules/@jjdenhertog/ai-driven-development/src/web
-            webDir = path.join(__dirname, '..', '..', 'src', 'web')
+        let webDir: string
+        
+        // When running from development (npm link)
+        const devWebDir = path.join(__dirname, '..', '..', '..', 'src', 'web')
+        
+        // When running from global npm install
+        // The web files are at the package root under src/web, not dist/src/web
+        const prodWebDir = path.join(__dirname, '..', '..', '..', '..', 'src', 'web')
+        
+        // Check which path exists
+        if (await fs.access(devWebDir).then(() => true).catch(() => false)) {
+            webDir = devWebDir
+        } else if (await fs.access(prodWebDir).then(() => true).catch(() => false)) {
+            webDir = prodWebDir
+        } else {
+            throw new Error('Could not find web directory. The package may be corrupted.')
         }
 
         let webProcess: any
@@ -78,18 +87,12 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             const standaloneDir = path.join(webDir, '.next', 'standalone')
             const standaloneServerPath = path.join(standaloneDir, 'server.js')
             
-            // Debug logging
-            console.log('[DEBUG] __dirname:', __dirname)
-            console.log('[DEBUG] webDir:', webDir)
-            console.log('[DEBUG] standaloneDir:', standaloneDir)
-            console.log('[DEBUG] Looking for server.js at:', standaloneServerPath)
-            
             // Check if standalone build exists
             const hasStandaloneBuild = await fs.access(standaloneServerPath).then(() => true)
                 .catch(() => false)
         
             if (!hasStandaloneBuild) {
-                throw new Error(`Web interface build not found at ${standaloneServerPath}. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
+                throw new Error(`Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
             }
         
             log('Starting AIdev web interface on http://localhost:3001', 'info')
