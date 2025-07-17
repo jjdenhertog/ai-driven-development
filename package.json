@@ -1,6 +1,6 @@
 {
   "name": "@jjdenhertog/ai-driven-development",
-  "version": "0.1.75",
+  "version": "0.1.76",
   "description": "AI-driven development workflow with learning capabilities for Claude",
   "main": "dist/cli/index.js",
   "types": "dist/cli/index.d.ts",
