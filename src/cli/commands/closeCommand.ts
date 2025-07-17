@@ -5,12 +5,9 @@ import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getTasks } from '../utils/tasks/getTasks';
+import { CloseOptions } from '../types/commands/CloseOptions';
 
-type Options = {
-    taskId: string
-}
-
-export async function closeCommand(options: Options) {
+export async function closeCommand(options: CloseOptions) {
     const { taskId } = options;
 
     // Ensure git auth

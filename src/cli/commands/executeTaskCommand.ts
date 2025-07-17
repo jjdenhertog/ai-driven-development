@@ -23,15 +23,9 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
+import { ExecuteTaskOptions } from '../types/commands/ExecuteTaskOptions';
 
-type Options = {
-    taskId: string
-    dryRun: boolean
-    force: boolean
-    dangerouslySkipPermission: boolean
-}
-
-export async function executeTaskCommand(options: Options) {
+export async function executeTaskCommand(options: ExecuteTaskOptions) {
     const { taskId, dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth

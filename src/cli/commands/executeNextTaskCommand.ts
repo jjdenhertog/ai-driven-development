@@ -6,19 +6,9 @@ import { getBranchName } from '../utils/tasks/getBranchName';
 import { getTasks } from '../utils/tasks/getTasks';
 import { hasUnresolvedDependencies } from '../utils/tasks/hasUnresolvedDependencies';
 import { executeTaskCommand } from "./executeTaskCommand";
+import { ExecuteNextTaskOptions, ExecuteNextTaskResult } from '../types/commands/ExecuteNextTaskOptions';
 
-type Options = {
-    dryRun: boolean
-    force: boolean
-    dangerouslySkipPermission: boolean
-}
-
-type ExecuteNextTaskResult = {
-    taskExecuted: boolean;
-    noTasksFound: boolean;
-}
-
-export async function executeNextTaskCommand(options: Options): Promise<ExecuteNextTaskResult> {
+export async function executeNextTaskCommand(options: ExecuteNextTaskOptions): Promise<ExecuteNextTaskResult> {
     const { dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth
