@@ -1,1 +1,1 @@
-export type ConceptFeatureState = 'draft' | 'ready' | 'questions' | 'reviewed' | 'approved';
+export type ConceptFeatureState = 'draft' | 'ready' | 'reviewing' | 'questions' | 'reviewed' | 'approved';

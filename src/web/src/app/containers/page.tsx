@@ -12,9 +12,30 @@ export default function ContainersPage() {
     const [containers, setContainers] = useState<Container[]>([])
     const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [capabilities, setCapabilities] = useState<{
+        runningInContainer: boolean
+        aidevCLIAvailable: boolean
+        canManageContainers: boolean
+        message?: string
+    } | null>(null)
 
-    const fetchContainers = useCallback(async () => {
+    const fetchCapabilities = useCallback(async () => {
+        try {
+            const caps = await api.getContainerCapabilities()
+            setCapabilities(caps)
+            
+            return caps
+        } catch (_err) {
+            return null
+        }
+    }, [])
+
+    const fetchContainers = useCallback(async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true)
+        }
         try {
             const data = await api.getContainers()
             setContainers(data)
@@ -26,25 +47,44 @@ export default function ContainersPage() {
             }
         } catch (err) {
             if (err instanceof Error && err.message.includes('503')) {
-                setError('Docker is not available. Please ensure Docker is installed and running.')
+                // Check capabilities to provide better error message
+                const caps = await fetchCapabilities()
+                if (caps?.message) {
+                    setError(caps.message)
+                } else if (err.message.includes('not available when running inside a container')) {
+                    setError('Container management is disabled when running inside a container. Please use the aidev CLI from your host machine.')
+                } else {
+                    setError('Docker is not available. Please ensure Docker is installed and running.')
+                }
             } else {
                 setError('Failed to load containers')
             }
-
-            // console.error('Failed to fetch containers:', err)
         } finally {
             setLoading(false)
+            setRefreshing(false)
         }
-    }, [selectedContainer])
+    }, [selectedContainer, fetchCapabilities])
 
     useEffect(() => {
-        fetchContainers()
+        // First check capabilities
+        fetchCapabilities().then(caps => {
+            if (caps?.canManageContainers) {
+                fetchContainers()
+            } else {
+                setLoading(false)
+                setError(caps?.message || 'Container management is not available')
+            }
+        })
+    }, [fetchCapabilities, fetchContainers])
     
-        // Poll for updates every 5 seconds
-        const interval = setInterval(() => { fetchContainers() }, 5000)
-    
-        return () => clearInterval(interval)
-    }, [fetchContainers])
+    useEffect(() => {
+        // Only poll if container management is available
+        if (capabilities?.canManageContainers) {
+            const interval = setInterval(() => { fetchContainers(true) }, 5000)
+
+            return () => clearInterval(interval)
+        }
+    }, [fetchContainers, capabilities])
 
     const selected = containers.find(c => c.name === selectedContainer)
 
@@ -64,26 +104,43 @@ export default function ContainersPage() {
                         selectedContainer={selectedContainer}
                         onSelectContainer={setSelectedContainer}
                         loading={loading}
-                        error={error || undefined}
+                        refreshing={refreshing}
+                        error={capabilities?.canManageContainers ? undefined : (capabilities?.message || error || 'Container management unavailable')}
+                        disabled={!capabilities?.canManageContainers}
                     />
                 </div>
           
                 <div className={sectionStyles.main}>
-                    {selected ? (
-                        <ContainerDetails
-                            container={selected}
-                            onStatusChange={() => { fetchContainers() }}
-                        />
+                    {capabilities?.canManageContainers ? (
+                        selected ? (
+                            <ContainerDetails
+                                container={selected}
+                                onStatusChange={() => { fetchContainers(true) }}
+                            />
+                        ) : (
+                            <div className={sectionStyles.empty}>
+                                {error ? (
+                                    <div className={sectionStyles.error}>
+                                        <h3>Container Management Unavailable</h3>
+                                        <p>{error}</p>
+                                    </div>
+                                ) : (
+                                    <p>Select a container to view details</p>
+                                )}
+                            </div>
+                        )
                     ) : (
                         <div className={sectionStyles.empty}>
-                            {error ? (
-                                <div className={sectionStyles.error}>
-                                    <h3>Container Management Unavailable</h3>
-                                    <p>{error}</p>
-                                </div>
-                            ) : (
-                                <p>Select a container to view details</p>
-                            )}
+                            <div className={sectionStyles.error}>
+                                <h3>Container Management Unavailable</h3>
+                                <p>{error || capabilities?.message}</p>
+                                {capabilities?.runningInContainer && (
+                                    <div className={sectionStyles.info}>
+                                        <p>To manage containers, run this command from your host machine:</p>
+                                        <code>aidev container status</code>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

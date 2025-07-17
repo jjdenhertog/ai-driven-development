@@ -10,7 +10,9 @@ type ContainerListProps = {
   readonly selectedContainer: string | null
   readonly onSelectContainer: (name: string) => void
   readonly loading?: boolean
+  readonly refreshing?: boolean
   readonly error?: string
+  readonly disabled?: boolean
 }
 
 export const ContainerList: React.FC<ContainerListProps> = ({
@@ -18,11 +20,15 @@ export const ContainerList: React.FC<ContainerListProps> = ({
     selectedContainer,
     onSelectContainer,
     loading,
-    error
+    refreshing,
+    error,
+    disabled = false
 }) => {
     const handleContainerClick = useCallback((name: string) => {
-        onSelectContainer(name)
-    }, [onSelectContainer])
+        if (!disabled) {
+            onSelectContainer(name)
+        }
+    }, [onSelectContainer, disabled])
 
     if (loading) {
         return (
@@ -44,7 +50,10 @@ export const ContainerList: React.FC<ContainerListProps> = ({
 
     return (
         <div className={styles.container}>
-            <h2 className={styles.title}>Containers</h2>
+            <h2 className={styles.title}>
+                Containers
+                {refreshing && <span className={styles.refreshing}> (Refreshing...)</span>}
+            </h2>
             <div className={styles.list}>
                 {containers.map((container) => (
                     <ContainerItem
@@ -52,6 +61,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
                         container={container}
                         isSelected={selectedContainer === container.name}
                         onClick={handleContainerClick}
+                        disabled={disabled}
                     />
                 ))}
             </div>

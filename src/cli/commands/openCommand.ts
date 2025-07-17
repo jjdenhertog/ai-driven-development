@@ -21,7 +21,7 @@ export async function openCommand(options: OpenOptions) {
     let task = null;
 
     // First try exact match by ID
-    const allTasks = await getTasks({ pull: true });
+    const allTasks = await getTasks();
     task = allTasks.find(t => {
         const idMatch = t.id === taskId;
         const nameMatch = t.name.toLowerCase() === taskId.toLowerCase();

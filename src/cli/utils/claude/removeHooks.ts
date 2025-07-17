@@ -22,7 +22,7 @@ export default function removeHooks(path:string) {
         log('No hooks found in Claude settings - nothing to remove', 'info');
 
     // List of hook types that addHooks adds
-    const hookTypesToRemove = ['PreToolUse', 'PostToolUse', 'Notification'];
+    const hookTypesToRemove = ['PreToolUse', 'PostToolUse', 'Notification', 'Stop'];
 
     // Remove each hook type
     for (const hookType of hookTypesToRemove) {

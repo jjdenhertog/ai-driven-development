@@ -1,7 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import { StatusOptions } from '../types/container/StatusOptions';
 import { checkDockerAvailable } from '../utils/docker/checkDockerAvailable';
 import { getContainerName } from '../utils/docker/getContainerName';
 import { getContainerStatus } from '../utils/docker/getContainerStatus';
@@ -9,7 +8,14 @@ import { log } from '../utils/logger';
 
 const execAsync = promisify(exec);
 
-export async function containerStatusCommand(options: StatusOptions): Promise<void> {
+ type Options = {
+    name?: string;
+};
+
+export async function containerStatusCommand(options: Options): Promise<void> {
+
+    const { name } = options;
+
     try {
         // Check Docker availability
         const docker = await checkDockerAvailable();
@@ -18,9 +24,9 @@ export async function containerStatusCommand(options: StatusOptions): Promise<vo
             throw new Error('Docker is required to check container status');
         }
         
-        if (options.name) {
+        if (name) {
             // Show status for specific container
-            const containerName = getContainerName(options.name);
+            const containerName = getContainerName(name);
             const status = await getContainerStatus(containerName);
             
             if (status) {

@@ -79,14 +79,22 @@ export const api = {
   
     // Containers
     getContainers: () => fetchJson<Container[]>(`${API_BASE}/containers`),
-    containerAction: async (name: string, action: string, type: string) => {
-        const response = await fetch(`${API_BASE}/containers/${name}/${action}`, {
+    getContainerCapabilities: () => fetchJson<{
+        runningInContainer: boolean
+        aidevCLIAvailable: boolean
+        aidevCLIPath?: string
+        canManageContainers: boolean
+        message?: string
+    }>(`${API_BASE}/containers/capabilities`),
+    containerAction: async (name: string, action: string, type: string, options?: { clean?: boolean; port?: number }) => {
+        const response = await fetch(`${API_BASE}/containers/${name}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type }),
+            body: JSON.stringify({ action, type, ...options }),
         })
         if (!response.ok) {
-            throw new Error(`Failed to ${action} container: ${response.statusText}`)
+            const error = await response.json().catch(() => ({ error: response.statusText }))
+            throw new Error(error.error || `Failed to ${action} container: ${response.statusText}`)
         }
 
         return response.json()
@@ -111,6 +119,13 @@ export const api = {
     updateConceptFeature: (id: string, updates: Partial<ConceptFeature>) => 
         import('./api/http/putJson').then(({ putJson }) => 
             putJson<ConceptFeature>(`${API_BASE}/concept-features/${id}`, updates)
+        ),
+    assessConceptFeature: (id: string) =>
+        import('./api/http/postJson').then(({ postJson }) =>
+            postJson<{ success: boolean; message: string }>(
+                `${API_BASE}/concept-features/${id}/assess`,
+                {}
+            )
         ),
     deleteConceptFeature: async (id: string) => {
         const response = await fetch(`${API_BASE}/concept-features/${id}`, {

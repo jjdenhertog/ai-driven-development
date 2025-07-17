@@ -1,13 +1,11 @@
-import { existsSync, rmSync } from 'node:fs';
+import { SaveOptions } from '../types/commands/SaveOptions';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
+import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { pushBranch } from '../utils/git/pushBranch';
-import { stageAllFiles } from '../utils/git/stageAllFiles';
 import { log } from "../utils/logger";
 import { getTasks } from '../utils/tasks/getTasks';
-import { join } from 'node:path';
-import { SaveOptions } from '../types/commands/SaveOptions';
 
 export async function saveCommand(options: SaveOptions) {
     const { taskId } = options;
@@ -24,7 +22,7 @@ export async function saveCommand(options: SaveOptions) {
     let task = null;
 
     // First try exact match by ID
-    const allTasks = await getTasks({ pull: true });
+    const allTasks = await getTasks();
     task = allTasks.find(t => {
         const idMatch = t.id === taskId;
         const nameMatch = t.name.toLowerCase() === taskId.toLowerCase();
@@ -45,12 +43,10 @@ export async function saveCommand(options: SaveOptions) {
     const worktreeFolder = branchName.split('/').at(-1) || branchName;
     const worktreePath = `.aidev-${worktreeFolder}`;
 
-    // Remove the stoarge path
-    const storagePath = join(worktreePath, '.aidev-storage');
-    if(existsSync(storagePath))
-        rmSync(storagePath, { force: true, recursive: true });
-
-    await stageAllFiles(worktreePath)
+    // Stage all files except ignored ones
+    const gitWorktree = getGitInstance(worktreePath);
+    await gitWorktree.add('-A');
+    
     await createCommit(`complete task ${task.id} - ${task.name}`, {
         prefix: 'feat',
         cwd: worktreePath

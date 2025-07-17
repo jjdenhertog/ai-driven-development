@@ -15,6 +15,22 @@
   color: var(--foreground);
 }
 
+.refreshing {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: normal;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .list {
   flex: 1;
   overflow-y: auto;
@@ -47,6 +63,16 @@
   border-color: var(--primary-color);
 }
 
+.item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item.disabled:hover {
+  background: transparent;
+  border-color: var(--border-color);
+}
+
 .status {
   display: flex;
   align-items: center;
@@ -72,6 +98,14 @@
   font-weight: 600;
   color: var(--foreground);
   text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warningIcon {
+  color: #f59e0b;
+  font-size: 0.875rem;
 }
 
 .type {

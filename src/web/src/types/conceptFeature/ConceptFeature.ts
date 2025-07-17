@@ -5,6 +5,7 @@ export type ConceptFeature = {
     title: string
     description: string
     state: ConceptFeatureState
+    images?: string[]
     createdAt: string
     updatedAt: string
 }

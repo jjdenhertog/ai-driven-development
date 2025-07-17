@@ -7,6 +7,13 @@ import styles from './page.module.css'
 
 const sections = [
     {
+        id: 'plan',
+        title: 'Plan',
+        description: 'Define concepts and plan features for your project',
+        icon: faLightbulb,
+        href: '/plan'
+    },
+    {
         id: 'tasks',
         title: 'Tasks',
         description: 'Manage development tasks and view AI session outputs',
@@ -14,11 +21,11 @@ const sections = [
         href: '/tasks'
     },
     {
-        id: 'concepts',
-        title: 'Concepts',
-        description: 'Edit concept documentation and project guidelines',
-        icon: faLightbulb,
-        href: '/concepts'
+        id: 'containers',
+        title: 'Containers',
+        description: 'Manage AI development containers for autonomous workflows',
+        icon: faServer,
+        href: '/containers'
     },
     {
         id: 'settings',
@@ -26,13 +33,6 @@ const sections = [
         description: 'Configure preferences, examples, and templates',
         icon: faCog,
         href: '/settings'
-    },
-    {
-        id: 'containers',
-        title: 'Containers',
-        description: 'Manage AI development containers for autonomous workflows',
-        icon: faServer,
-        href: '/containers'
     }
 ] as const
 

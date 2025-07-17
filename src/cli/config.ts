@@ -5,11 +5,9 @@ export const STORAGE_FOLDER = '.aidev-storage';
 export const CONFIG_FILE = '.aidev.json';
 
 
-
 type AidevConfig = {
     branchStartingPoint: string;
     mainBranch: string;
-    storageBranch: string;
 }
 
 /**
@@ -26,7 +24,6 @@ function loadAidevConfig(): AidevConfig {
             return {
                 branchStartingPoint: data.branchStartingPoint || 'main',
                 mainBranch: data.mainBranch || 'main',
-                storageBranch: data.storageBranch || 'aidev-storage'
             };
 
         } catch (_error) {
@@ -37,7 +34,6 @@ function loadAidevConfig(): AidevConfig {
     return {
         branchStartingPoint: 'main',
         mainBranch: 'main',
-        storageBranch: 'aidev-storage'
     };
 }
 
@@ -51,27 +47,7 @@ const aidevConfig = loadAidevConfig();
  */
 export const BRANCH_STARTING_POINT = aidevConfig.branchStartingPoint;
 export const MAIN_BRANCH = aidevConfig.mainBranch;
-export const STORAGE_BRANCH = aidevConfig.storageBranch;
 
-/**
- * Get the absolute path to the aidev worktree directory.
- * First checks ./.aidev-storage, then ../.aidev-storage
- */
-function getStoragePath(): string {
-    const localPath = resolve(process.cwd(), STORAGE_FOLDER);
-    if (existsSync(localPath)) {
-        return localPath;
-    }
-
-    const parentPath = resolve(process.cwd(), '..', STORAGE_FOLDER);
-    if (existsSync(parentPath)) {
-        return parentPath;
-    }
-
-    // Default to local path even if it doesn't exist yet
-    return localPath;
-}
-
-export const STORAGE_PATH = getStoragePath();
+export const STORAGE_PATH = resolve(process.cwd(), STORAGE_FOLDER)
 export const TASKS_DIR = join(STORAGE_PATH, 'tasks');
 export const TASKS_OUTPUT_DIR = join(STORAGE_PATH, 'tasks_output');

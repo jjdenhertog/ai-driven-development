@@ -1,1 +1,1 @@
-export type ContainerType = 'code' | 'learn' | 'plan'
+export type ContainerType = 'code' | 'learn' | 'plan' | 'web'

@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons'
+import { faToggleOn, faToggleOff, faRedo } from '@fortawesome/free-solid-svg-icons'
 import { Task } from '@/lib/api'
 import { TaskStatusBadge } from './TaskStatusBadge'
 import styles from './TaskDetails.module.css'
@@ -21,6 +21,10 @@ const TaskMetadataGridComponent: React.FC<TaskMetadataGridProps> = ({
     const handleToggleHold = useCallback(() => {
         onUpdateTask({ hold: !task.hold })
     }, [task.hold, onUpdateTask])
+
+    const handleRetry = useCallback(() => {
+        onUpdateTask({ status: 'pending' })
+    }, [onUpdateTask])
 
     return (
         <div className={styles.metadata}>
@@ -41,7 +45,19 @@ const TaskMetadataGridComponent: React.FC<TaskMetadataGridProps> = ({
         
                 <div className={styles.metaItem}>
                     <label>Status</label>
-                    <TaskStatusBadge status={task.status} />
+                    <div className={styles.statusContainer}>
+                        <TaskStatusBadge status={task.status} />
+                        {task.status === 'failed' && (
+                            <button
+                                className={styles.retryButton}
+                                onClick={handleRetry}
+                                title="Retry task"
+                            >
+                                <FontAwesomeIcon icon={faRedo} className={styles.retryIcon} />
+                                <span>Retry</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
         
                 <div className={styles.metaItem}>

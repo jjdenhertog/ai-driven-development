@@ -11,11 +11,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import useSWR from 'swr'
+import { useSnackbar } from 'notistack'
 
 function FeaturesPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedId = searchParams.get('id')
+    const { enqueueSnackbar } = useSnackbar()
     
     const { data: features, error, mutate } = useSWR('concept-features', api.getConceptFeatures)
     const [showNewFeature, setShowNewFeature] = useState(false)
@@ -25,22 +27,60 @@ function FeaturesPageContent() {
     }
     
     const handleCreateFeature = async (feature: Omit<ConceptFeature, 'id' | 'createdAt' | 'updatedAt'>) => {
-        await api.createConceptFeature(feature)
-        mutate()
-        setShowNewFeature(false)
+        try {
+            const newFeature = await api.createConceptFeature(feature)
+            mutate()
+            setShowNewFeature(false)
+            enqueueSnackbar('Feature created successfully', { variant: 'success' })
+            // Automatically select the newly created feature
+            handleSelectFeature(newFeature.id)
+        } catch (error) {
+            enqueueSnackbar('Failed to create feature', { variant: 'error' })
+        }
     }
     
     const handleUpdateFeature = async (id: string, updates: Partial<ConceptFeature>) => {
-        await api.updateConceptFeature(id, updates)
-        mutate()
+        try {
+            // Get the current feature to check state changes
+            const currentFeature = features?.find(f => f.id === id)
+            const previousState = currentFeature?.state
+            
+            // Update the feature
+            await api.updateConceptFeature(id, updates)
+            
+            // If state changed to 'ready', trigger AI assessment
+            if (previousState !== 'ready' && updates.state === 'ready') {
+                enqueueSnackbar('Feature marked as ready for review', { variant: 'success' })
+                
+                // Trigger AI assessment (the external process will change to 'reviewing' when it starts)
+                try {
+                    await api.assessConceptFeature(id)
+                } catch (assessError) {
+                    console.error('Failed to trigger AI assessment:', assessError)
+                    enqueueSnackbar('Failed to trigger AI assessment', { variant: 'error' })
+                }
+            } else {
+                enqueueSnackbar('Feature saved successfully', { variant: 'success' })
+            }
+            
+            mutate()
+        } catch (error) {
+            enqueueSnackbar('Failed to save feature', { variant: 'error' })
+            throw error // Re-throw to let ConceptFeatureEditor handle it
+        }
     }
     
     const handleDeleteFeature = async (id: string) => {
         if (confirm('Are you sure you want to delete this feature?')) {
-            await api.deleteConceptFeature(id)
-            mutate()
-            if (selectedId === id) {
-                router.push('/plan/features')
+            try {
+                await api.deleteConceptFeature(id)
+                mutate()
+                if (selectedId === id) {
+                    router.push('/plan/features')
+                }
+                enqueueSnackbar('Feature deleted successfully', { variant: 'success' })
+            } catch (error) {
+                enqueueSnackbar('Failed to delete feature', { variant: 'error' })
             }
         }
     }
@@ -49,6 +89,7 @@ function FeaturesPageContent() {
         switch (state) {
             case 'draft': return 'var(--text-tertiary)'
             case 'ready': return '#3b82f6'
+            case 'reviewing': return '#6366f1'
             case 'questions': return '#f59e0b'
             case 'reviewed': return '#8b5cf6'
             case 'approved': return '#10b981'
@@ -92,7 +133,7 @@ function FeaturesPageContent() {
                                 onClick={() => handleSelectFeature(feature.id)}
                                 className={`${styles.featureItem} ${
                                     selectedId === feature.id ? styles.selected : ''
-                                }`}
+                                } ${styles[`status-${feature.state}`]}`}
                             >
                                 <div className={styles.featureHeader}>
                                     <span className={styles.featureTitle}>{feature.title}</span>
@@ -103,7 +144,6 @@ function FeaturesPageContent() {
                                         title={feature.state}
                                     />
                                 </div>
-                                <div className={styles.featureState}>{feature.state}</div>
                             </button>
                         ))
                     )}

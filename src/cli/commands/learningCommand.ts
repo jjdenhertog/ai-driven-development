@@ -1,25 +1,23 @@
 import { readFileSync } from 'fs-extra';
 
+import { executeClaudeCommand } from '../../claude-wrapper';
+import { MAIN_BRANCH } from '../config';
+import { LearningOptions } from '../types/commands/LearningOptions';
 import { Task } from '../types/tasks/Task';
-import { checkBranchMerged } from '../utils/git/checkBranchMerged';
-// import { checkCommitExists } from '../utils/git/checkCommitExists';
+import addHooks from '../utils/claude/addHooks';
 /* eslint-disable max-depth */
+import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
+import removeHooks from '../utils/claude/removeHooks';
+import { checkBranchMerged } from '../utils/git/checkBranchMerged';
 import { checkGitAuth } from '../utils/git/checkGitAuth';
-// import { processCompletedTask } from '../utils/learning/processCompletedTask';
+import { getCommits } from '../utils/git/getCommits';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
-import { getTasks } from '../utils/tasks/getTasks';
-import { getCommits } from '../utils/git/getCommits';
-import { MAIN_BRANCH } from '../config';
-import { saveUserChanges } from '../utils/storage/saveUserChanges';
-import { saveStorageChanges } from '../utils/storage/saveStorageChanges';
-import { executeClaudeCommand } from '../../claude-wrapper';
 import { createSession } from '../utils/storage/createSession';
-import addHooks from '../utils/claude/addHooks';
-import removeHooks from '../utils/claude/removeHooks';
 import { createSessionReport } from '../utils/storage/createSessionReport';
+import { saveUserChanges } from '../utils/storage/saveUserChanges';
+import { getTasks } from '../utils/tasks/getTasks';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
-import { LearningOptions } from '../types/commands/LearningOptions';
 
 export async function learningCommand(options: LearningOptions) {
     const { dangerouslySkipPermission } = options;
@@ -71,11 +69,6 @@ export async function learningCommand(options: LearningOptions) {
                 // Process each completed task sequentially
                 for (const task of completedTasks) {
                     try {
-                        // Check if this task has already been processed and committed to main branch
-                        // if (await checkCommitExists(task.id, mainBranch)) {
-                        //     log(`Task ${task.id} already has a commit on main branch. Skipping...`, 'warn');
-                        //     continue;
-                        // }
 
                         // Check if the task branch has been merged into main branch
                         if (!task.branch) {
@@ -115,32 +108,35 @@ export async function learningCommand(options: LearningOptions) {
 
                             try {
 
-                                await saveStorageChanges();
-
                                 saveUserChanges(task.id, userCommits);
 
-                                const args = [];
-                                if (dangerouslySkipPermission)
-                                    args.push('--dangerously-skip-permissions');
+                                const claudeCommand = async () => {
+                                    const args = [];
+                                    if (dangerouslySkipPermission)
+                                        args.push('--dangerously-skip-permissions');
 
-                                const result = await executeClaudeCommand({
-                                    cwd: worktreePath,
-                                    command: `/aidev-learn ${task.id}-${task.name}`,
-                                    args,
-                                });
+                                    const result = await executeClaudeCommand({
+                                        cwd: worktreePath,
+                                        command: `/aidev-learn ${task.id}-${task.name}`,
+                                        args,
+                                    });
 
-                                await createSessionReport({
-                                    taskId: task.id,
-                                    taskName: task.name,
-                                    worktreePath,
-                                    logsDir,
-                                    exitCode: result.exitCode
-                                });
+                                    const sessionReport = await createSessionReport({
+                                        taskId: task.id,
+                                        taskName: task.name,
+                                        worktreePath,
+                                        logsDir,
+                                        exitCode: result.exitCode
+                                    });
+
+                                    return sessionReport;
+                                }
+                                // Run Claude with retry logic for usage limits
+                                await autoRetryClaude({ claudeCommand, logPath })
 
                                 updateTaskFile(task.path, {
                                     status: 'archived'
                                 });
-
 
                             } catch (_e) {
                                 log(`Error processing task ${task.id}: ${String(_e)}`, 'error', undefined, logPath);

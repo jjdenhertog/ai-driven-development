@@ -1,11 +1,10 @@
-import { existsSync, rmSync } from 'fs-extra';
-import { join } from 'node:path';
+import { rmSync } from 'fs-extra';
+import { CloseOptions } from '../types/commands/CloseOptions';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getTasks } from '../utils/tasks/getTasks';
-import { CloseOptions } from '../types/commands/CloseOptions';
 
 export async function closeCommand(options: CloseOptions) {
     const { taskId } = options;
@@ -22,7 +21,7 @@ export async function closeCommand(options: CloseOptions) {
     let task = null;
 
     // First try exact match by ID
-    const allTasks = await getTasks({ pull: true });
+    const allTasks = await getTasks();
     task = allTasks.find(t => {
         const idMatch = t.id === taskId;
         const nameMatch = t.name.toLowerCase() === taskId.toLowerCase();
@@ -44,37 +43,13 @@ export async function closeCommand(options: CloseOptions) {
     const worktreePath = `.aidev-${worktreeFolder}`;
 
     const git = getGitInstance();
-    
-    // Clean up any task-specific output directories
-    const taskOutputPath = join(process.cwd(), '.aidev-storage', 'tasks_output', task.id);
-    if (existsSync(taskOutputPath)) {
-        try {
-            rmSync(taskOutputPath, { force: true, recursive: true });
-            log(`Removed task output directory: ${taskOutputPath}`, 'success');
-        } catch (error) {
-            log(`Failed to remove task output directory: ${error instanceof Error ? error.message : 'Unknown error'}`, 'warn');
-        }
-    }
-    
-    try {
-        // First try to remove the worktree using git
-        await git.raw(['worktree', 'remove', '--force', worktreePath]);
-        log(`Worktree removed successfully: ${worktreePath}`, 'success');
-    } catch (_error) {
-        // If git worktree remove fails, forcefully remove the directory
-        log(`Git worktree remove failed, forcefully removing directory...`, 'warn');
-        rmSync(worktreePath, { force: true, recursive: true });
-        log(`Directory removed: ${worktreePath}`, 'success');
-    }
 
+    // Clean up any task-specific output directories
+    log(`Removing worktree...`, 'info');
     try {
-        // Delete the branch
-        await git.raw(['branch', '-D', branchName, '--force']);
-        log(`Branch deleted: ${branchName}`, 'success');
-    } catch (error) {
-        log(`Failed to delete branch: ${branchName}`, 'warn');
-        if (error instanceof Error) {
-            log(error.message, 'warn');
-        }
+        await git.raw(['worktree', 'remove', '--force', worktreePath]);
+    } catch (_error) {
+        rmSync(worktreePath, { force: true, recursive: true });
     }
+    await git.raw(['branch', '-D', branchName, '--force']);
 }

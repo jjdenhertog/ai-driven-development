@@ -3,7 +3,9 @@ import { existsSync, rmSync } from 'fs-extra';
 import { join } from 'node:path';
 
 import { executeClaudeCommand } from '../../claude-wrapper';
+import { ExecuteTaskOptions } from '../types/commands/ExecuteTaskOptions';
 import addHooks from '../utils/claude/addHooks';
+import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
 import removeHooks from '../utils/claude/removeHooks';
 import { addToGitignore } from '../utils/git/addToGitignore';
 import { checkGitAuth } from '../utils/git/checkGitAuth';
@@ -18,12 +20,10 @@ import { pushBranch } from '../utils/git/pushBranch';
 import { log } from "../utils/logger";
 import { createSession } from '../utils/storage/createSession';
 import { createSessionReport } from '../utils/storage/createSessionReport';
-import { saveStorageChanges } from '../utils/storage/saveStorageChanges';
 import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
-import { ExecuteTaskOptions } from '../types/commands/ExecuteTaskOptions';
 
 export async function executeTaskCommand(options: ExecuteTaskOptions) {
     const { taskId, dryRun, force, dangerouslySkipPermission } = options;
@@ -36,15 +36,13 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     if (await isInWorktree())
         throw new Error('This command must be run from the root of the repository.');
 
-
     const { logsDir, logPath } = createSession(taskId);
 
     // Validate the task - expecting pending or in-progress status
     const task = await validateTaskForExecution({
         taskId,
         expectedStatuses: ['pending'],
-        force,
-        refresh: true
+        force
     });
 
     ///////////////////////////////////////////////////////////
@@ -67,7 +65,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     // Ensure common directories are in .gitignore
     const commonIgnores = ['node_modules', '.next', 'dist', 'build', '*.log', '.DS_Store'];
 
-    for (const ignore of commonIgnores) 
+    for (const ignore of commonIgnores)
         addToGitignore(worktreePath, ignore);
 
     log(`Executing Task: ${task.id} - ${task.name}`, 'info', undefined, logPath);
@@ -97,6 +95,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     // Update task file with execution metadata
     updateTaskFile(task.path, {
         branch: branchName,
+        status: 'in-progress',
         started_at: new Date().toISOString()
     });
 
@@ -106,43 +105,49 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     if (dangerouslySkipPermission)
         log('Dangerously skipping permission checks of Claude Code', 'warn', undefined, logPath);
 
-    const args = [];
-    if (dangerouslySkipPermission)
-        args.push('--dangerously-skip-permissions');
-
-
     // Add hooks for claude
     addHooks(worktreePath);
 
-    // Execute Claude and wait for completion
-    const result = await executeClaudeCommand({
-        cwd: worktreePath,
-        command: `/aidev-code-task ${task.id}-${task.name}`,
-        args,
-    });
 
-    // We no longer capture output - hooks will handle logging
-    log(`\nClaude command exited with code: ${result.exitCode}`, 'info', undefined, logPath);
+    const claudeCommand = async () => {
+        const args = [];
+        if (dangerouslySkipPermission)
+            args.push('--dangerously-skip-permissions');
 
-    // Create session report from debug logs and transcript
-    log('Creating session report...', 'info', undefined, logPath);
-    const sessionReport = await createSessionReport({
-        taskId: task.id,
-        taskName: task.name,
-        worktreePath,
-        logsDir,
-        exitCode: result.exitCode
-    });
+
+        // Execute Claude and wait for completion
+        const result = await executeClaudeCommand({
+            cwd: worktreePath,
+            command: `/aidev-code-task ${task.id}-${task.name}`,
+            args,
+        });
+
+        // We no longer capture output - hooks will handle logging
+        log(`\nClaude command exited with code: ${result.exitCode}`, 'info', undefined, logPath);
+
+        // Create session report from debug logs and transcript
+        log('Creating session report...', 'info', undefined, logPath);
+        const sessionReport = await createSessionReport({
+            taskId: task.id,
+            taskName: task.name,
+            worktreePath,
+            logsDir,
+            exitCode: result.exitCode
+        });
+
+        return sessionReport;
+    }
+
+    const sessionReport = await autoRetryClaude({ claudeCommand, logPath });
     // Remove hooks for claude
     removeHooks(worktreePath);
 
-    if (!sessionReport.success) {
+    if (!sessionReport?.success) {
         log(`Claude command failed`, 'error', undefined, logPath);
         updateTaskFile(task.path, {
             status: 'failed'
         });
-        saveStorageChanges();
-        await removeWorktree();       
+        await removeWorktree();
 
         return;
     }
@@ -158,8 +163,6 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
             status: 'completed'
         });
 
-        saveStorageChanges();
-
         log(`Committing and pushing changes...`, 'info', undefined, logPath);
         // Remove the stoarge path
         const storagePath = join(worktreePath, '.aidev-storage');
@@ -169,7 +172,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
         // Stage all files except ignored ones
         const gitWorktree = getGitInstance(worktreePath);
         await gitWorktree.add('-A');
-        
+
         await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
             prefix: 'feat',
             cwd: worktreePath
@@ -189,7 +192,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
         ///////////////////////////////////////////////////////////
 
         log(`Removing worktree...`, 'info', undefined, logPath);
-        await removeWorktree();       
+        await removeWorktree();
 
     } catch (error) {
 
@@ -197,9 +200,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
             status: 'failed'
         });
 
-        saveStorageChanges();
-
-        await removeWorktree();       
+        await removeWorktree();
 
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }

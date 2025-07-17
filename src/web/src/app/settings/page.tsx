@@ -8,6 +8,7 @@ import { faFile } from '@fortawesome/free-regular-svg-icons'
 import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import styles from '@/features/Settings/components/SettingsSection.module.css'
+import { useSnackbar } from 'notistack'
 
 type SettingsTab = 'preferences' | 'examples' | 'templates'
 
@@ -16,6 +17,7 @@ function SettingsPageContent() {
     const searchParams = useSearchParams()
     const activeTab = (searchParams.get('tab') as SettingsTab) || 'preferences'
     const selectedFile = searchParams.get('file')
+    const { enqueueSnackbar } = useSnackbar()
   
     const [content, setContent] = useState('')
     const [saving, setSaving] = useState(false)
@@ -79,12 +81,13 @@ function SettingsPageContent() {
             }
 
             setHasChanges(false)
+            enqueueSnackbar(`${activeTab.slice(0, -1).charAt(0).toUpperCase() + activeTab.slice(1, -1)} saved successfully`, { variant: 'success' })
         } catch (_error) {
-            // console.error('Failed to save:', _error)
+            enqueueSnackbar(`Failed to save ${activeTab.slice(0, -1)}`, { variant: 'error' })
         } finally {
             setSaving(false)
         }
-    }, [selectedFile, activeTab, content])
+    }, [selectedFile, activeTab, content, enqueueSnackbar])
 
     const getFileList = () => {
         if (activeTab === 'preferences') return preferences || []

@@ -1,43 +1,24 @@
 import { existsSync, readdirSync } from "fs-extra";
 import { join } from "node:path";
 
-import { STORAGE_BRANCH, STORAGE_PATH, TASKS_DIR } from "../../config";
+import { TASKS_DIR } from "../../config";
 import { Task } from "../../types/tasks/Task";
-import { createCommit } from "../git/createCommit";
-import { getBranchState } from "../git/getBranchState";
-import { pullBranch } from "../git/pullBranch";
-import { pushBranch } from "../git/pushBranch";
-import { log } from "../logger";
 import { loadTaskFromFile } from "./loadTaskFromFile";
 
 type Options = {
-    status?: 'pending' | 'in-progress' | 'completed';
-    refresh?: boolean;
-    pull?: boolean;
+    status?: 'pending' | 'in-progress' | 'completed' | 'archived' | 'failed';
 }
 
 export async function getTasks(options: Options = {}): Promise<Task[]> {
-    const { status, refresh = false, pull = false } = options;
-
-    if (pull && !refresh){
-        const pullResult = await pullBranch(STORAGE_BRANCH, STORAGE_PATH);
-        if (pullResult.success) {
-            log('Pulled latest task updates', 'success');
-        }
-    }
-
-    // Sync worktree if refresh is requested
-    if (refresh)
-        await syncStorageData();
+    const { status } = options;
 
     // Always use absolute path to worktree tasks directory
     const foundTasks: Task[] = [];
 
     try {
         // Check if directory exists before reading
-        if (!existsSync(TASKS_DIR)) {
+        if (!existsSync(TASKS_DIR)) 
             return [];
-        }
 
         const files = readdirSync(TASKS_DIR);
 
@@ -56,42 +37,4 @@ export async function getTasks(options: Options = {}): Promise<Task[]> {
     }
 
     return foundTasks;
-}
-
-async function syncStorageData(): Promise<void> {
-    try {
-        // Check if there are uncommitted changes using the utility
-        const gitState = await getBranchState(STORAGE_PATH);
-        if (gitState.hasChanges) {
-            log('Committing changes in storage...', 'info');
-
-            // Create commit using the utility
-            const timestamp = new Date().toISOString();
-            const commitResult = await createCommit(`Auto-sync tasks: ${timestamp}`, {
-                all: true,
-                cwd: STORAGE_PATH
-            });
-
-            if (!commitResult.success)
-                log(`Failed to commit: ${commitResult.error}`, 'warn');
-
-            // Push local commits using the utility
-            const pushResult = await pushBranch(STORAGE_BRANCH, STORAGE_PATH);
-            if (!pushResult.success && pushResult.error && !pushResult.error.includes('up-to-date')) {
-                log(`Push warning: ${pushResult.error}`, 'info');
-            }
-        }
-
-        // Pull latest changes using the utility
-        const pullResult = await pullBranch(STORAGE_BRANCH, STORAGE_PATH);
-        if (pullResult.success) {
-            log('Pulled latest task updates', 'success');
-        }
-
-
-
-    } catch (error) {
-        log(`Failed to sync worktree: ${String(error)}`, 'warn');
-        // Don't throw - continue with local data
-    }
 }

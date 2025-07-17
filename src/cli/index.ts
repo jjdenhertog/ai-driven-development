@@ -6,25 +6,25 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { clearCommand } from "./commands/clearCommand";
+import { closeCommand } from "./commands/closeCommand";
+import { containerLogsCommand } from "./commands/containerLogsCommand";
+import { containerOpenCommand } from "./commands/containerOpenCommand";
+import { containerStartCommand } from "./commands/containerStartCommand";
+import { containerStatusCommand } from "./commands/containerStatusCommand";
+import { containerStopCommand } from "./commands/containerStopCommand";
 import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
 import { executeTaskCommand } from "./commands/executeTaskCommand";
 import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
 import { logCommand } from "./commands/logCommand";
 import { openCommand } from "./commands/openCommand";
+import { saveCommand } from "./commands/saveCommand";
+import { webCommand } from "./commands/webCommand";
+import { getContainerName } from "./utils/docker/getContainerName";
+import { getContainerStatus } from "./utils/docker/getContainerStatus";
+import { cleanupGitInstances } from "./utils/git/getGitInstance";
 import { log, logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
-import { closeCommand } from "./commands/closeCommand";
-import { saveCommand } from "./commands/saveCommand";
-import { cleanupGitInstances } from "./utils/git/getGitInstance";
-import { webCommand } from "./commands/webCommand";
-import { containerExecCommand } from "./commands/containerExecCommand";
-import { containerLoginCommand } from "./commands/containerLoginCommand";
-import { containerLogsCommand } from "./commands/containerLogsCommand";
-import { containerRestartCommand } from "./commands/containerRestartCommand";
-import { containerStartCommand } from "./commands/containerStartCommand";
-import { containerStatusCommand } from "./commands/containerStatusCommand";
-import { containerStopCommand } from "./commands/containerStopCommand";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', '..', 'package.json');
@@ -67,7 +67,7 @@ program
     .option('--force', 'Force execution even if task is already in progress')
     .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
-        
+
         try {
             await executeTaskCommand({
                 taskId,
@@ -121,22 +121,22 @@ program
     .action(async (cmdObject) => {
         const TASK_EXECUTION_DELAY = 60 * 1000; // 60 seconds
         const NO_TASKS_DELAY = 5 * 60 * 1000; // 5 minutes
-        
+
         log('Starting continuous task execution loop...', 'info');
         log('Press Ctrl+C to stop', 'info');
-        
+
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
-                
+
                 log('Looking for next task...', 'info');
-                
+
                 const result = await executeNextTaskCommand({
                     dryRun: !!cmdObject.dryRun,
                     force: !!cmdObject.force,
                     dangerouslySkipPermission: !!cmdObject.dsp
                 });
-                
+
                 if (result.noTasksFound) {
                     log(`No tasks found. Waiting ${NO_TASKS_DELAY / 1000} seconds before checking again...`, 'info');
                     await sleep(NO_TASKS_DELAY);
@@ -148,20 +148,20 @@ program
                     log(`No executable tasks available. Waiting ${TASK_EXECUTION_DELAY / 1000} seconds before checking again...`, 'info');
                     await sleep(TASK_EXECUTION_DELAY);
                 }
-                
+
             } catch (error) {
                 if (error instanceof Error) {
                     logError(`Error during task execution: ${error.message}`);
                 } else {
                     logError(`Error during task execution: ${String(error)}`);
                 }
-                
+
                 log(`Waiting ${TASK_EXECUTION_DELAY / 1000} seconds before retrying...`, 'info');
                 await sleep(TASK_EXECUTION_DELAY);
             }
         }
 
-        
+
     })
 
 // Learning command
@@ -199,7 +199,7 @@ program
             } else {
                 logError(String(error));
             }
-            
+
         }
 
         await cleanupGitInstances();
@@ -284,9 +284,13 @@ program
     .command('web')
     .description('Start the AIdev web interface for managing tasks and settings')
     .option('--dev', 'Run in development mode (for npm link development)')
+    .option('--disable-proxy', 'Disable the container management proxy (enabled by default)')
     .action(async (options) => {
         try {
-            await webCommand({ dev: options.dev })
+            await webCommand({
+                dev: options.dev,
+                disableProxy: options.disableProxy
+            })
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);
@@ -304,21 +308,23 @@ const container = program
 container
     .command('start <name>')
     .description('Start a development container with the given name')
-    .option('-t, --type <type>', 'Devcontainer type to use (code, learn, plan, or web)', 'code')
+    .option('-t, --type <type>', 'Container type to use (code, learn, plan, or web). If not specified, uses the container name as the type')
     .option('-p, --port <port>', 'Port to expose for web container (default: 1212)', '1212')
+    .option('--disable-proxy', 'Disable container management proxy for web containers (enabled by default)')
     .action(async (name: string, cmdObject) => {
         const validTypes = ['code', 'learn', 'plan', 'web'];
         if (cmdObject.type && !validTypes.includes(cmdObject.type)) {
             logError(`Container type must be one of: ${validTypes.join(', ')}`);
-            
+
             return;
         }
-        
+
         try {
             await containerStartCommand({
                 name,
                 type: cmdObject.type,
-                port: parseInt(cmdObject.port, 10)
+                port: parseInt(cmdObject.port, 10),
+                disableProxy: cmdObject.disableProxy
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -370,10 +376,12 @@ container
 container
     .command('stop <name>')
     .description('Stop a development container')
-    .action(async (name: string) => {
+    .option('-c, --clean', 'Remove the container after stopping')
+    .action(async (name: string, options: { clean?: boolean }) => {
         try {
             await containerStopCommand({
-                name
+                name,
+                clean: options.clean
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -390,10 +398,22 @@ container
     .option('-c, --clean', 'Remove and recreate the container for a clean start')
     .action(async (name: string, options: { clean?: boolean }) => {
         try {
-            await containerRestartCommand({
-                name,
-                clean: options.clean
-            })
+
+
+            const { clean } = options;
+            const containerName = getContainerName(name);
+
+            // Check if container exists
+            const status = await getContainerStatus(containerName);
+            if (!status) {
+                log(`Container ${containerName} not found`, 'error');
+                throw new Error(`Container ${containerName} does not exist`);
+            }
+
+            log(`Restarting container ${name}...`, 'info');
+            await containerStopCommand({ name, clean });
+            await containerStartCommand({ name });
+
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);
@@ -404,37 +424,11 @@ container
     });
 
 container
-    .command('exec <name> [command...]')
-    .description('Execute a command inside a running container')
-    .allowUnknownOption()
-    .action(async (name: string, command: string[]) => {
-        if (!command || command.length === 0) {
-            logError('No command specified');
-            log('Example: aidev container exec mycontainer npm test', 'info');
-            
-            return;
-        }
-        
-        try {
-            await containerExecCommand({
-                name,
-                command
-            })
-        } catch (error) {
-            if (error instanceof Error) {
-                logError(error.message);
-            } else {
-                logError(String(error));
-            }
-        }
-    });
-
-container
-    .command('login <name>')
-    .description('Login to a running container with an interactive bash shell')
+    .command('open <name>')
+    .description('Open a bash shell in a running container')
     .action(async (name: string) => {
         try {
-            await containerLoginCommand({
+            await containerOpenCommand({
                 name
             })
         } catch (error) {
@@ -445,5 +439,24 @@ container
             }
         }
     });
+
+// Proxy command (for manual proxy start)
+// program
+//     .command('proxy')
+//     .description('Start a proxy server for container management (usually started automatically by web command)')
+//     .option('-p, --port <port>', 'Port to listen on', '8888')
+//     .action(async (options) => {
+//         try {
+//             await proxyCommand({
+//                 port: parseInt(options.port, 10)
+//             })
+//         } catch (error) {
+//             if (error instanceof Error) {
+//                 logError(error.message);
+//             } else {
+//                 logError(String(error));
+//             }
+//         }
+//     });
 
 program.parse(process.argv);

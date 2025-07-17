@@ -1,1 +1,1 @@
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'archived'
+export type TaskStatus = 'pending' | 'in_progress' | 'failed' | 'completed' | 'archived'

@@ -1,13 +1,12 @@
 import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
 
-import { CONFIG_PATH, STORAGE_BRANCH, STORAGE_PATH } from '../config';
+import { CONFIG_PATH, STORAGE_FOLDER, STORAGE_PATH } from '../config';
+import { InitOptions } from '../types/commands/InitOptions';
+import { addToGitignore } from '../utils/git/addToGitignore';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
-import { ensureOrphanBranch } from '../utils/git/ensureOrphanBranch';
-import { ensureWorktree } from '../utils/git/ensureWorktree';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from '../utils/logger';
-import { InitOptions } from '../types/commands/InitOptions';
 
 export async function initCommand(options: InitOptions): Promise<void> {
     const { force } = options;
@@ -24,12 +23,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
             throw new Error('You are in a worktree. Please exit the work tree folder and try again.');
 
         // Create aidev-storage worktree
-        await ensureOrphanBranch(STORAGE_BRANCH);
-        await ensureWorktree(STORAGE_BRANCH, STORAGE_PATH);
-
-        // Create .aidev directory if it doesn't exist
-        if (!existsSync(STORAGE_PATH))
-            throw new Error(`${STORAGE_PATH} directory not found.`);
+        ensureDirSync(STORAGE_PATH);
+        addToGitignore(process.cwd(), STORAGE_FOLDER);
 
         /////////////////////////////////////////////
         //
@@ -108,13 +103,13 @@ export async function initCommand(options: InitOptions): Promise<void> {
         }
 
         // Copy .devcontainer to root directory
-        const devcontainerSource = join(templatesRoot, 'devcontainer');
-        const devcontainerTarget = join(process.cwd(), '.devcontainer');
+        const devcontainerSource = join(templatesRoot, 'devcontainers');
+        const devcontainerTarget = join(process.cwd(), '.aidev-containers');
         if (existsSync(devcontainerTarget) && !force) {
-            log('.devcontainer already exists in root directory. Not overwriting, run --force to overwrite', 'warn');
+            log('.aidev-containers already exists in root directory. Not overwriting, run --force to overwrite', 'warn');
         } else {
             copySync(devcontainerSource, devcontainerTarget, { overwrite: true });
-            log('Copied .devcontainer to root directory', 'success');
+            log('Copied .aidev-containers to root directory', 'success');
         }
 
         // Create .claude directory if it doesn't exist

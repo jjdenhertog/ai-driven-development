@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleDot, faCheck, faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCircleDot, faCheck, faExclamationCircle, faSpinner, faTimes, faArchive } from '@fortawesome/free-solid-svg-icons'
 import styles from './TaskDetails.module.css'
 
 type TaskStatusBadgeProps = {
@@ -14,10 +14,16 @@ const TaskStatusBadgeComponent: React.FC<TaskStatusBadgeProps> = ({ status }) =>
         switch (status) {
             case 'draft':
                 return faCircleDot
+            case 'pending':
+                return faCircleDot
+            case 'in_progress':
+                return faSpinner
+            case 'failed':
+                return faTimes
             case 'completed':
                 return faCheck
-            case 'pending':
-                return faExclamationCircle
+            case 'archived':
+                return faArchive
             default:
                 return null
         }

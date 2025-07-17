@@ -2,7 +2,7 @@ import { existsSync, removeSync } from 'fs-extra';
 import { symlink } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-import { STORAGE_BRANCH, STORAGE_PATH } from '../../config';
+import { STORAGE_PATH } from '../../config';
 import { log } from '../logger';
 import { addToGitignore } from './addToGitignore';
 import { getGitInstance } from './getGitInstance';
@@ -28,15 +28,15 @@ export async function ensureWorktree(branch: string, path: string, skipSymlink: 
     // 1. Branch is linked to a different path
     // 2. Path is linked to a different branch
     // 3. Either exists but not both
-    const invalidWorktree =  (branchWorktree || pathWorktree);
-    if (invalidWorktree) 
+    const invalidWorktree = (branchWorktree || pathWorktree);
+    if (invalidWorktree)
         throw new Error(`Invalid worktree found for branch '${branch}' at path '${path}'. Remove the worktree and try again.`);
 
     // Create the worktree
     log(`Creating worktree at ${path}...`, 'info');
     await git.raw(['worktree', 'add', path, branch]);
 
-    if (branch !== STORAGE_BRANCH && !skipSymlink) {
+    if (!skipSymlink) {
         // Create a symlink to storage branch
         const symlinkPath = join(path, '.aidev-storage');
 
@@ -47,7 +47,7 @@ export async function ensureWorktree(branch: string, path: string, skipSymlink: 
 
             // Calculate relative path from the worktree to the storage
             const relativeStoragePath = relative(path, STORAGE_PATH);
-            
+
             // Create symlink to storage path using relative path
             await symlink(relativeStoragePath, symlinkPath, 'dir');
             log(`Created symlink to storage at ${symlinkPath} -> ${relativeStoragePath}`, 'info');

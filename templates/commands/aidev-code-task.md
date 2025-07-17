@@ -109,8 +109,6 @@ echo "📋 Task ID: $TASK_ID"
   □ Task JSON file exists at `.aidev-storage/tasks/#$ARGUMENTS.json`
   □ Task JSON is valid and can be parsed
   □ Task MD file exists at `.aidev-storage/tasks/#$ARGUMENTS.md`
-  □ Task status == "pending" (quote from JSON)
-  □ All task dependencies completed (verify each by ID)
   □ Required patterns exist (quote file:line for each)
   □ Example files found (list exact paths)
 </mandatory-checks>
@@ -121,7 +119,6 @@ echo "📋 Task ID: $TASK_ID"
   ABORT if task MD missing: "Task specification not found: #$ARGUMENTS"
   ABORT if JSON cannot be read: "Failed to read task file: #$ARGUMENTS"
   ABORT if JSON is invalid: "Task file contains invalid JSON: #$ARGUMENTS"
-  ABORT if status != "pending": "Task #$ARGUMENTS status is [status], not pending"
   ABORT if dependency incomplete: "Dependency [id] is not completed"
   ABORT if PRP not created: "FATAL: PRP document was not generated - cannot proceed"
   ABORT if PRP is empty: "FATAL: PRP document exists but is empty"

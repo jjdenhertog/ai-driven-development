@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
+import { isRunningInContainer } from '@/lib/utils/isRunningInContainer'
+import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
 
 const execAsync = promisify(exec)
 
@@ -10,47 +12,193 @@ type Params = {
   }
 }
 
-function getContainerName(name: string): string {
-    return name.startsWith('aidev-') ? name : `aidev-${name}`
-}
 
 // POST /api/containers/[name] - Perform action on container
 export async function POST(request: NextRequest, { params }: Params) {
     try {
-        const { action, type } = await request.json()
-        const containerName = getContainerName(params.name)
+        // Check if we're running in a container
+        if (isRunningInContainer()) {
+            return NextResponse.json(
+                { error: 'Container management is not available when running inside a container' },
+                { status: 503 }
+            )
+        }
+        
+        // Check if aidev CLI is available
+        const aidevCheck = await checkAidevCLI()
+        if (!aidevCheck.available) {
+            return NextResponse.json(
+                { error: 'The aidev CLI is not available. Please ensure it is installed and in your PATH.' },
+                { status: 503 }
+            )
+        }
+        
+        const body = await request.json()
+        const { action, clean = false, port = 1212 } = body
+        const containerName = params.name
+        const type = body.type || params.name // Use name as type if not specified
 
         switch (action) {
-            case 'start':
-                // Start container with appropriate type
-                const containerType = type || 'code'
+            case 'start': {
+                // Build the aidev CLI command
+                const args = ['container', 'start', containerName]
+                
+                if (type && type !== containerName) {
+                    args.push('--type', type)
+                }
+                
+                if (type === 'web' && port) {
+                    args.push('--port', String(port))
+                }
+                
                 try {
-                    // First try to start existing container
-                    await execAsync(`docker start ${containerName}`)
-                } catch {
-                    // If container doesn't exist, create it
-                    const projectPath = process.env.PROJECT_ROOT || process.cwd()
-                    // Use a standard Ubuntu image for now, can be customized later
-                    await execAsync(
-                        `docker run -d --name ${containerName} ` +
-            `-v "${projectPath}:/workspace" ` +
-            `-w /workspace ` +
-            `--env AIDEV_CONTAINER_TYPE=${containerType} ` +
-            `ubuntu:latest tail -f /dev/null`
+                    const command = `aidev ${args.join(' ')}`
+                    console.log(`[Container API] Executing command: ${command}`)
+                    
+                    const { stdout, stderr } = await execAsync(command)
+                    
+                    console.log(`[Container API] Command stdout: ${stdout}`)
+                    console.log(`[Container API] Command stderr: ${stderr}`)
+                    
+                    // Check if there was an error in stderr or stdout
+                    if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
+                        console.error(`[Container API] Error detected in output`)
+                        return NextResponse.json(
+                            { error: stderr || stdout },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    // Check if container actually started
+                    if (stdout?.toLowerCase().includes('failed')) {
+                        console.error(`[Container API] Start failed`)
+                        return NextResponse.json(
+                            { error: stdout },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    console.log(`[Container API] Start successful`)
+                    return NextResponse.json({ 
+                        success: true, 
+                        message: stdout.trim() || `Container ${containerName} started successfully`,
+                        ...(type === 'web' && { port })
+                    })
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error)
+                    console.error(`[Container API] Command execution failed:`, error)
+                    
+                    // Parse common error messages
+                    if (errorMessage.includes('.aidev-containers directory not found')) {
+                        return NextResponse.json(
+                            { error: 'No .aidev-containers directory found. Run "aidev init" first.' },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    if (errorMessage.includes('Missing') && errorMessage.includes('container configuration')) {
+                        return NextResponse.json(
+                            { error: `No container configuration found for type '${type}'` },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    return NextResponse.json(
+                        { error: errorMessage },
+                        { status: 500 }
                     )
                 }
+            }
 
-                return NextResponse.json({ success: true, message: `Container ${containerName} started` })
+            case 'stop': {
+                // Build the aidev CLI command
+                const args = ['container', 'stop', containerName]
+                
+                if (clean) {
+                    args.push('--clean')
+                }
+                
+                try {
+                    const command = `aidev ${args.join(' ')}`
+                    console.log(`[Container API] Executing command: ${command}`)
+                    
+                    const { stdout, stderr } = await execAsync(command)
+                    
+                    console.log(`[Container API] Command stdout: ${stdout}`)
+                    console.log(`[Container API] Command stderr: ${stderr}`)
+                    
+                    // Check if there was an error
+                    if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
+                        console.error(`[Container API] Error detected in output`)
+                        return NextResponse.json(
+                            { error: stderr || stdout },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    console.log(`[Container API] Stop command completed`)
+                    return NextResponse.json({ 
+                        success: true, 
+                        message: stdout.trim() || `Container ${containerName} stopped successfully` 
+                    })
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error)
+                    
+                    // If container not found, it's not really an error
+                    if (errorMessage.includes('not found')) {
+                        return NextResponse.json({ 
+                            success: true, 
+                            message: `Container ${containerName} not found` 
+                        })
+                    }
+                    
+                    return NextResponse.json(
+                        { error: errorMessage },
+                        { status: 500 }
+                    )
+                }
+            }
 
-            case 'stop':
-                await execAsync(`docker stop ${containerName}`)
-
-                return NextResponse.json({ success: true, message: `Container ${containerName} stopped` })
-
-            case 'restart':
-                await execAsync(`docker restart ${containerName}`)
-
-                return NextResponse.json({ success: true, message: `Container ${containerName} restarted` })
+            case 'restart': {
+                // Build the aidev CLI command
+                const args = ['container', 'restart', containerName]
+                
+                if (clean) {
+                    args.push('--clean')
+                }
+                
+                try {
+                    const command = `aidev ${args.join(' ')}`
+                    console.log(`[Container API] Executing command: ${command}`)
+                    
+                    const { stdout, stderr } = await execAsync(command)
+                    
+                    console.log(`[Container API] Command stdout: ${stdout}`)
+                    console.log(`[Container API] Command stderr: ${stderr}`)
+                    
+                    // Check if there was an error
+                    if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
+                        console.error(`[Container API] Error detected in output`)
+                        return NextResponse.json(
+                            { error: stderr || stdout },
+                            { status: 400 }
+                        )
+                    }
+                    
+                    console.log(`[Container API] Restart command completed`)
+                    return NextResponse.json({ 
+                        success: true, 
+                        message: stdout.trim() || `Container ${containerName} restarted successfully` 
+                    })
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error)
+                    
+                    return NextResponse.json(
+                        { error: errorMessage },
+                        { status: 500 }
+                    )
+                }
+            }
 
             default:
                 return NextResponse.json(
@@ -59,10 +207,11 @@ export async function POST(request: NextRequest, { params }: Params) {
                 )
         }
     } catch (error) {
-        console.error('Container action failed:', error)
+        // Log error for debugging
+        // console.error('Container action failed:', error)
 
         return NextResponse.json(
-            { error: `Failed to ${request.method} container: ${error instanceof Error ? error.message : String(error)}` },
+            { error: `Failed to perform action: ${error instanceof Error ? error.message : String(error)}` },
             { status: 500 }
         )
     }

@@ -13,9 +13,10 @@ type TaskListProps = {
 
 const statusOrder: Record<Task['status'], number> = { 
     in_progress: 0,
-    pending: 1, 
-    completed: 2, 
-    archived: 3 
+    pending: 1,
+    failed: 2,
+    completed: 3, 
+    archived: 4 
 }
 
 const priorityOrder: Record<Task['priority'], number> = { 
@@ -34,22 +35,26 @@ export const TaskList: React.FC<TaskListProps> = ({
     const getStatusIcon = useCallback((status: Task['status']) => {
         switch (status) {
             case 'completed':
-                return '✓'
+                return '●'
             case 'archived':
-                return '📦'
+                return '●'
             case 'in_progress':
-                return '⏳'
+                return '●'
+            case 'failed':
+                return '●'
             case 'pending':
-                return '○'
+                return '●'
             default:
-                return '○'
+                return '●'
         }
     }, [])
 
     const sortedTasks = useMemo(() => {
         return [...tasks].sort((a, b) => {
             // First sort by status (completed/archived last)
-            const statusDiff = statusOrder[a.status] - statusOrder[b.status]
+            const aOrder = statusOrder[a.status] ?? 999 // Default to 999 if status not found
+            const bOrder = statusOrder[b.status] ?? 999
+            const statusDiff = aOrder - bOrder
             if (statusDiff !== 0) return statusDiff
       
             // Then by priority

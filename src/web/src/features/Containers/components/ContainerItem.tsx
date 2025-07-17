@@ -3,24 +3,26 @@
 import React, { useCallback } from 'react'
 import { Container } from '@/types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faStop, faCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import styles from './ContainerList.module.css'
 
 type ContainerItemProps = {
   readonly container: Container
   readonly isSelected: boolean
   readonly onClick: (name: string) => void
+  readonly disabled?: boolean
 }
 
-const ContainerItemComponent: React.FC<ContainerItemProps> = ({ container, isSelected, onClick }) => {
+const ContainerItemComponent: React.FC<ContainerItemProps> = ({ container, isSelected, onClick, disabled = false }) => {
     const handleClick = useCallback(() => {
         onClick(container.name)
     }, [container.name, onClick])
 
     return (
         <button
-            className={`${styles.item} ${isSelected ? styles.selected : ''}`}
+            className={`${styles.item} ${isSelected ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
             onClick={handleClick}
+            disabled={disabled}
         >
             <div className={styles.status}>
                 <FontAwesomeIcon
@@ -31,14 +33,24 @@ const ContainerItemComponent: React.FC<ContainerItemProps> = ({ container, isSel
                 />
             </div>
             <div className={styles.info}>
-                <div className={styles.name}>{container.name}</div>
-                <div className={styles.type}>Type: {container.type}</div>
-            </div>
-            <div className={styles.icon}>
-                <FontAwesomeIcon
-                    icon={container.status === 'running' ? faStop : faPlay}
-                    className={styles.actionIcon}
-                />
+                <div className={styles.name}>
+                    {container.name}
+                    {container.name === 'web' && (
+                        <FontAwesomeIcon 
+                            icon={faExclamationTriangle} 
+                            className={styles.warningIcon}
+                            title="This is the web interface container"
+                        />
+                    )}
+                </div>
+                <div className={styles.type}>
+                    {container.status === 'running' 
+                        ? container.statusText || 'Running'
+                        : container.status === 'stopped'
+                            ? 'Stopped'
+                            : 'Not created'
+                    }
+                </div>
             </div>
         </button>
     )

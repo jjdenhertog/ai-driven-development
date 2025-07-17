@@ -8,11 +8,13 @@ import { faFileAlt } from '@fortawesome/free-regular-svg-icons'
 import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import styles from '@/features/Concepts/components/ConceptSection.module.css'
+import { useSnackbar } from 'notistack'
 
 function ConceptsPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedFile = searchParams.get('file')
+    const { enqueueSnackbar } = useSnackbar()
   
     const { data: concepts, error, mutate } = useSWR('concepts', api.getConcepts)
     const [content, setContent] = useState('')
@@ -45,12 +47,13 @@ function ConceptsPageContent() {
             await api.updateConcept(selectedFile, content)
             mutate()
             setHasChanges(false)
+            enqueueSnackbar('Concept saved successfully', { variant: 'success' })
         } catch (_error) {
-            // console.error('Failed to save:', _error)
+            enqueueSnackbar('Failed to save concept', { variant: 'error' })
         } finally {
             setSaving(false)
         }
-    }, [selectedFile, content, mutate])
+    }, [selectedFile, content, mutate, enqueueSnackbar])
 
     if (error) return <div className={styles.error}>Failed to load concepts</div>
 

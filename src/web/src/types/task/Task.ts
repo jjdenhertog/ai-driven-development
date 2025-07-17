@@ -15,4 +15,5 @@ export type Task = {
   started_at?: string
   completed_at?: string
   hold?: boolean
+  images?: string[]
 }

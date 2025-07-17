@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
             title: body.title,
             description: body.description,
             state: body.state || 'draft',
+            images: body.images || [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         }

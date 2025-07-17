@@ -26,6 +26,17 @@ export default function addHooks(path:string) {
                 ]
             }
         ],
+        "Stop": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "aidev log raw"
+                    }
+                ]
+            }
+        ],
         "PostToolUse": [
             {
                 "matcher": "*",

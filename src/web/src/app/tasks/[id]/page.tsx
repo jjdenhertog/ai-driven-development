@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, use } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { useSnackbar } from 'notistack'
@@ -13,19 +13,20 @@ import { DecisionTree } from '@/features/DecisionTree/components/DecisionTree'
 import { EnhancedSessionList } from '@/features/Tasks/components/EnhancedSessionList'
 import { TaskMetadataGrid } from '@/features/Tasks/components/TaskMetadataGrid'
 import { TaskSpecification } from '@/features/Tasks/components/TaskSpecification'
+import { TaskUploads } from '@/features/Tasks/components/TaskUploads'
 import styles from '@/features/Tasks/components/TaskDetails.module.css'
 
-export default function TaskPage({ params }: { readonly params: { id: string } }) {
-    const taskId = params.id
+export default function TaskPage({ params }: { readonly params: Promise<{ id: string }> }) {
+    const { id: taskId } = use(params)
     const router = useRouter()
     const searchParams = useSearchParams()
     const { enqueueSnackbar } = useSnackbar()
 
     // Get initial values from URL
-    const tabParam = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | null
+    const tabParam = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | null
     const sessionParam = searchParams.get('session')
 
-    const [activeTab, setActiveTab] = useState<'overview' | 'prp' | 'sessions' | 'decision-tree'>(tabParam || 'overview')
+    const [activeTab, setActiveTab] = useState<'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads'>(tabParam || 'overview')
     const [selectedSession, setSelectedSession] = useState<string | null>(sessionParam)
     const [taskContent, setTaskContent] = useState('')
 
@@ -36,7 +37,7 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
 
     const { data: sessionsData } = useSWR(
         task ? `tasks/${task.id}/sessions` : null,
-        () => task ? api.getTaskSessions(task.id) : null
+        () => task ? api.getTaskSessions(task.id).catch(() => ({ sessions: [] })) : null
     )
 
 
@@ -55,6 +56,35 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
         () => task ? api.getTaskOutput(task.id, 'decision_tree.jsonl').catch(() => null) : null
     )
 
+    // Check if we have any output files available
+    // Tabs are hidden by default and only shown when data is confirmed to exist
+    const hasSessions = useMemo(() => {
+        // Only show if we have actual session data
+        return sessionsData?.sessions && sessionsData.sessions.length > 0
+    }, [sessionsData])
+
+    const hasPrp = useMemo(() => {
+        // Only show if we have actual PRP or last result data
+        // Since we catch errors and return null, this will only be true when data exists
+        return (prpData !== null && prpData !== undefined) || (lastResultData !== null && lastResultData !== undefined)
+    }, [prpData, lastResultData])
+
+    const hasDecisionTree = useMemo(() => {
+        // Only show if we have actual decision tree data
+        return decisionTreeData !== null && decisionTreeData !== undefined
+    }, [decisionTreeData])
+
+    // Update URL when tab changes
+    const handleTabChange = useCallback((tab: 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads') => {
+        setActiveTab(tab)
+        const params = new URLSearchParams(searchParams.toString())
+        params.set('tab', tab)
+        if (tab !== 'sessions') {
+            params.delete('session')
+        }
+
+        router.push(`/tasks/${taskId}?${params.toString()}`)
+    }, [searchParams, router, taskId])
 
     // Auto-select session from URL on initial load
     useEffect(() => {
@@ -62,6 +92,17 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
             setSelectedSession(sessionParam)
         }
     }, [sessionParam, sessionsData])
+
+    // Ensure active tab is still valid when data changes
+    useEffect(() => {
+        if (activeTab === 'prp' && !hasPrp) {
+            handleTabChange('overview')
+        } else if (activeTab === 'sessions' && !hasSessions) {
+            handleTabChange('overview')
+        } else if (activeTab === 'decision-tree' && !hasDecisionTree) {
+            handleTabChange('overview')
+        }
+    }, [activeTab, hasPrp, hasSessions, hasDecisionTree, handleTabChange])
 
     useEffect(() => {
         if (task) {
@@ -121,7 +162,7 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
 
     // Sync URL params with state when navigating with browser back/forward
     useEffect(() => {
-        const newTab = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | null
+        const newTab = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | null
         const newSession = searchParams.get('session')
 
         if (newTab && newTab !== activeTab) {
@@ -133,18 +174,6 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
         }
     }, [searchParams, activeTab, selectedSession])
 
-    // Update URL when tab changes
-    const handleTabChange = useCallback((tab: 'overview' | 'prp' | 'sessions' | 'decision-tree') => {
-        setActiveTab(tab)
-        const params = new URLSearchParams(searchParams.toString())
-        params.set('tab', tab)
-        if (tab !== 'sessions') {
-            params.delete('session')
-        }
-
-        router.push(`/tasks/${taskId}?${params.toString()}`)
-    }, [searchParams, router, taskId])
-
     // Update URL when session changes
     const handleSessionChange = useCallback((sessionId: string) => {
         setSelectedSession(sessionId)
@@ -152,14 +181,6 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
         params.set('session', sessionId)
         router.push(`/tasks/${taskId}?${params.toString()}`)
     }, [searchParams, router, taskId])
-
-
-    const isCompleted = useMemo(() => {
-        if (!task)
-            return false;
-
-        return task.status === 'completed' || task.status === 'archived'
-    }, [task])
 
     const canEdit = useMemo(() => {
         if (!task)
@@ -204,29 +225,40 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
                 >
                     Overview
                 </button>
-                {isCompleted ? <>
+                {hasPrp && (
                     <button
                         type="button"
                         className={`${styles.tab} ${activeTab === 'prp' ? styles.active : ''}`}
                         onClick={() => handleTabChange('prp')}
                     >
-                            PRP
+                        PRP
                     </button>
+                )}
+                {hasSessions && (
                     <button
                         type="button"
                         className={`${styles.tab} ${activeTab === 'sessions' ? styles.active : ''}`}
                         onClick={() => handleTabChange('sessions')}
                     >
-                            Sessions
+                        Sessions
                     </button>
+                )}
+                {hasDecisionTree && (
                     <button
                         type="button"
                         className={`${styles.tab} ${activeTab === 'decision-tree' ? styles.active : ''}`}
                         onClick={() => handleTabChange('decision-tree')}
                     >
-                            Decision Tree
+                        Decision Tree
                     </button>
-                </> : null}
+                )}
+                <button
+                    type="button"
+                    className={`${styles.tab} ${activeTab === 'uploads' ? styles.active : ''}`}
+                    onClick={() => handleTabChange('uploads')}
+                >
+                    Uploads
+                </button>
             </div>
 
             <div className={styles.content}>
@@ -319,6 +351,15 @@ export default function TaskPage({ params }: { readonly params: { id: string } }
                                 </p>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === 'uploads' && (
+                    <div className={styles.uploads}>
+                        <TaskUploads
+                            task={task}
+                            onUpdateTask={handleUpdateTask}
+                        />
                     </div>
                 )}
 

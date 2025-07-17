@@ -48,39 +48,45 @@ export const TaskSpecification: React.FC<TaskSpecificationProps> = ({
 
     return (
         <div className={styles.specification}>
-            <button
-                className={styles.sectionHeader}
-                onClick={handleToggleCollapse}
-            >
-                <div className={styles.sectionTitle}>
+            <div className={styles.sectionHeader}>
+                <button
+                    className={styles.collapseButton}
+                    onClick={handleToggleCollapse}
+                    type="button"
+                >
                     <FontAwesomeIcon 
                         icon={collapsed ? faChevronDown : faChevronUp} 
                         className={styles.collapseIcon}
                     />
                     <h3>Task Specification</h3>
+                </button>
+                <div className={styles.headerActions}>
+                    {canEdit && !editing && !collapsed ? <button 
+                        onClick={handleStartEdit}
+                        className={styles.editButton}
+                        type="button"
+                    >
+                Edit
+                    </button> : null}
+                    {editing ? <>
+                        <button 
+                            onClick={() => { handleSave() }}
+                            disabled={saving}
+                            className={styles.saveButton}
+                            type="button"
+                        >
+                            {saving ? 'Saving...' : 'Save'}
+                        </button>
+                        <button 
+                            onClick={handleCancel}
+                            className={styles.cancelButton}
+                            type="button"
+                        >
+                  Cancel
+                        </button>
+                    </> : null}
                 </div>
-                {canEdit && !editing && !collapsed ? <button 
-                    onClick={handleStartEdit}
-                    className={styles.editButton}
-                >
-            Edit
-                </button> : null}
-                {editing ? <div className={styles.editActions} onClick={(e) => e.stopPropagation()}>
-                    <button 
-                        onClick={() => { handleSave() }}
-                        disabled={saving}
-                        className={styles.saveButton}
-                    >
-                        {saving ? 'Saving...' : 'Save'}
-                    </button>
-                    <button 
-                        onClick={handleCancel}
-                        className={styles.cancelButton}
-                    >
-              Cancel
-                    </button>
-                </div> : null}
-            </button>
+            </div>
             {!collapsed && (
                 <div className={styles.sectionContent}>
                     {editing ? (

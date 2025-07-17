@@ -1,12 +1,18 @@
 import { spawn } from 'node:child_process';
 
-import { LogsOptions } from '../types/container/LogsOptions';
 import { checkDockerAvailable } from '../utils/docker/checkDockerAvailable';
 import { getContainerName } from '../utils/docker/getContainerName';
 import { getContainerStatus } from '../utils/docker/getContainerStatus';
 import { log } from '../utils/logger';
 
-export async function containerLogsCommand(options: LogsOptions): Promise<void> {
+
+type Options = {
+    name: string;
+    lines?: number;
+    follow?: boolean;
+};
+
+export async function containerLogsCommand(options: Options): Promise<void> {
     const { name, lines = 50, follow = false } = options;
     
     try {

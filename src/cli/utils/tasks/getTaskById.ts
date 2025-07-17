@@ -3,13 +3,12 @@ import { getTasks } from "./getTasks";
 
 type Options = {
     taskId: string;
-    refresh?: boolean;
 }
 
 export async function getTaskById(options: Options): Promise<Task | null> {
-    const { taskId, refresh = false } = options;
+    const { taskId } = options;
 
-    const allTasks = await getTasks({ refresh });
+    const allTasks = await getTasks();
 
     return allTasks.find(task => task.id === taskId) || null;
 }

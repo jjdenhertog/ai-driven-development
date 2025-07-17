@@ -4,7 +4,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Container } from '@/types'
 import { api } from '@/lib/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faStop, faRotate, faTerminal } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faStop, faRotate, faTerminal, faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
+import { parseLogLine, groupLogLines } from '@/lib/utils/parseContainerLogs'
+import type { ParsedLogLine } from '@/lib/utils/parseContainerLogs'
+import { ContainerActionModal } from './ContainerActionModal'
+import { linkifyText } from '@/lib/utils/linkifyText'
 import styles from './ContainerDetails.module.css'
 
 type ContainerDetailsProps = {
@@ -13,11 +17,24 @@ type ContainerDetailsProps = {
 }
 
 export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, onStatusChange }) => {
-    const [logs, setLogs] = useState<string[]>([])
+    const [logs, setLogs] = useState<ParsedLogLine[]>([])
     const [isStreaming, setIsStreaming] = useState(false)
-    const [actionLoading, setActionLoading] = useState<string | null>(null)
+    const [showStopOptions, setShowStopOptions] = useState(false)
+    const [showRestartOptions, setShowRestartOptions] = useState(false)
+    const [modalState, setModalState] = useState<{
+        isOpen: boolean
+        action: string
+        logs: string[]
+        isComplete: boolean
+    }>({
+        isOpen: false,
+        action: '',
+        logs: [],
+        isComplete: false
+    })
     const logsEndRef = useRef<HTMLDivElement>(null)
     const abortControllerRef = useRef<AbortController | null>(null)
+    const pendingTextRef = useRef<string>('')
 
     const scrollToBottom = useCallback(() => {
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -39,16 +56,108 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         }
     }, [container.name])
 
-    const handleAction = useCallback(async (action: 'start' | 'stop' | 'restart') => {
-        setActionLoading(action)
+    const handleAction = useCallback(async (action: 'start' | 'stop' | 'restart', options?: { clean?: boolean }) => {
+        // Special handling for web container
+        if (container.name === 'web' && (action === 'stop' || (action === 'restart' && options?.clean))) {
+            const confirmMessage = action === 'stop' 
+                ? 'Stopping the web container will shut down this interface. You can restart it using "aidev container web start" from the command line. Continue?'
+                : 'Restarting the web container with --clean will rebuild and shut down this interface. You can restart it using "aidev container web start" from the command line. Continue?'
+            
+            if (!window.confirm(confirmMessage)) {
+                return
+            }
+        }
+        
+        // Reset option displays
+        setShowStopOptions(false)
+        setShowRestartOptions(false)
+        
+        // Open modal and reset state
+        setModalState({
+            isOpen: true,
+            action,
+            logs: [],
+            isComplete: false
+        })
+        
         try {
-            await api.containerAction(container.name, action, container.type)
-            // Wait a moment for container status to update
-            setTimeout(onStatusChange, 1000)
+            const response = await fetch(`/api/containers/${container.name}/action`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action, 
+                    type: container.type,
+                    ...options 
+                }),
+            })
+            
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.error || 'Failed to execute action')
+            }
+            
+            const reader = response.body?.getReader()
+            const decoder = new TextDecoder()
+            
+            if (!reader) {
+                throw new Error('No response stream available')
+            }
+            
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                
+                const text = decoder.decode(value)
+                const lines = text.split('\n')
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.substring(6))
+                            
+                            if (data.type === 'stdout' || data.type === 'stderr' || data.type === 'start') {
+                                setModalState(prev => ({
+                                    ...prev,
+                                    logs: [...prev.logs, data.message]
+                                }))
+                            } else if (data.type === 'complete') {
+                                setModalState(prev => ({
+                                    ...prev,
+                                    isComplete: true,
+                                    logs: [...prev.logs, data.message]
+                                }))
+                                
+                                // Refresh container status after completion
+                                setTimeout(() => {
+                                    onStatusChange()
+                                }, 500)
+                                
+                                // Additional refresh for stop actions
+                                if (action === 'stop') {
+                                    setTimeout(() => {
+                                        onStatusChange()
+                                    }, 2000)
+                                }
+                            } else if (data.type === 'error') {
+                                setModalState(prev => ({
+                                    ...prev,
+                                    isComplete: true,
+                                    logs: [...prev.logs, `Error: ${data.message}`]
+                                }))
+                            }
+                        } catch (e) {
+                            // Ignore parsing errors
+                        }
+                    }
+                }
+            }
         } catch (error) {
             console.error(`Failed to ${action} container:`, error)
-        } finally {
-            setActionLoading(null)
+            setModalState(prev => ({
+                ...prev,
+                isComplete: true,
+                logs: [...prev.logs, `Error: ${error instanceof Error ? error.message : String(error)}`]
+            }))
         }
     }, [container.name, container.type, onStatusChange])
 
@@ -56,12 +165,12 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         handleAction('start')
     }, [handleAction])
 
-    const handleStop = useCallback(() => {
-        handleAction('stop')
+    const handleStop = useCallback((clean = false) => {
+        handleAction('stop', { clean })
     }, [handleAction])
 
-    const handleRestart = useCallback(() => {
-        handleAction('restart')
+    const handleRestart = useCallback((clean = false) => {
+        handleAction('restart', { clean })
     }, [handleAction])
 
     const toggleLogs = useCallback(async () => {
@@ -94,13 +203,34 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                         break
                     }
           
+                    // Decode the chunk and handle partial lines
                     const text = decoder.decode(value, { stream: true })
-                    const lines = text.split('\n').filter(line => line.trim())
-                    setLogs(prev => [...prev, ...lines])
+                    const fullText = pendingTextRef.current + text
+                    const lines = fullText.split('\n')
+                    
+                    // Keep the last line if it doesn't end with newline (partial line)
+                    if (!fullText.endsWith('\n')) {
+                        pendingTextRef.current = lines.pop() || ''
+                    } else {
+                        pendingTextRef.current = ''
+                    }
+                    
+                    // Parse and add new log lines
+                    const parsedLines = lines
+                        .map(line => parseLogLine(line))
+                        .filter((line): line is ParsedLogLine => line !== null)
+                    
+                    if (parsedLines.length > 0) {
+                        setLogs(prev => {
+                            const combined = [...prev, ...parsedLines]
+                            // Group similar lines to reduce clutter
+                            return groupLogLines(combined)
+                        })
+                    }
                 }
             } catch (error) {
                 if (error instanceof Error && error.name !== 'AbortError') {
-                    console.error('Failed to stream logs:', error)
+                    // console.error('Failed to stream logs:', error)
                 }
             } finally {
                 setIsStreaming(false)
@@ -111,6 +241,15 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
     const handleToggleLogs = useCallback(() => {
         toggleLogs()
     }, [toggleLogs])
+    
+    const handleCloseModal = useCallback(() => {
+        setModalState({
+            isOpen: false,
+            action: '',
+            logs: [],
+            isComplete: false
+        })
+    }, [])
 
     return (
         <div className={styles.container}>
@@ -127,38 +266,89 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 <div className={styles.actions}>
                     {container.status === 'running' ? (
                         <>
-                            <button
-                                type="button"
-                                className={styles.actionButton}
-                                onClick={handleStop}
-                                disabled={actionLoading !== null}
-                            >
-                                <FontAwesomeIcon icon={faStop} />
-                                {actionLoading === 'stop' ? 'Stopping...' : 'Stop'}
-                            </button>
-                            <button
-                                type="button"
-                                className={styles.actionButton}
-                                onClick={handleRestart}
-                                disabled={actionLoading !== null}
-                            >
-                                <FontAwesomeIcon icon={faRotate} />
-                                {actionLoading === 'restart' ? 'Restarting...' : 'Restart'}
-                            </button>
+                            <div className={styles.actionGroup}>
+                                <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    onClick={() => showStopOptions ? handleStop(false) : setShowStopOptions(true)}
+                                >
+                                    <FontAwesomeIcon icon={faStop} />
+                                    Stop
+                                </button>
+                                {showStopOptions && (
+                                    <div className={styles.optionButtons}>
+                                        <button
+                                            type="button"
+                                            className={`${styles.optionButton} ${styles.danger}`}
+                                            onClick={() => handleStop(true)}
+                                            title="Stop and remove container"
+                                        >
+                                            <FontAwesomeIcon icon={faTrash} /> Remove
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={styles.optionButton}
+                                            onClick={() => setShowStopOptions(false)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            {container.name !== 'web' && (
+                                <div className={styles.actionGroup}>
+                                    <button
+                                        type="button"
+                                        className={styles.actionButton}
+                                        onClick={() => showRestartOptions ? handleRestart(false) : setShowRestartOptions(true)}
+                                    >
+                                        <FontAwesomeIcon icon={faRotate} />
+                                        Restart
+                                    </button>
+                                    {showRestartOptions && (
+                                        <div className={styles.optionButtons}>
+                                            <button
+                                                type="button"
+                                                className={`${styles.optionButton} ${styles.warning}`}
+                                                onClick={() => handleRestart(true)}
+                                                title="Stop, remove and rebuild container"
+                                            >
+                                                <FontAwesomeIcon icon={faTrash} /> Rebuild
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={styles.optionButton}
+                                                onClick={() => setShowRestartOptions(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </>
                     ) : (
                         <button
                             type="button"
                             className={`${styles.actionButton} ${styles.primary}`}
                             onClick={handleStart}
-                            disabled={actionLoading !== null}
                         >
                             <FontAwesomeIcon icon={faPlay} />
-                            {actionLoading === 'start' ? 'Starting...' : 'Start'}
+                            Start
                         </button>
                     )}
                 </div>
             </div>
+
+            {container.name === 'web' && (
+                <div className={styles.warning}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                    <span>
+                        This is the web interface container. Stopping it will shut down this UI. 
+                        Restart is disabled to prevent losing access. Use &quot;aidev container web start&quot; from the command line to restart.
+                    </span>
+                </div>
+            )}
 
             <div className={styles.logsSection}>
                 <div className={styles.logsHeader}>
@@ -183,17 +373,32 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                                 : 'Container is not running'}
                         </div>
                     ) : (
-                        <>
+                        <div className={styles.logLines}>
                             {logs.map((log, index) => (
-                                <div key={index} className={styles.logLine}>
-                                    {log}
+                                <div 
+                                    key={index} 
+                                    className={`${styles.logLine} ${styles[log.type] || ''}`}
+                                >
+                                    {log.timestamp ? (
+                                        <span className={styles.timestamp}>[{log.timestamp}]</span>
+                                    ) : null}
+                                    <span className={styles.logText}>{linkifyText(log.text)}</span>
                                 </div>
                             ))}
                             <div ref={logsEndRef} />
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
+            
+            <ContainerActionModal
+                isOpen={modalState.isOpen}
+                action={modalState.action}
+                containerName={container.name}
+                logs={modalState.logs}
+                isComplete={modalState.isComplete}
+                onClose={handleCloseModal}
+            />
         </div>
     )
 }

@@ -3,17 +3,26 @@ import { exec } from 'node:child_process';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
-import { StartOptions } from '../types/container/StartOptions';
+import { ContainerType } from '../types/container/ContainerType';
 import { checkDockerAvailable } from '../utils/docker/checkDockerAvailable';
 import { getContainerName } from '../utils/docker/getContainerName';
 import { getContainerStatus } from '../utils/docker/getContainerStatus';
 import { isContainerRunning } from '../utils/docker/isContainerRunning';
+import { startProxyServer } from '../utils/docker/startProxyServer';
 import { log } from '../utils/logger';
 
 const execAsync = promisify(exec);
 
-export async function containerStartCommand(options: StartOptions): Promise<void> {
-    const { name, type, port = 1212 } = options;
+ type Options = {
+    name: string;
+    type?: ContainerType;
+    port?: number;
+    disableProxy?: boolean;
+};
+
+export async function containerStartCommand(options: Options): Promise<void> {
+
+    const { name, type, port = 1212, disableProxy } = options;
     
     try {
         log(`Starting container '${name}' with type '${type || 'code'}'...`, 'info');
@@ -25,27 +34,26 @@ export async function containerStartCommand(options: StartOptions): Promise<void
             throw new Error('Docker is required to run containers');
         }
         
-        // Check if .devcontainer exists
-        const devcontainerPath = join(process.cwd(), '.devcontainer');
+        // Check if .aidev-containers exists
+        const devcontainerPath = join(process.cwd(), '.aidev-containers');
         if (!existsSync(devcontainerPath)) {
-            log('No .devcontainer directory found. Run "aidev init" first.', 'error');
-            throw new Error('.devcontainer directory not found');
+            log('No .aidev-containers directory found. Run "aidev init" first.', 'error');
+            throw new Error('.aidev-containers directory not found');
         }
         
-        // Determine which devcontainer config to use
-        const configType = type || 'code'; // Default to 'code' if no type specified
+        // Determine which container config to use
+        const configType = type || name;
         
-        // Check if specific devcontainer config exists
+        // Check if specific container config exists
         const configPath = join(devcontainerPath, configType, 'devcontainer.json');
         if (!existsSync(configPath)) {
-            log(`No devcontainer configuration found for ${configType} at ${configPath}`, 'error');
-            throw new Error(`Missing ${configType} devcontainer configuration`);
+            log(`No container configuration found for type '${configType}' at ${configPath}`, 'error');
+            log(`Available types: code, learn, plan, web`, 'info');
+            throw new Error(`Missing ${configType} container configuration`);
         }
         
         // Get the container name
         const containerName = getContainerName(name);
-        
-        // Check if container is already running
         if (await isContainerRunning(containerName)) {
             log(`Container ${containerName} is already running`, 'warn');
 
@@ -54,21 +62,12 @@ export async function containerStartCommand(options: StartOptions): Promise<void
         
         // Check if container exists but is stopped
         const status = await getContainerStatus(containerName);
-        
         if (status && status.state !== 'running') {
             log(`Starting existing container ${containerName}...`, 'info');
             await execAsync(`docker start ${containerName}`);
             log(`Container ${containerName} started successfully`, 'success');
 
             return;
-        }
-        
-        // Check if entrypoint.sh exists for this container type
-        const entrypointPath = join(devcontainerPath, configType, 'entrypoint.sh');
-        if (!existsSync(entrypointPath)) {
-            log(`Missing entrypoint.sh for ${configType} container at ${entrypointPath}`, 'error');
-            log(`Your .devcontainer files may be outdated. Please run "aidev init --force" to update them.`, 'info');
-            throw new Error(`Missing entrypoint.sh for ${configType} container`);
         }
         
         // Build the Docker image
@@ -103,6 +102,16 @@ export async function containerStartCommand(options: StartOptions): Promise<void
         if (configType === 'web') {
             runArgs.push('-p', `${port}:${port}`, '-e', `PORT=${port}`);
             log(`Web container will run on port ${port}`, 'info');
+            
+            // Add host proxy environment variable for web containers (unless disabled)
+            if (!disableProxy) {
+                const proxyPort = 8888;
+                runArgs.push('-e', `AIDEV_HOST_PROXY=http://host.docker.internal:${proxyPort}`);
+                log(`Container will use host proxy at port ${proxyPort} for container management`, 'info');
+                log(`Make sure to start the proxy with: aidev proxy --port ${proxyPort}`, 'info');
+
+                startProxyServer({ port: proxyPort });
+            }
         }
         
         // Add the container image name

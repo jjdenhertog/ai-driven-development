@@ -42,6 +42,29 @@
   line-height: 1.5;
 }
 
+.info {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.info p {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.info code {
+  display: block;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 0.875rem;
+  color: var(--accent-color);
+}
+
 @media (max-width: 1024px) {
   .container {
     grid-template-columns: 280px 1fr;

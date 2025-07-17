@@ -1,7 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import { StopOptions } from '../types/container/StopOptions';
 import { checkDockerAvailable } from '../utils/docker/checkDockerAvailable';
 import { getContainerName } from '../utils/docker/getContainerName';
 import { getContainerStatus } from '../utils/docker/getContainerStatus';
@@ -9,8 +8,13 @@ import { log } from '../utils/logger';
 
 const execAsync = promisify(exec);
 
-export async function containerStopCommand(options: StopOptions): Promise<void> {
-    const { name } = options;
+type Options = {
+    name: string;
+    clean?: boolean;
+};
+
+export async function containerStopCommand(options: Options): Promise<void> {
+    const { name, clean } = options;
     
     try {
         // Check Docker availability
@@ -21,8 +25,6 @@ export async function containerStopCommand(options: StopOptions): Promise<void> 
         }
         
         const containerName = getContainerName(name);
-        
-        // Check if container exists
         const status = await getContainerStatus(containerName);
         
         if (!status) {
@@ -40,6 +42,18 @@ export async function containerStopCommand(options: StopOptions): Promise<void> 
         log(`Stopping container ${containerName}...`, 'info');
         await execAsync(`docker stop ${containerName}`);
         log(`Container ${containerName} stopped successfully`, 'success');
+        
+        // Remove container if clean option is specified
+        if (clean) {
+            log(`Removing container ${containerName}...`, 'info');
+            try {
+                await execAsync(`docker rm ${containerName}`);
+                log(`Container ${containerName} removed successfully`, 'success');
+            } catch (removeError) {
+                log(`Failed to remove container: ${removeError instanceof Error ? removeError.message : String(removeError)}`, 'error');
+                throw removeError;
+            }
+        }
         
     } catch (error) {
         log(`Failed to stop container: ${error instanceof Error ? error.message : String(error)}`, 'error');

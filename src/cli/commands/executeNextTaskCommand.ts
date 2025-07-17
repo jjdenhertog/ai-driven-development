@@ -21,7 +21,7 @@ export async function executeNextTaskCommand(options: ExecuteNextTaskOptions): P
 
     // Find all pending tasks (no need to switch branches - tasks are in worktree)
     log('Looking for pending tasks...', 'info');
-    const pendingTasks = await getTasks({ status: 'pending', refresh: true });
+    const pendingTasks = await getTasks({ status: 'pending' });
     if (pendingTasks.length === 0) {
         log('No pending tasks found', 'warn');
 

@@ -1,20 +1,20 @@
 .container {
     display: flex;
     height: calc(100vh - 150px);
-    background: var(--background-primary);
+    background: var(--bg-primary);
 }
 
 .sidebar {
     width: 300px;
-    background: var(--background-secondary);
-    border-right: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
 }
 
 .sidebarHeader {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -31,7 +31,7 @@
     height: 32px;
     border-radius: 6px;
     border: none;
-    background: var(--primary);
+    background: var(--accent-color);
     color: white;
     cursor: pointer;
     display: flex;
@@ -41,7 +41,7 @@
 }
 
 .newButton:hover {
-    background: var(--primary-hover);
+    background: var(--accent-hover);
 }
 
 .featureList {
@@ -62,7 +62,7 @@
 
 .emptyButton {
     padding: 0.5rem 1rem;
-    border: 1px dashed var(--border-primary);
+    border: 1px dashed var(--border-color);
     border-radius: 6px;
     background: transparent;
     color: var(--text-primary);
@@ -71,29 +71,62 @@
 }
 
 .emptyButton:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
 }
 
 .featureItem {
     width: 100%;
     padding: 0.75rem 1rem;
-    margin-bottom: 0.25rem;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: var(--background-primary);
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--bg-primary);
     text-align: left;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .featureItem:hover {
-    background: var(--background-tertiary);
+    background: var(--bg-tertiary);
+    border-color: var(--border-color-light);
+    transform: translateX(2px);
 }
 
 .featureItem.selected {
-    background: var(--background-accent);
-    border-color: var(--primary);
+    background: var(--accent-muted);
+    border-color: var(--accent-color);
+}
+
+/* Subtle status styling with left border accent */
+.featureItem.status-draft {
+    border-left: 3px solid var(--text-tertiary);
+    padding-left: calc(1rem - 2px);
+}
+
+.featureItem.status-ready {
+    border-left: 3px solid #3b82f6;
+    padding-left: calc(1rem - 2px);
+}
+
+.featureItem.status-reviewing {
+    border-left: 3px solid #6366f1;
+    padding-left: calc(1rem - 2px);
+}
+
+.featureItem.status-questions {
+    border-left: 3px solid #f59e0b;
+    padding-left: calc(1rem - 2px);
+}
+
+.featureItem.status-reviewed {
+    border-left: 3px solid #8b5cf6;
+    padding-left: calc(1rem - 2px);
+}
+
+.featureItem.status-approved {
+    border-left: 3px solid #10b981;
+    padding-left: calc(1rem - 2px);
 }
 
 .featureHeader {
@@ -117,11 +150,6 @@
     margin-left: 0.5rem;
 }
 
-.featureState {
-    font-size: 0.813rem;
-    color: var(--text-secondary);
-    text-transform: capitalize;
-}
 
 .main {
     flex: 1;
@@ -151,5 +179,5 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--error);
+    color: var(--error-color);
 }

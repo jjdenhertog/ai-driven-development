@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faArchive, faHourglassHalf, faCircle, faPause } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faArchive, faHourglassHalf, faCircle, faPause, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { Task } from '@/lib/api'
 import styles from './TaskList.module.css'
 
@@ -27,6 +27,8 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
                 return <FontAwesomeIcon icon={faArchive} />
             case 'in_progress':
                 return <FontAwesomeIcon icon={faHourglassHalf} />
+            case 'failed':
+                return <FontAwesomeIcon icon={faTimes} />
             case 'draft':
                 return <FontAwesomeIcon icon={faCircle} style={{ opacity: 0.5 }} />
             case 'pending':
@@ -40,6 +42,7 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
     const categorizedTasks = {
         draft: tasks.filter(t => (t.status as any) === 'draft'),
         inProgress: tasks.filter(t => t.status === 'in_progress'),
+        failed: tasks.filter(t => t.status === 'failed'),
         pending: tasks.filter(t => t.status === 'pending' && !t.dependencies?.some(dep => {
             const depTask = tasks.find(t => t.id === dep)
 
@@ -54,7 +57,7 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
         archived: tasks.filter(t => t.status === 'archived'),
     }
 
-    const renderTaskGroup = (title: string, tasks: Task[], showDivider = true, isDraft = false) => {
+    const renderTaskGroup = (title: string, tasks: Task[], showDivider = true, isDraft = false, isFailed = false) => {
         if (tasks.length === 0) return null
 
         return (
@@ -65,7 +68,7 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
                         key={task.id}
                         className={`${styles.task} ${
                             selectedTaskId === task.id ? styles.selected : ''
-                        } ${isDraft ? styles.draft : ''} ${!isDraft && task.hold ? styles.hold : ''}`}
+                        } ${isDraft ? styles.draft : ''} ${isFailed || task.status === 'failed' ? styles.failed : ''} ${!isDraft && task.hold ? styles.hold : ''}`}
                         onClick={() => router.push(`/tasks/${task.id}`)}
                     >
                         <span className={styles.icon}>
@@ -101,7 +104,8 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
                     </div>
                 )}
                 {renderTaskGroup('In Progress', categorizedTasks.inProgress, false)}
-                {renderTaskGroup('Pending', categorizedTasks.pending, categorizedTasks.inProgress.length > 0)}
+                {renderTaskGroup('Failed', categorizedTasks.failed, categorizedTasks.inProgress.length > 0, false, true)}
+                {renderTaskGroup('Pending', categorizedTasks.pending, categorizedTasks.inProgress.length > 0 || categorizedTasks.failed.length > 0)}
                 {renderTaskGroup('Waiting (Dependencies)', categorizedTasks.waiting)}
                 {renderTaskGroup('Completed', categorizedTasks.completed)}
                 {renderTaskGroup('Archived', categorizedTasks.archived)}

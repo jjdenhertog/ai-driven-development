@@ -5,14 +5,15 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const tasksDir = await ensureStoragePath('tasks')
         const files = await fs.readdir(tasksDir)
     
         // Find the MD file that starts with the task ID
-        const mdFile = files.find(f => f.startsWith(`${params.id}-`) && f.endsWith('.md'))
+        const mdFile = files.find(f => f.startsWith(`${id}-`) && f.endsWith('.md'))
     
         if (!mdFile) {
             return NextResponse.json({ error: 'Specification not found' }, { status: 404 })
@@ -29,15 +30,16 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const { content } = await request.json()
         const tasksDir = await ensureStoragePath('tasks')
         const files = await fs.readdir(tasksDir)
     
         // Find the MD file that starts with the task ID
-        const mdFile = files.find(f => f.startsWith(`${params.id}-`) && f.endsWith('.md'))
+        const mdFile = files.find(f => f.startsWith(`${id}-`) && f.endsWith('.md'))
     
         if (!mdFile) {
             return NextResponse.json({ error: 'Specification not found' }, { status: 404 })

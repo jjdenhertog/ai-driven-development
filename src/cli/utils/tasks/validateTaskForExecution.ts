@@ -7,14 +7,13 @@ type Options = {
     expectedStatuses: Task['status'][];
     force?: boolean;
     errorMessage?: string;
-    refresh?: boolean;
 }
 
 export async function validateTaskForExecution(options: Options): Promise<Task> {
-    const { taskId, expectedStatuses, errorMessage, refresh = false } = options;
+    const { taskId, expectedStatuses, errorMessage } = options;
 
     // Get the specified task
-    const task = await getTaskById({ taskId, refresh });
+    const task = await getTaskById({ taskId });
     if (!task) {
         log(`Task ${taskId} not found`, 'error');
         throw new Error(`Task ${taskId} not found`);
