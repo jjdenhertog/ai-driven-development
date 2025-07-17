@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { log } from '../utils/logger'
 import { checkGitInitialized } from '../utils/git/checkGitInitialized'
-import { promises as fs } from 'node:fs'
+import { existsSync } from 'fs-extra'
 
 export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
     try {
@@ -17,9 +17,7 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
         }
 
         // Check if .aidev-storage exists in target directory
-        const storageExists = await fs.access(path.join(targetDir, '.aidev-storage')).then(() => true)
-            .catch(() => false)
-        if (!storageExists) {
+        if (!existsSync(path.join(targetDir, '.aidev-storage'))) {
             throw new Error('AIdev has not been initialized. Run "aidev init" first.')
         }
 
@@ -36,9 +34,9 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
         const prodWebDir = path.join(__dirname, '..', '..', '..', '..', 'src', 'web')
         
         // Check which path exists
-        if (await fs.access(devWebDir).then(() => true).catch(() => false)) {
+        if (existsSync(devWebDir)) {
             webDir = devWebDir
-        } else if (await fs.access(prodWebDir).then(() => true).catch(() => false)) {
+        } else if (existsSync(prodWebDir)) {
             webDir = prodWebDir
         } else {
             throw new Error('Could not find web directory. The package may be corrupted.')
@@ -51,8 +49,7 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             log('Starting AIdev web interface (development mode)...', 'info')
             
             // Check if node_modules exist
-            const hasNodeModules = await fs.access(path.join(webDir, 'node_modules')).then(() => true)
-                .catch(() => false)
+            const hasNodeModules = existsSync(path.join(webDir, 'node_modules'))
             
             if (!hasNodeModules) {
                 log('Installing web dependencies...', 'info')
@@ -88,10 +85,7 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             const standaloneServerPath = path.join(standaloneDir, 'server.js')
             
             // Check if standalone build exists
-            const hasStandaloneBuild = await fs.access(standaloneServerPath).then(() => true)
-                .catch(() => false)
-        
-            if (!hasStandaloneBuild) {
+            if (!existsSync(standaloneServerPath)) {
                 throw new Error(`Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
             }
         
