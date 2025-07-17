@@ -55,7 +55,7 @@ export async function containerRestartCommand(options: RestartOptions): Promise<
             try {
                 await execAsync(`docker rmi ${imageName}`);
                 log(`Image ${imageName} removed for clean rebuild`, 'info');
-            } catch (error) {
+            } catch {
                 // Image might be used by other containers, that's OK
                 log(`Note: Could not remove image ${imageName} (may be in use by other containers)`, 'warn');
             }

@@ -3,7 +3,7 @@
 import { getGitInstance } from './getGitInstance';
 import { log } from '../logger';
 import { MAIN_BRANCH } from '../../config';
-import { CommitInfo, FileChange } from '../../types/git/CommitInfo';
+import { CommitInfo } from '../../types/git/CommitInfo';
 
 export const AI_COMMIT_PATTERNS = [
     'ai:',

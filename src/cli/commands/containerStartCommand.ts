@@ -101,8 +101,7 @@ export async function containerStartCommand(options: StartOptions): Promise<void
         
         // Add port mapping and PORT env var for web container
         if (configType === 'web') {
-            runArgs.push('-p', `${port}:${port}`);
-            runArgs.push('-e', `PORT=${port}`);
+            runArgs.push('-p', `${port}:${port}`, '-e', `PORT=${port}`);
             log(`Web container will run on port ${port}`, 'info');
         }
         
