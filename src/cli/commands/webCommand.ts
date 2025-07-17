@@ -23,21 +23,59 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
 
         log('Starting AIdev web interface...', 'info')
 
+        // Debug logging
+        console.log('[DEBUG] __filename:', __filename)
+        console.log('[DEBUG] __dirname:', __dirname)
+        console.log('[DEBUG] process.cwd():', process.cwd())
+        console.log('[DEBUG] targetDir:', targetDir)
+
         // Navigate to web directory - handle both development and production paths
         let webDir: string
         
         // When running from development (npm link)
         const devWebDir = path.join(__dirname, '..', '..', '..', 'src', 'web')
+        console.log('[DEBUG] Checking dev path:', devWebDir)
+        console.log('[DEBUG] Dev path exists:', existsSync(devWebDir))
         
         // When running from global npm install
         // The web files are at the package root under src/web, not dist/src/web
         const prodWebDir = path.join(__dirname, '..', '..', '..', '..', 'src', 'web')
+        console.log('[DEBUG] Checking prod path:', prodWebDir)
+        console.log('[DEBUG] Prod path exists:', existsSync(prodWebDir))
+
+        // Also check alternative paths
+        const altPath1 = path.join(__dirname, '..', '..', 'src', 'web')
+        const altPath2 = path.join(__dirname, '..', 'src', 'web')
+        console.log('[DEBUG] Alternative path 1:', altPath1, 'exists:', existsSync(altPath1))
+        console.log('[DEBUG] Alternative path 2:', altPath2, 'exists:', existsSync(altPath2))
+
+        // List parent directories to understand the structure
+        console.log('[DEBUG] Listing parent directories:')
+        let currentPath = __dirname
+        
+        for (let i = 0; i < 5; i++) {
+            console.log(`[DEBUG] Level ${i}: ${currentPath}`)
+            const parentPath = path.dirname(currentPath)
+            if (existsSync(parentPath)) {
+                const contents = require('fs').readdirSync(parentPath)
+                console.log(`[DEBUG] Contents: ${contents.join(', ')}`)
+            }
+            currentPath = parentPath
+        }
         
         // Check which path exists
         if (existsSync(devWebDir)) {
             webDir = devWebDir
+            console.log('[DEBUG] Using dev web directory:', webDir)
         } else if (existsSync(prodWebDir)) {
             webDir = prodWebDir
+            console.log('[DEBUG] Using prod web directory:', webDir)
+        } else if (existsSync(altPath1)) {
+            webDir = altPath1
+            console.log('[DEBUG] Using alternative path 1:', webDir)
+        } else if (existsSync(altPath2)) {
+            webDir = altPath2
+            console.log('[DEBUG] Using alternative path 2:', webDir)
         } else {
             throw new Error('Could not find web directory. The package may be corrupted.')
         }
@@ -83,6 +121,24 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             // Production mode - use standalone build
             const standaloneDir = path.join(webDir, '.next', 'standalone')
             const standaloneServerPath = path.join(standaloneDir, 'server.js')
+            
+            console.log('[DEBUG] Standalone dir:', standaloneDir)
+            console.log('[DEBUG] Standalone server path:', standaloneServerPath)
+            console.log('[DEBUG] Standalone server exists:', existsSync(standaloneServerPath))
+
+            // List contents of web directory
+            if (existsSync(webDir)) {
+                console.log('[DEBUG] Web directory contents:', require('fs').readdirSync(webDir).join(', '))
+                
+                const nextDir = path.join(webDir, '.next')
+                if (existsSync(nextDir)) {
+                    console.log('[DEBUG] .next directory contents:', require('fs').readdirSync(nextDir).join(', '))
+                    
+                    if (existsSync(standaloneDir)) {
+                        console.log('[DEBUG] Standalone directory contents:', require('fs').readdirSync(standaloneDir).join(', '))
+                    }
+                }
+            }
             
             // Check if standalone build exists
             if (!existsSync(standaloneServerPath)) {
