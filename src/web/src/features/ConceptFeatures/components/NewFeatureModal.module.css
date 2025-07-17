@@ -13,15 +13,17 @@
 }
 
 .modal {
-    background: var(--background-primary);
-    border: 1px solid var(--border-secondary);
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .header {
@@ -29,7 +31,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .header h2 {
@@ -41,21 +44,22 @@
 .closeButton {
     width: 32px;
     height: 32px;
-    border: none;
+    border: 1px solid transparent;
     background: transparent;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.2s;
 }
 
 .closeButton:hover {
-    background: var(--background-secondary);
-    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .form {
@@ -82,9 +86,9 @@
 
 .input {
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    background: var(--background-primary);
+    background: rgba(0, 0, 0, 0.3);
     color: var(--text-primary);
     font-size: 0.938rem;
 }
@@ -96,9 +100,9 @@
 
 .select {
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    background: var(--background-primary);
+    background: rgba(0, 0, 0, 0.3);
     color: var(--text-primary);
     font-size: 0.938rem;
     cursor: pointer;
@@ -110,10 +114,10 @@
 }
 
 .editorWrapper {
-    border: 1px solid var(--border-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     overflow: hidden;
-    background: var(--background-secondary);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .checkboxLabel {
@@ -135,16 +139,16 @@
     justify-content: flex-end;
     padding: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--border-primary);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: auto;
     margin: 0 -1.5rem -1.5rem;
-    background: var(--background-secondary);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 0 0 12px 12px;
 }
 
 .cancelButton {
     padding: 0.5rem 1rem;
-    border: 1px solid var(--border-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
     background: transparent;
     color: var(--text-primary);
@@ -154,22 +158,25 @@
 }
 
 .cancelButton:hover {
-    background: var(--background-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .createButton {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 6px;
-    background: var(--primary);
+    background: #3b82f6;
     color: white;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    font-weight: 500;
 }
 
 .createButton:hover:not(:disabled) {
-    background: var(--primary-hover);
+    background: #2563eb;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
 .createButton:disabled {

@@ -5,9 +5,9 @@ import { log } from '../utils/logger'
 import { checkGitInitialized } from '../utils/git/checkGitInitialized'
 import { promises as fs } from 'node:fs'
 
-export async function webCommand(options?: { cwd?: string }) {
+export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
     try {
-    // If a custom working directory is provided, change to it
+        // If a custom working directory is provided, change to it
         const targetDir = options?.cwd || process.cwd()
     
         // Check if git is initialized in target directory
@@ -35,34 +35,16 @@ export async function webCommand(options?: { cwd?: string }) {
             webDir = path.join(__dirname, '..', '..', 'src', 'web')
         }
 
-        // Check if we have a standalone build
-        const standaloneServerPath = path.join(webDir, '.next', 'standalone', 'src', 'web', 'server.js')
-        const hasStandaloneBuild = await fs.access(standaloneServerPath).then(() => true)
-            .catch(() => false)
-        const hasNodeModules = await fs.access(path.join(webDir, 'node_modules')).then(() => true)
-            .catch(() => false)
-    
         let webProcess: any
-    
-        if (hasStandaloneBuild && !hasNodeModules) {
-            // Production mode - use the standalone build
-            log('Starting AIdev web interface (production mode)...', 'info')
-      
-            // Run the standalone server directly with node
-            webProcess = spawn('node', [standaloneServerPath], {
-                cwd: webDir,  // <-- ADD THIS LINE
-                stdio: 'inherit',
-                shell: true,
-                env: {
-                    ...process.env,
-                    PROJECT_ROOT: targetDir,
-                    PORT: '3001'
-                }
-            })
-        } else {
-            // Development mode - run dev server
+
+        // Development mode - for npm link development
+        if (options?.dev) {
             log('Starting AIdev web interface (development mode)...', 'info')
-      
+            
+            // Check if node_modules exist
+            const hasNodeModules = await fs.access(path.join(webDir, 'node_modules')).then(() => true)
+                .catch(() => false)
+            
             if (!hasNodeModules) {
                 log('Installing web dependencies...', 'info')
                 const installProcess = spawn('npm', ['install'], {
@@ -78,7 +60,9 @@ export async function webCommand(options?: { cwd?: string }) {
                     })
                 })
             }
-      
+            
+            log('Starting development server on http://localhost:3001', 'info')
+            
             // Start the Next.js dev server
             webProcess = spawn('npm', ['run', 'dev'], {
                 cwd: webDir,
@@ -87,6 +71,32 @@ export async function webCommand(options?: { cwd?: string }) {
                 env: {
                     ...process.env,
                     PROJECT_ROOT: targetDir
+                }
+            })
+        } else {
+            // Production mode - use standalone build
+            const standaloneDir = path.join(webDir, '.next', 'standalone')
+            const standaloneServerPath = path.join(standaloneDir, 'server.js')
+            
+            // Check if standalone build exists
+            const hasStandaloneBuild = await fs.access(standaloneServerPath).then(() => true)
+                .catch(() => false)
+        
+            if (!hasStandaloneBuild) {
+                throw new Error('Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development')
+            }
+        
+            log('Starting AIdev web interface on http://localhost:3001', 'info')
+            
+            // Run the standalone server
+            webProcess = spawn('node', ['server.js'], {
+                cwd: standaloneDir,  // Important: run from standalone directory
+                stdio: 'inherit',
+                shell: true,
+                env: {
+                    ...process.env,
+                    PROJECT_ROOT: targetDir,
+                    PORT: '3001'
                 }
             })
         }

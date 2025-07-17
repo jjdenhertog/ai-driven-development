@@ -283,9 +283,10 @@ program
 program
     .command('web')
     .description('Start the AIdev web interface for managing tasks and settings')
-    .action(async () => {
+    .option('--dev', 'Run in development mode (for npm link development)')
+    .action(async (options) => {
         try {
-            await webCommand()
+            await webCommand({ dev: options.dev })
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);

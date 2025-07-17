@@ -108,9 +108,7 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                             className={styles.select}
                         >
                             <option value="draft">Draft</option>
-                            <option value="ready">Ready (Process immediately)</option>
-                            <option value="active">Active</option>
-                            <option value="archived">Archived</option>
+                            <option value="ready">Let AI evaluate the feature</option>
                         </select>
                     </div>
                     
