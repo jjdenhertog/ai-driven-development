@@ -78,12 +78,18 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             const standaloneDir = path.join(webDir, '.next', 'standalone')
             const standaloneServerPath = path.join(standaloneDir, 'server.js')
             
+            // Debug logging
+            console.log('[DEBUG] __dirname:', __dirname)
+            console.log('[DEBUG] webDir:', webDir)
+            console.log('[DEBUG] standaloneDir:', standaloneDir)
+            console.log('[DEBUG] Looking for server.js at:', standaloneServerPath)
+            
             // Check if standalone build exists
             const hasStandaloneBuild = await fs.access(standaloneServerPath).then(() => true)
                 .catch(() => false)
         
             if (!hasStandaloneBuild) {
-                throw new Error('Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development')
+                throw new Error(`Web interface build not found at ${standaloneServerPath}. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
             }
         
             log('Starting AIdev web interface on http://localhost:3001', 'info')
