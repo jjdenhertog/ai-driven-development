@@ -94,7 +94,7 @@ export async function checkBranchMerged(branchName: string, targetBranch: string
         return false;
         
     } catch (error) {
-        log(`Error checking if branch ${branchName} is merged: ${error}`, 'error');
+        log(`Error checking if branch ${branchName} is merged: ${error instanceof Error ? error.message : String(error)}`, 'error');
 
         return false;
     }

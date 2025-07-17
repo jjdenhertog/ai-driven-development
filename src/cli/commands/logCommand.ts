@@ -11,7 +11,8 @@ export async function logCommand(): Promise<void> {
 
     const timestamp = new Date().toISOString();
     let inputData = '';
-    let sessionId = process.env.AIDEV_SESSION_ID || new Date().toISOString().replace(/[.:]/g, '-');
+    let sessionId = process.env.AIDEV_SESSION_ID || new Date().toISOString()
+        .replace(/[.:]/g, '-');
 
     // Read from stdin
     try {

@@ -11,7 +11,7 @@ type Options = {
 }
 
 export async function validateTaskForExecution(options: Options): Promise<Task> {
-    const { taskId, expectedStatuses, force = false, errorMessage, refresh = false } = options;
+    const { taskId, expectedStatuses, errorMessage, refresh = false } = options;
 
     // Get the specified task
     const task = await getTaskById({ taskId, refresh });

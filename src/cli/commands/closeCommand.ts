@@ -1,6 +1,5 @@
 import { existsSync, rmSync } from 'fs-extra';
 import { join } from 'node:path';
-import { TASKS_OUTPUT_DIR } from '../config';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';

@@ -1,0 +1,104 @@
+.container {
+  height: 100%;
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.item:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+.item.selected {
+  background: var(--selected-bg);
+  border-color: var(--primary-color);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+}
+
+.statusIcon {
+  font-size: 0.75rem;
+}
+
+.statusIcon.running {
+  color: #22c55e;
+}
+
+.statusIcon.stopped {
+  color: #ef4444;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--foreground);
+  text-transform: capitalize;
+}
+
+.type {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+.icon {
+  color: var(--muted-foreground);
+}
+
+.actionIcon {
+  font-size: 1rem;
+}
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted-foreground);
+}
+
+.error {
+  color: var(--error-color);
+  text-align: center;
+  padding: 2rem;
+}

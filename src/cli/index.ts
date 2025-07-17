@@ -2,7 +2,6 @@
 /* eslint-disable unicorn/prefer-module */
 
 import { Command } from "commander";
-import { log } from "node:console";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -13,11 +12,18 @@ import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
 import { logCommand } from "./commands/logCommand";
 import { openCommand } from "./commands/openCommand";
-import { logError } from "./utils/logger";
+import { log, logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
 import { closeCommand } from "./commands/closeCommand";
 import { saveCommand } from "./commands/saveCommand";
 import { cleanupGitInstances } from "./utils/git/getGitInstance";
+import { webCommand } from "./commands/webCommand";
+import { containerExecCommand } from "./commands/containerExecCommand";
+import { containerLogsCommand } from "./commands/containerLogsCommand";
+import { containerRestartCommand } from "./commands/containerRestartCommand";
+import { containerStartCommand } from "./commands/containerStartCommand";
+import { containerStatusCommand } from "./commands/containerStatusCommand";
+import { containerStopCommand } from "./commands/containerStopCommand";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', '..', 'package.json');
@@ -175,7 +181,7 @@ program
             }
         }
 
-        console.log("Cleaning up git instances");
+        log("Cleaning up git instances", 'info');
         await cleanupGitInstances();
     })
 
@@ -271,5 +277,149 @@ program
 
         await cleanupGitInstances();
     })
+
+// Web command
+program
+    .command('web')
+    .description('Start the AIdev web interface for managing tasks and settings')
+    .action(async () => {
+        try {
+            await webCommand()
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    })
+
+// Container commands
+const container = program
+    .command('container')
+    .description('Manage AI development containers');
+
+container
+    .command('start <name>')
+    .description('Start a development container with the given name')
+    .option('-t, --type <type>', 'Devcontainer type to use (code or learn)', 'code')
+    .action(async (name: string, cmdObject) => {
+        if (cmdObject.type && cmdObject.type !== 'code' && cmdObject.type !== 'learn') {
+            logError('Container type must be either "code" or "learn"');
+            
+            return;
+        }
+        
+        try {
+            await containerStartCommand({
+                name,
+                type: cmdObject.type
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('status [name]')
+    .description('Show status of development containers (or all if no name specified)')
+    .action(async (name?: string) => {
+        try {
+            await containerStatusCommand({
+                name
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('logs <name>')
+    .description('View logs from a development container')
+    .option('-n, --lines <number>', 'Number of lines to show', '50')
+    .option('-f, --follow', 'Follow log output')
+    .action(async (name: string, cmdObject) => {
+        try {
+            await containerLogsCommand({
+                name,
+                lines: parseInt(cmdObject.lines, 10),
+                follow: !!cmdObject.follow
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('stop <name>')
+    .description('Stop a development container')
+    .action(async (name: string) => {
+        try {
+            await containerStopCommand({
+                name
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('restart <name>')
+    .description('Restart a development container')
+    .action(async (name: string) => {
+        try {
+            await containerRestartCommand({
+                name
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('exec <name> [command...]')
+    .description('Execute a command inside a running container')
+    .allowUnknownOption()
+    .action(async (name: string, command: string[]) => {
+        if (!command || command.length === 0) {
+            logError('No command specified');
+            log('Example: aidev container exec mycontainer npm test', 'info');
+            
+            return;
+        }
+        
+        try {
+            await containerExecCommand({
+                name,
+                command
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
 
 program.parse(process.argv);

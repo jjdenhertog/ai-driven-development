@@ -1,0 +1,1 @@
+export type TimelineEntryType = 'status' | 'tool' | 'decision' | 'error'

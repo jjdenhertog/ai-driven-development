@@ -1,0 +1,1 @@
+export type ExampleType = 'component' | 'api' | 'hook' | 'store' | 'feature'

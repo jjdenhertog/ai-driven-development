@@ -1,11 +1,12 @@
 import { existsSync, rmSync } from 'fs-extra';
-
-import { checkGitAuth } from '../utils/git/checkGitAuth';
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { join } from 'node:path';
+
 import { executeClaudeCommand } from '../../claude-wrapper';
 import addHooks from '../utils/claude/addHooks';
 import removeHooks from '../utils/claude/removeHooks';
+import { addToGitignore } from '../utils/git/addToGitignore';
+import { checkGitAuth } from '../utils/git/checkGitAuth';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
 import { ensureBranch } from '../utils/git/ensureBranch';
@@ -14,10 +15,10 @@ import { getGitInstance } from '../utils/git/getGitInstance';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { pullBranch } from '../utils/git/pullBranch';
 import { pushBranch } from '../utils/git/pushBranch';
-import { stageAllFiles } from '../utils/git/stageAllFiles';
 import { log } from "../utils/logger";
 import { createSession } from '../utils/storage/createSession';
 import { createSessionReport } from '../utils/storage/createSessionReport';
+import { saveStorageChanges } from '../utils/storage/saveStorageChanges';
 import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
@@ -69,6 +70,12 @@ export async function executeTaskCommand(options: Options) {
     await ensureWorktree(branchName, worktreePath);
     await pullBranch(branchName, worktreePath);
 
+    // Ensure common directories are in .gitignore
+    const commonIgnores = ['node_modules', '.next', 'dist', 'build', '*.log', '.DS_Store'];
+
+    for (const ignore of commonIgnores) 
+        addToGitignore(worktreePath, ignore);
+
     log(`Executing Task: ${task.id} - ${task.name}`, 'info', undefined, logPath);
 
     if (dryRun) {
@@ -77,6 +84,17 @@ export async function executeTaskCommand(options: Options) {
         log(`   Branch Name: ${getBranchName(task)}`, 'info', undefined, logPath);
 
         return;
+    }
+
+    const removeWorktree = async () => {
+        log(`Removing worktree...`, 'info', undefined, logPath);
+        const git = getGitInstance();
+        try {
+            await git.raw(['worktree', 'remove', '--force', worktreePath]);
+        } catch (_error) {
+            rmSync(worktreePath, { force: true, recursive: true });
+        }
+        await git.raw(['branch', '-D', branchName, '--force']);
     }
 
     // Create session
@@ -129,16 +147,8 @@ export async function executeTaskCommand(options: Options) {
         updateTaskFile(task.path, {
             status: 'failed'
         });
-
-        log(`Removing worktree...`, 'info', undefined, logPath);
-        const git = getGitInstance();
-        try {
-            await git.raw(['worktree', 'remove', '--force', worktreePath]);
-        } catch (_error) {
-            rmSync(worktreePath, { force: true, recursive: true });
-        }
-
-        await git.raw(['branch', '-D', branchName, '--force']);
+        saveStorageChanges();
+        await removeWorktree();       
 
         return;
     }
@@ -154,13 +164,18 @@ export async function executeTaskCommand(options: Options) {
             status: 'completed'
         });
 
+        saveStorageChanges();
+
         log(`Committing and pushing changes...`, 'info', undefined, logPath);
         // Remove the stoarge path
         const storagePath = join(worktreePath, '.aidev-storage');
         if (existsSync(storagePath))
             rmSync(storagePath, { force: true, recursive: true });
 
-        await stageAllFiles(worktreePath)
+        // Stage all files except ignored ones
+        const gitWorktree = getGitInstance(worktreePath);
+        await gitWorktree.add('-A');
+        
         await createCommit(`complete task ${task.id} - ${task.name} (AI-generated)`, {
             prefix: 'feat',
             cwd: worktreePath
@@ -168,7 +183,6 @@ export async function executeTaskCommand(options: Options) {
         const pushResult = await pushBranch(branchName, worktreePath);
         if (!pushResult.success)
             log(`Failed to push changes to remote: ${pushResult.error}`, 'error', undefined, logPath);
-
 
         // Create PR
         if (checkGitAuth()) {
@@ -181,15 +195,18 @@ export async function executeTaskCommand(options: Options) {
         ///////////////////////////////////////////////////////////
 
         log(`Removing worktree...`, 'info', undefined, logPath);
-        const git = getGitInstance();
-        try {
-            await git.raw(['worktree', 'remove', '--force', worktreePath]);
-        } catch (_error) {
-            rmSync(worktreePath, { force: true, recursive: true });
-        }
-        await git.raw(['branch', '-D', branchName, '--force']);
+        await removeWorktree();       
 
     } catch (error) {
+
+        updateTaskFile(task.path, {
+            status: 'failed'
+        });
+
+        saveStorageChanges();
+
+        await removeWorktree();       
+
         log(`Failed to finish task ${task.id} - ${task.name}: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
 

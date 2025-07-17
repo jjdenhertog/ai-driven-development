@@ -1,0 +1,728 @@
+.container {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  background: var(--bg-tertiary);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  color: var(--text-primary);
+}
+
+.sessionMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.metaLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.successStatus {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.failedStatus {
+  color: var(--error-color);
+  font-weight: 600;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 0;
+}
+
+.timelineTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.timelineEntry {
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+}
+
+.statusEntry {
+  padding-left: 1rem;
+  border-left: 2px solid var(--accent-color);
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.message {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.decisionEntry,
+.errorEntry {
+  display: flex;
+  gap: 0.75rem;
+  padding-left: 1rem;
+  font-size: 0.875rem;
+}
+
+.decisionEntry {
+  border-left: 2px solid var(--accent-color);
+}
+
+.errorEntry {
+  border-left: 2px solid var(--error-color);
+}
+
+.decisionContent,
+.errorMessage {
+  flex: 1;
+}
+
+.reasoning {
+  margin-top: 0.5rem;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+.toolEntry {
+  position: relative;
+}
+
+.toolHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.toolHeader:hover {
+  background: var(--bg-secondary);
+}
+
+.toolInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolIcon {
+  font-size: 1.125rem;
+}
+
+.toolName {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.duration {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.expandButton {
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.expandButton.expanded {
+  transform: rotate(90deg);
+}
+
+.toolResult {
+  margin-top: 0.75rem;
+  background: #0a0a0a;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  max-height: 400px;
+  overflow: auto;
+}
+
+/* Exception for TodoWrite - no scrolling */
+.toolResult:has(.todoList) {
+  max-height: none;
+  overflow: visible;
+  background: transparent;
+  border: none;
+}
+
+.toolResult pre {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.813rem;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  color: #e5e5e5;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+.terminalOutput {
+  background: #1a1a1a;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.terminalOutput pre {
+  color: #f0f0f0;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.813rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--error-color);
+}
+
+/* TodoWrite specific styles - lighter design */
+.todoList {
+  padding: 0.5rem 0;
+}
+
+.todoSummary {
+  font-size: 0.813rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+.todos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: none;
+  overflow: visible;
+}
+
+.todoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.813rem;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.todoItem:hover {
+  background: var(--bg-secondary);
+  border-radius: 0.25rem;
+}
+
+.todoItem.completed {
+  border-left-color: var(--success-color);
+  opacity: 0.7;
+}
+
+.todoItem.in_progress {
+  border-left-color: var(--accent-color);
+}
+
+.todoItem.pending {
+  border-left-color: var(--text-tertiary);
+  opacity: 0.9;
+}
+
+.todoStatus {
+  font-size: 0.875rem;
+  min-width: 16px;
+  text-align: center;
+}
+
+.todoItem.completed .todoStatus {
+  color: var(--success-color);
+}
+
+.todoItem.in_progress .todoStatus {
+  color: var(--accent-color);
+}
+
+.todoItem.pending .todoStatus {
+  color: var(--text-tertiary);
+}
+
+.todoContent {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.todoItem.completed .todoContent {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.todoPriority {
+  font-size: 0.688rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.188rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.todoPriority.priority-high {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.todoPriority.priority-medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.todoPriority.priority-low {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+/* Write tool specific styles */
+.writeResult {
+  padding: 0.75rem;
+}
+
+.fileName {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 0.375rem;
+  font-family: var(--font-mono);
+}
+
+.filePreview {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.filePreview pre {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.813rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.expandPreview {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border: none;
+  border-top: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-size: 0.813rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.expandPreview:hover {
+  background: var(--bg-primary);
+}
+
+/* Bash command specific styles */
+.bashEmpty {
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.813rem;
+  background: #1a1a1a;
+  border-radius: 0.375rem;
+  color: #b0b0b0;
+}
+
+.bashPrompt {
+  color: #10b981;
+  margin-right: 0.5rem;
+}
+
+.bashCommand {
+  color: #f0f0f0;
+}
+
+.bashNoOutput {
+  margin-top: 0.5rem;
+  color: #666;
+  font-style: italic;
+}
+
+.summary {
+  margin-left: 0.75rem;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.toolHeader.noContent {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.toolHeader.noContent:hover {
+  background: transparent;
+}
+
+.logsSection {
+  margin: 1.5rem 0;
+}
+
+/* Markdown-style formatting for status messages */
+.mdH1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.mdH2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.mdH3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.375rem 0;
+  color: var(--text-primary);
+}
+
+.mdParagraph {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.mdListItem {
+  list-style: none;
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.mdListItem::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-secondary);
+}
+
+.mdEmptyLine {
+  height: 0.5rem;
+}
+
+/* Tabs for Timeline/Files - matching other tab designs */
+.tabContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  padding: 0.5rem;
+  gap: 0.25rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+  padding: 0.625rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.tab.active {
+  background: var(--bg-secondary);
+  color: var(--accent-color);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Files Written view */
+.filesWritten {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 0;
+}
+
+.fileItem {
+  background: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.fileHeader {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fileHeader:hover {
+  background: var(--bg-secondary);
+}
+
+.fileContent {
+  border-top: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.fileIcon {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.filePath {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSummary {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.noFiles {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+/* Logs view */
+.logsView {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.logsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logsHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.logsFileName {
+  font-size: 0.813rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  background: var(--bg-tertiary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+}
+
+.logsToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logsToggle:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-color);
+}
+
+.toggleIcon {
+  margin-left: auto;
+  transition: transform 0.2s;
+  font-size: 0.75rem;
+}
+
+.toggleIcon.expanded {
+  transform: rotate(90deg);
+}
+
+.logsContent {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.logsContent pre {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #e5e5e5;
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.logsTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.logEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.logEntry:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-hover);
+}
+
+.logEntry.success {
+  border-left: 3px solid var(--success-color);
+}
+
+.logEntry.error {
+  border-left: 3px solid var(--error-color);
+}
+
+.logEntry.info {
+  border-left: 3px solid var(--info-color);
+}
+
+.logTimestamp {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  min-width: 80px;
+  font-family: var(--font-mono);
+}
+
+.logType {
+  font-size: 1rem;
+  min-width: 24px;
+  text-align: center;
+}
+
+.logMessage {
+  flex: 1;
+  color: var(--text-primary);
+  line-height: 1.5;
+  word-break: break-word;
+}

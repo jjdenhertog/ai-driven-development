@@ -53,7 +53,7 @@ export async function ensureWorktree(branch: string, path: string, skipSymlink: 
             log(`Created symlink to storage at ${symlinkPath} -> ${relativeStoragePath}`, 'info');
 
             // Make sure the .aidev-storage is never pushed
-            addToGitignore(path, '.aidev-storage');
+            addToGitignore(path, '.aidev-storage', '# AIdev worktree (local data storage)');
 
         } catch (error) {
             log(`Failed to create symlink to storage: ${String(error)}`, 'warn');

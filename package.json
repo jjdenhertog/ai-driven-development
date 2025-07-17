@@ -8,11 +8,12 @@
     "aidev": "./dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run build:web",
+    "build:web": "cd src/web && npm install && BUILD_STANDALONE=1 npm run build",
     "dev": "tsc --watch",
     "clean": "rimraf dist",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/web/**'",
+    "lint:fix": "eslint 'src/**/*.ts' --ignore-pattern 'src/web/**' --fix",
     "prepublishOnly": "npm run clean && npm run lint && npm run build",
     "deploy": "npm version patch && npm publish --access public"
   },
@@ -29,6 +30,11 @@
   "files": [
     "dist/",
     "templates/",
+    "src/web/.next/",
+    "src/web/public/",
+    "src/web/package.json",
+    "src/web/package-lock.json",
+    "src/web/next.config.js",
     "README-npm.md"
   ],
   "engines": {
@@ -48,8 +54,8 @@
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-unicorn": "^52.0.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-unicorn": "^56.0.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.0"
   },

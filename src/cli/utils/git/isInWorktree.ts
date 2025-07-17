@@ -15,7 +15,7 @@ export async function isInWorktree(): Promise<boolean> {
         // In a worktree, --git-dir and --git-common-dir return different paths
         // In the main repository, they return the same path
         return gitDir.trim() !== gitCommonDir.trim();
-    } catch (error) {
+    } catch (_error) {
         // If git commands fail, we're not in a git repository at all
         return false;
     }

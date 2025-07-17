@@ -185,7 +185,8 @@ export async function createSessionReport(options: Options): Promise<SessionRepo
 
     } catch (error) {
         log(`Error creating session report: ${String(error)}`, 'error');
-        return await saveErrorReport({
+
+        return saveErrorReport({
             errorMessage: `Failed to create session report: ${error instanceof Error ? error.message : String(error)}`,
             outputPath
         });
@@ -469,7 +470,7 @@ function determineSuccess(options: DetermineSuccessOptions): DetermineSuccessRes
     }
 
     // 2. Check if session ended during tool execution (abrupt ending)
-    const lastTimelineEntry = timeline[timeline.length - 1];
+    const lastTimelineEntry = timeline.at(-1);
     if (lastTimelineEntry && lastTimelineEntry.type === 'tool') {
         // Session ended during a tool execution - this is likely an abrupt termination
         return {
@@ -482,13 +483,12 @@ function determineSuccess(options: DetermineSuccessOptions): DetermineSuccessRes
     const todoWriteEntries = timeline.filter(entry => entry.name === 'TodoWrite' && entry.details);
     if (todoWriteEntries.length > 0) {
         // Get the last TodoWrite entry
-        const lastTodoEntry = todoWriteEntries[todoWriteEntries.length - 1];
+        const lastTodoEntry = todoWriteEntries.at(-1);
         if (lastTodoEntry.details && Array.isArray(lastTodoEntry.details)) {
             const todos = lastTodoEntry.details;
             const totalTodos = todos.length;
             const completedTodos = todos.filter(todo => todo.status === 'completed').length;
             const hasInProgress = todos.some(todo => todo.status === 'in_progress');
-            const hasPending = todos.some(todo => todo.status === 'pending');
 
             // If all todos are completed, it's successful
             if (completedTodos === totalTodos && totalTodos > 0) {
@@ -599,19 +599,18 @@ function extractLastAssistantMessages(transcriptEntries: TranscriptEntry[], coun
     // Iterate from the end backwards
     for (let i = transcriptEntries.length - 1; i >= 0 && messages.length < count; i--) {
         const entry = transcriptEntries[i];
-        if (entry.type === 'assistant' && entry.message?.content) {
-            const content = entry.message.content;
+        if (entry.type !== 'assistant' || !entry.message?.content) {
+            continue;
+        }
 
-            if (typeof content === 'string') {
-                messages.push(content);
-            } else if (Array.isArray(content)) {
-                // Extract text from content array
-                for (const item of content) {
-                    if (item.type === 'text' && item.text) {
-                        messages.push(item.text);
-                    }
-                }
-            }
+        const {content} = entry.message;
+
+        if (typeof content === 'string') {
+            messages.push(content);
+        } else if (Array.isArray(content)) {
+            // Extract text from content array
+            const textItems = content.filter(item => item.type === 'text' && item.text);
+            textItems.forEach(item => messages.push(item.text));
         }
     }
 
