@@ -67,7 +67,8 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
                 })
             }
             
-            log('Starting development server on http://localhost:3001', 'info')
+            const port = process.env.PORT || '3001';
+            log(`Starting development server on http://localhost:${port}`, 'info')
             
             // Start the Next.js dev server
             webProcess = spawn('npm', ['run', 'dev'], {
@@ -76,7 +77,8 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
                 shell: true,
                 env: {
                     ...process.env,
-                    PROJECT_ROOT: targetDir
+                    PROJECT_ROOT: targetDir,
+                    PORT: port
                 }
             })
         } else {
@@ -89,7 +91,8 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
                 throw new Error(`Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
             }
         
-            log('Starting AIdev web interface on http://localhost:3001', 'info')
+            const port = process.env.PORT || '3001';
+            log(`Starting AIdev web interface on http://localhost:${port}`, 'info')
             
             // Run the standalone server
             webProcess = spawn('node', ['server.js'], {
@@ -99,7 +102,7 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
                 env: {
                     ...process.env,
                     PROJECT_ROOT: targetDir,
-                    PORT: '3001'
+                    PORT: process.env.PORT || '3001'
                 }
             })
         }

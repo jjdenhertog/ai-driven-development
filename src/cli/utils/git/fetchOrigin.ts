@@ -1,9 +1,5 @@
 import { getGitInstance } from './getGitInstance';
-
-export type FetchResult = {
-    success: boolean;
-    error?: string;
-}
+import { FetchResult } from '../../types/git/FetchResult';
 
 /**
  * Fetch latest changes from origin

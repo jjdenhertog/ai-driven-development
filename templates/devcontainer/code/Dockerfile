@@ -71,9 +71,9 @@ RUN npm install -g @anthropic-ai/claude-code
 RUN npm install -g @jjdenhertog/ai-driven-development
 
 # Copy and set up firewall script
-COPY ../init-firewall.sh /usr/local/bin/
+COPY init-firewall.sh /usr/local/bin/
 # Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/
+COPY code/entrypoint.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
   chmod +x /usr/local/bin/entrypoint.sh && \

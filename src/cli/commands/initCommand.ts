@@ -7,12 +7,9 @@ import { ensureOrphanBranch } from '../utils/git/ensureOrphanBranch';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from '../utils/logger';
+import { InitOptions } from '../types/commands/InitOptions';
 
-type Options = {
-    force: boolean
-}
-
-export async function initCommand(options: Options): Promise<void> {
+export async function initCommand(options: InitOptions): Promise<void> {
     const { force } = options;
     try {
         log('Initializing aidev in current directory...', 'info');

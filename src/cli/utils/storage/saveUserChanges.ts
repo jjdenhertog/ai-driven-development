@@ -2,7 +2,7 @@ import { ensureDirSync, writeJsonSync } from 'fs-extra';
 import { join } from 'node:path';
 import { TASKS_OUTPUT_DIR } from '../../config';
 import { log } from '../logger';
-import { CommitInfo } from '../git/getCommits';
+import { CommitInfo } from '../../types/git/CommitInfo';
 
 export function saveUserChanges(taskId: string, changes: CommitInfo[]) {
     // Create directory for task logs if it doesn't exist

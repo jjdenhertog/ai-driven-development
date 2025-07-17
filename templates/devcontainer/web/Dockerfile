@@ -73,8 +73,14 @@ RUN npm install -g @jjdenhertog/ai-driven-development
 
 # Copy and set up firewall script
 COPY init-firewall.sh /usr/local/bin/
+# Copy entrypoint script
+COPY web/entrypoint.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
+  chmod +x /usr/local/bin/entrypoint.sh && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
   chmod 0440 /etc/sudoers.d/node-firewall
 USER node
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

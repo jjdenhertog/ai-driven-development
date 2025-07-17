@@ -1,3 +1,5 @@
+import { ConceptFeatureState } from './ConceptFeatureState';
+
 export type ConceptFeature = {
     id: string
     title: string
@@ -6,5 +8,3 @@ export type ConceptFeature = {
     createdAt: string
     updatedAt: string
 }
-
-export type ConceptFeatureState = 'draft' | 'ready' | 'questions' | 'reviewed' | 'approved'

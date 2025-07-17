@@ -19,12 +19,9 @@ import addHooks from '../utils/claude/addHooks';
 import removeHooks from '../utils/claude/removeHooks';
 import { createSessionReport } from '../utils/storage/createSessionReport';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
+import { LearningOptions } from '../types/commands/LearningOptions';
 
-type Options = {
-    dangerouslySkipPermission: boolean
-}
-
-export async function learningCommand(options: Options) {
+export async function learningCommand(options: LearningOptions) {
     const { dangerouslySkipPermission } = options;
 
     // Ensure git auth

@@ -1,4 +1,4 @@
-import { ContainerName } from '../../types/container/ContainerType';
+import { ContainerName } from '../../types/container/ContainerName';
 
 export function getContainerName(name: ContainerName): string {
     // If it already starts with aidev-, return as is

@@ -4,12 +4,9 @@ import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { getTasks } from '../utils/tasks/getTasks';
+import { OpenOptions } from '../types/commands/OpenOptions';
 
-type Options = {
-    taskId: string
-}
-
-export async function openCommand(options: Options) {
+export async function openCommand(options: OpenOptions) {
     const { taskId } = options;
 
     // Ensure git auth

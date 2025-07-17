@@ -387,10 +387,12 @@ container
 container
     .command('restart <name>')
     .description('Restart a development container')
-    .action(async (name: string) => {
+    .option('-c, --clean', 'Remove and recreate the container for a clean start')
+    .action(async (name: string, options: { clean?: boolean }) => {
         try {
             await containerRestartCommand({
-                name
+                name,
+                clean: options.clean
             })
         } catch (error) {
             if (error instanceof Error) {

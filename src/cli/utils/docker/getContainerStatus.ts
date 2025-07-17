@@ -1,14 +1,8 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { ContainerStatus } from '../../types/docker/ContainerStatus';
 
 const execAsync = promisify(exec);
-
-export type ContainerStatus = {
-    name: string;
-    state: 'running' | 'exited' | 'created' | 'paused' | 'dead';
-    status: string;
-    uptime?: string;
-}
 
 export async function getContainerStatus(containerName: string): Promise<ContainerStatus | null> {
     try {

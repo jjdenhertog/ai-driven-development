@@ -16,7 +16,7 @@ export async function containerStartCommand(options: StartOptions): Promise<void
     const { name, type, port = 1212 } = options;
     
     try {
-        log(`Starting ${name} container...`, 'info');
+        log(`Starting container '${name}' with type '${type || 'code'}'...`, 'info');
         
         // Check Docker availability
         const docker = await checkDockerAvailable();
@@ -63,6 +63,14 @@ export async function containerStartCommand(options: StartOptions): Promise<void
             return;
         }
         
+        // Check if entrypoint.sh exists for this container type
+        const entrypointPath = join(devcontainerPath, configType, 'entrypoint.sh');
+        if (!existsSync(entrypointPath)) {
+            log(`Missing entrypoint.sh for ${configType} container at ${entrypointPath}`, 'error');
+            log(`Your .devcontainer files may be outdated. Please run "aidev init --force" to update them.`, 'info');
+            throw new Error(`Missing entrypoint.sh for ${configType} container`);
+        }
+        
         // Build the Docker image
         log(`Building Docker image for ${name} using ${configType} configuration...`, 'info');
         const dockerfilePath = join(devcontainerPath, configType, 'Dockerfile');
@@ -83,17 +91,23 @@ export async function containerStartCommand(options: StartOptions): Promise<void
             'run', '-dit', // -d for detached, -i for interactive, -t for tty
             '--name', containerName,
             '-v', `${process.cwd()}:/workspace`,
-            '--workdir', '/workspace'
+            '--workdir', '/workspace',
+            '--cap-add=NET_ADMIN',
+            '--cap-add=NET_RAW'
         ];
         
-        // Add port mapping for web container
+        // Add environment variables
+        runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096');
+        
+        // Add port mapping and PORT env var for web container
         if (configType === 'web') {
             runArgs.push('-p', `${port}:${port}`);
-            log(`Mapping port ${port} for web container`, 'info');
+            runArgs.push('-e', `PORT=${port}`);
+            log(`Web container will run on port ${port}`, 'info');
         }
         
-        // Add environment variables
-        runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096', containerName, '/bin/bash');
+        // Add the container image name
+        runArgs.push(containerName);
         
         // Run the container
         log(`Starting container ${containerName}...`, 'info');
@@ -101,7 +115,13 @@ export async function containerStartCommand(options: StartOptions): Promise<void
         try {
             await execAsync(`docker ${runArgs.join(' ')}`);
             log(`Container ${containerName} started successfully`, 'success');
-            log(`Use "aidev container exec ${name} <command>" to run commands in the container`, 'info');
+            
+            if (configType === 'web') {
+                log(`Web interface will be available at http://localhost:${port} once startup is complete`, 'info');
+                log(`Use "aidev container logs ${name} -f" to monitor startup progress`, 'info');
+            } else {
+                log(`Use "aidev container exec ${name} <command>" to run commands in the container`, 'info');
+            }
         } catch (error) {
             log(`Failed to start container: ${error instanceof Error ? error.message : String(error)}`, 'error');
             throw error;

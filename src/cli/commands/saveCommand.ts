@@ -7,12 +7,9 @@ import { stageAllFiles } from '../utils/git/stageAllFiles';
 import { log } from "../utils/logger";
 import { getTasks } from '../utils/tasks/getTasks';
 import { join } from 'node:path';
+import { SaveOptions } from '../types/commands/SaveOptions';
 
-type Options = {
-    taskId: string
-}
-
-export async function saveCommand(options: Options) {
+export async function saveCommand(options: SaveOptions) {
     const { taskId } = options;
 
     // Ensure git auth

@@ -3,7 +3,7 @@
     "description": "This container is ideally used to do the coding, you can use it to run the `aidev look tasks` command.",
     "build": {
       "context": "..",
-      "dockerfile": "code/Dockerfile",
+      "dockerfile": "web/Dockerfile",
       "args": {
         "TZ": "${localEnv:TZ:America/Los_Angeles}"
       }

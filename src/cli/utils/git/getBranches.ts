@@ -1,10 +1,5 @@
 import { getGitInstance } from './getGitInstance';
-
-export type BranchInfo = {
-    name: string;
-    isRemote: boolean;
-    current: boolean;
-}
+import { BranchInfo } from '../../types/git/BranchInfo';
 
 export async function getBranches(): Promise<BranchInfo[]> {
     try {
