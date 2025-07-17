@@ -39,14 +39,14 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
         console.log('[DEBUG] Dev path exists:', existsSync(devWebDir))
         
         // When running from global npm install
-        // The web files are at the package root under src/web, not dist/src/web
-        const prodWebDir = path.join(__dirname, '..', '..', '..', '..', 'src', 'web')
+        // The web files are in dist/web (copied during build)
+        const prodWebDir = path.join(__dirname, '..', '..', 'web')
         console.log('[DEBUG] Checking prod path:', prodWebDir)
         console.log('[DEBUG] Prod path exists:', existsSync(prodWebDir))
 
         // Also check alternative paths
-        const altPath1 = path.join(__dirname, '..', '..', 'src', 'web')
-        const altPath2 = path.join(__dirname, '..', 'src', 'web')
+        const altPath1 = path.join(__dirname, '..', 'web')
+        const altPath2 = path.join(__dirname, '..', '..', '..', 'dist', 'web')
         console.log('[DEBUG] Alternative path 1:', altPath1, 'exists:', existsSync(altPath1))
         console.log('[DEBUG] Alternative path 2:', altPath2, 'exists:', existsSync(altPath2))
 
@@ -121,25 +121,16 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             })
         } else {
             // Production mode - use standalone build
-            const standaloneDir = path.join(webDir, '.next', 'standalone')
-            const standaloneServerPath = path.join(standaloneDir, 'server.js')
+            // In production, the standalone files are copied directly to dist/web
+            const standaloneServerPath = path.join(webDir, 'server.js')
             
-            console.log('[DEBUG] Standalone dir:', standaloneDir)
+            console.log('[DEBUG] Web dir:', webDir)
             console.log('[DEBUG] Standalone server path:', standaloneServerPath)
             console.log('[DEBUG] Standalone server exists:', existsSync(standaloneServerPath))
 
             // List contents of web directory
             if (existsSync(webDir)) {
                 console.log('[DEBUG] Web directory contents:', readdirSync(webDir).join(', '))
-                
-                const nextDir = path.join(webDir, '.next')
-                if (existsSync(nextDir)) {
-                    console.log('[DEBUG] .next directory contents:', readdirSync(nextDir).join(', '))
-                    
-                    if (existsSync(standaloneDir)) {
-                        console.log('[DEBUG] Standalone directory contents:', readdirSync(standaloneDir).join(', '))
-                    }
-                }
             }
             
             // Check if standalone build exists
@@ -151,7 +142,7 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             
             // Run the standalone server
             webProcess = spawn('node', ['server.js'], {
-                cwd: standaloneDir,  // Important: run from standalone directory
+                cwd: webDir,  // Run from web directory where server.js is located
                 stdio: 'inherit',
                 shell: true,
                 env: {

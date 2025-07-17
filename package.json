@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc && npm run build:web",
-    "build:web": "cd src/web && npm install && BUILD_STANDALONE=1 npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
+    "build:web": "cd src/web && npm install && BUILD_STANDALONE=1 npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && cd ../.. && mkdir -p dist/web && cp -r src/web/.next/standalone/. dist/web/",
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/web/**'",
@@ -30,9 +30,6 @@
   "files": [
     "dist/",
     "templates/",
-    "src/web/.next/standalone/",
-    "src/web/.next/static/",
-    "src/web/public/",
     "README-npm.md"
   ],
   "engines": {
