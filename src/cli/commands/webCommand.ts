@@ -50,6 +50,7 @@ export async function webCommand(options?: { cwd?: string }) {
       
             // Run the standalone server directly with node
             webProcess = spawn('node', [standaloneServerPath], {
+                cwd: webDir,  // <-- ADD THIS LINE
                 stdio: 'inherit',
                 shell: true,
                 env: {
