@@ -60,7 +60,7 @@ export const DecisionTree: React.FC<DecisionTreeProps> = ({ data }) => {
                 const decision = JSON.parse(line) as DecisionNode
 
                 return decision
-            } catch (_e) {
+            } catch (e) {
                 console.error(`Failed to parse decision line ${index + 1}:`, e)
 
                 return null
