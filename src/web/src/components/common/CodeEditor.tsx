@@ -62,7 +62,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             default:
                 return language
         }
-    }, [])
+    }, [language])
 
     const monacoOptions = useMemo(() => ({
         readOnly,

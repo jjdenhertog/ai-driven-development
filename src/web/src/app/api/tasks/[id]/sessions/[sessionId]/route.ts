@@ -11,8 +11,8 @@ export async function GET(
             `tasks_output/${params.id}/${params.sessionId}/claude.json`
         )
     
-        const content = await fs.readFile(sessionFile, 'utf-8')
-        const session = JSON.parse(content)
+        const content = await fs.readFile(sessionFile)
+        const session = JSON.parse(content.toString())
     
         return NextResponse.json(session)
     } catch (_error) {

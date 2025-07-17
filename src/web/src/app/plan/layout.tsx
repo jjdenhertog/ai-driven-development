@@ -1,13 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import styles from './plan.module.css'
 
 export default function PlanLayout({ children }: { readonly children: React.ReactNode }) {
     const pathname = usePathname()
-    const router = useRouter()
     
     const tabs = [
         { id: 'concepts', label: 'Concepts', href: '/plan/concepts' },

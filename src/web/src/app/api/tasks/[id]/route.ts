@@ -18,15 +18,15 @@ export async function GET(
         if (!taskFile) {
             // Try exact match as fallback
             const exactFile = path.join(tasksDir, `${params.id}.json`)
-            const content = await fs.readFile(exactFile, 'utf-8')
-            const task = JSON.parse(content) as Task
+            const content = await fs.readFile(exactFile)
+            const task = JSON.parse(content.toString()) as Task
 
             return NextResponse.json(task)
         }
     
         const fullPath = path.join(tasksDir, taskFile)
-        const content = await fs.readFile(fullPath, 'utf-8')
-        const task = JSON.parse(content) as Task
+        const content = await fs.readFile(fullPath)
+        const task = JSON.parse(content.toString()) as Task
     
         return NextResponse.json(task)
     } catch (_error) {
@@ -55,8 +55,8 @@ export async function PUT(
         }
     
         // Read existing task
-        const content = await fs.readFile(fullPath, 'utf-8')
-        const task = JSON.parse(content) as Task
+        const content = await fs.readFile(fullPath)
+        const task = JSON.parse(content.toString()) as Task
     
         // Apply updates
         const updatedTask = { ...task, ...updates }

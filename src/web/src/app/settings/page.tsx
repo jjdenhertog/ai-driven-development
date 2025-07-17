@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -11,7 +11,7 @@ import styles from '@/features/Settings/components/SettingsSection.module.css'
 
 type SettingsTab = 'preferences' | 'examples' | 'templates'
 
-export default function SettingsPage() {
+function SettingsPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const activeTab = (searchParams.get('tab') as SettingsTab) || 'preferences'
@@ -184,5 +184,13 @@ export default function SettingsPage() {
                 )}
             </div>
         </div>
+    )
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+            <SettingsPageContent />
+        </Suspense>
     )
 }

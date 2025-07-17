@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -9,7 +9,7 @@ import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import styles from '@/features/Concepts/components/ConceptSection.module.css'
 
-export default function ConceptsPage() {
+function ConceptsPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedFile = searchParams.get('file')
@@ -99,7 +99,7 @@ export default function ConceptsPage() {
                                 disabled={saving || !hasChanges}
                                 className={styles.saveButton}
                             >
-                                {saving ? 'Saving...' : 'Save'}
+                                {saving ? 'Saving..' : 'Save'}
                             </button>
                         </div>
                         <div className={styles.editor}>
@@ -118,5 +118,13 @@ export default function ConceptsPage() {
                 )}
             </div>
         </div>
+    )
+}
+
+export default function ConceptsPage() {
+    return (
+        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+            <ConceptsPageContent />
+        </Suspense>
     )
 }

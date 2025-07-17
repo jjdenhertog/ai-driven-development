@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server'
 import { promises as fs } from 'node:fs'
-import { ensureStoragePath } from '@/lib/storage'
+import { getStoragePath, isBuildMode } from '@/lib/storage'
 
 export async function GET() {
     try {
-        const conceptsDir = await ensureStoragePath('concept')
+        // Return empty array during build
+        if (await isBuildMode()) {
+            return NextResponse.json([])
+        }
+
+        const conceptsDir = await getStoragePath('concept')
+        if (!conceptsDir) {
+            return NextResponse.json([])
+        }
+
         const files = await fs.readdir(conceptsDir)
     
         const concepts = files
@@ -18,6 +27,6 @@ export async function GET() {
     } catch (_error) {
         console.error('Failed to read concepts:', _error)
 
-        return NextResponse.json({ error: 'Failed to read concepts' }, { status: 500 })
+        return NextResponse.json([])
     }
 }

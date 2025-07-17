@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { ensureStoragePath } from '@/lib/storage'
+import { getStoragePath, isBuildMode } from '@/lib/storage'
 import { Preference } from '@/types'
 
 export async function GET() {
     try {
-        const preferencesDir = await ensureStoragePath('preferences')
+        // Return empty array during build
+        if (await isBuildMode()) {
+            return NextResponse.json([])
+        }
+
+        const preferencesDir = await getStoragePath('preferences')
+        if (!preferencesDir) {
+            return NextResponse.json([])
+        }
+
         const files = await fs.readdir(preferencesDir)
     
         // Filter for MD files
@@ -46,6 +55,6 @@ export async function GET() {
     } catch (_error) {
         console.error('Failed to read preferences:', _error)
 
-        return NextResponse.json({ error: 'Failed to read preferences' }, { status: 500 })
+        return NextResponse.json([])
     }
 }

@@ -1,26 +1,30 @@
+/* eslint-disable no-alert */
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { ConceptFeature } from '@/types'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import styles from './NewFeatureModal.module.css'
 
-interface NewFeatureModalProps {
-    onClose: () => void
-    onCreate: (feature: Omit<ConceptFeature, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
+type NewFeatureModalProps = {
+    readonly onClose: () => void
+    readonly onCreate: (feature: Omit<ConceptFeature, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
 }
 
-export const NewFeatureModal: React.FC<NewFeatureModalProps> = ({ onClose, onCreate }) => {
+export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeatureModalProps) => {
+    const { onClose, onCreate } = props
+
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [state, setState] = useState<ConceptFeature['state']>('draft')
     const [creating, setCreating] = useState(false)
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmitAsync = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
         
         if (!title.trim() || !description.trim()) {
             alert('Please provide both title and description')
+
             return
         }
         
@@ -37,14 +41,36 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = ({ onClose, onCre
         } finally {
             setCreating(false)
         }
-    }
+    }, [title, description, state, onCreate])
+
+    const handleSubmit = useCallback((e: React.FormEvent) => {
+        handleSubmitAsync(e).catch((error: unknown) => {
+            console.error('Form submission error:', error)
+        })
+    }, [handleSubmitAsync])
+
+    const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setTitle(e.target.value)
+    }, [])
+
+    const handleDescriptionChange = useCallback((value: string | undefined) => {
+        setDescription(value || '')
+    }, [])
+
+    const handleStateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        setState(e.target.value as ConceptFeature['state'])
+    }, [])
+
+    const handleModalClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation()
+    }, [])
     
     return (
         <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modal} onClick={handleModalClick}>
                 <div className={styles.header}>
                     <h2>New Feature</h2>
-                    <button onClick={onClose} className={styles.closeButton}>×</button>
+                    <button type="button" onClick={onClose} className={styles.closeButton}>×</button>
                 </div>
                 
                 <form onSubmit={handleSubmit} className={styles.form}>
@@ -54,7 +80,7 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = ({ onClose, onCre
                             id="title"
                             type="text"
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={handleTitleChange}
                             placeholder="Brief feature title (e.g., User Authentication)"
                             className={styles.input}
                             autoFocus
@@ -66,7 +92,7 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = ({ onClose, onCre
                         <div className={styles.editorWrapper}>
                             <CodeEditor
                                 value={description}
-                                onChange={(value) => setDescription(value || '')}
+                                onChange={handleDescriptionChange}
                                 language="markdown"
                                 height="300px"
                             />
@@ -78,7 +104,7 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = ({ onClose, onCre
                         <select
                             id="state"
                             value={state}
-                            onChange={(e) => setState(e.target.value as ConceptFeature['state'])}
+                            onChange={handleStateChange}
                             className={styles.select}
                         >
                             <option value="draft">Draft</option>

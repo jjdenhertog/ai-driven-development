@@ -25,7 +25,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
 
     useEffect(() => {
         scrollToBottom()
-    }, [logs])
+    }, [logs, scrollToBottom])
 
     useEffect(() => {
     // Clear logs when container changes
@@ -51,6 +51,18 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
             setActionLoading(null)
         }
     }, [container.name, container.type, onStatusChange])
+
+    const handleStart = useCallback(() => {
+        handleAction('start')
+    }, [handleAction])
+
+    const handleStop = useCallback(() => {
+        handleAction('stop')
+    }, [handleAction])
+
+    const handleRestart = useCallback(() => {
+        handleAction('restart')
+    }, [handleAction])
 
     const toggleLogs = useCallback(async () => {
         if (isStreaming) {
@@ -78,7 +90,9 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         
                 while (!abortController.signal.aborted) {
                     const { done, value } = await reader.read()
-                    if (done) break
+                    if (done) {
+                        break
+                    }
           
                     const text = decoder.decode(value, { stream: true })
                     const lines = text.split('\n').filter(line => line.trim())
@@ -93,6 +107,10 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
             }
         }
     }, [isStreaming, container.name])
+
+    const handleToggleLogs = useCallback(() => {
+        toggleLogs()
+    }, [toggleLogs])
 
     return (
         <div className={styles.container}>
@@ -110,16 +128,18 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                     {container.status === 'running' ? (
                         <>
                             <button
+                                type="button"
                                 className={styles.actionButton}
-                                onClick={() => { handleAction('stop') }}
+                                onClick={handleStop}
                                 disabled={actionLoading !== null}
                             >
                                 <FontAwesomeIcon icon={faStop} />
                                 {actionLoading === 'stop' ? 'Stopping...' : 'Stop'}
                             </button>
                             <button
+                                type="button"
                                 className={styles.actionButton}
-                                onClick={() => { handleAction('restart') }}
+                                onClick={handleRestart}
                                 disabled={actionLoading !== null}
                             >
                                 <FontAwesomeIcon icon={faRotate} />
@@ -128,8 +148,9 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                         </>
                     ) : (
                         <button
+                            type="button"
                             className={`${styles.actionButton} ${styles.primary}`}
-                            onClick={() => { handleAction('start') }}
+                            onClick={handleStart}
                             disabled={actionLoading !== null}
                         >
                             <FontAwesomeIcon icon={faPlay} />
@@ -145,8 +166,9 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                         <FontAwesomeIcon icon={faTerminal} /> Container Logs
                     </h3>
                     <button
+                        type="button"
                         className={styles.logsToggle}
-                        onClick={() => { toggleLogs() }}
+                        onClick={handleToggleLogs}
                         disabled={container.status !== 'running'}
                     >
                         {isStreaming ? 'Stop Streaming' : 'Start Streaming'}

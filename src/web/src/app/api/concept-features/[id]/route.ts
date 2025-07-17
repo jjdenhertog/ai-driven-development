@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
 import { ConceptFeature } from '@/types'
 
 const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd()
@@ -8,20 +8,22 @@ const CONCEPT_FEATURES_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'concept-
 
 // GET /api/concept-features/[id]
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
         const filePath = path.join(CONCEPT_FEATURES_DIR, `${params.id}.json`)
-        const content = await fs.readFile(filePath, 'utf-8')
-        const feature = JSON.parse(content) as ConceptFeature
-        
+        const content = await fs.readFile(filePath)
+        const feature = JSON.parse(content.toString()) as ConceptFeature
+
         return NextResponse.json(feature)
     } catch (error) {
         if ((error as any).code === 'ENOENT') {
             return NextResponse.json({ error: 'Feature not found' }, { status: 404 })
         }
+
         console.error('Failed to get concept feature:', error)
+
         return NextResponse.json({ error: 'Failed to get concept feature' }, { status: 500 })
     }
 }
@@ -42,8 +44,8 @@ export async function PUT(
         }
         
         // Read existing feature
-        const existingContent = await fs.readFile(filePath, 'utf-8')
-        const existingFeature = JSON.parse(existingContent) as ConceptFeature
+        const existingContent = await fs.readFile(filePath)
+        const existingFeature = JSON.parse(existingContent.toString()) as ConceptFeature
         
         // Update with new data
         const body = await request.json()
@@ -63,13 +65,14 @@ export async function PUT(
         return NextResponse.json(updatedFeature)
     } catch (error) {
         console.error('Failed to update concept feature:', error)
+
         return NextResponse.json({ error: 'Failed to update concept feature' }, { status: 500 })
     }
 }
 
 // DELETE /api/concept-features/[id]
 export async function DELETE(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
@@ -81,7 +84,9 @@ export async function DELETE(
         if ((error as any).code === 'ENOENT') {
             return NextResponse.json({ error: 'Feature not found' }, { status: 404 })
         }
+
         console.error('Failed to delete concept feature:', error)
+
         return NextResponse.json({ error: 'Failed to delete concept feature' }, { status: 500 })
     }
 }

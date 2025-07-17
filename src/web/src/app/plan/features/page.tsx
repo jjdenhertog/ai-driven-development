@@ -1,16 +1,18 @@
+/* eslint-disable no-alert */
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import useSWR from 'swr'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircle } from '@fortawesome/free-solid-svg-icons'
-import { api, ConceptFeature } from '@/lib/api'
+import { Suspense } from 'react'
 import { ConceptFeatureEditor } from '@/features/ConceptFeatures/components/ConceptFeatureEditor'
-import { NewFeatureModal } from '@/features/ConceptFeatures/components/NewFeatureModal'
 import styles from '@/features/ConceptFeatures/components/ConceptFeatures.module.css'
+import { NewFeatureModal } from '@/features/ConceptFeatures/components/NewFeatureModal'
+import { api, ConceptFeature } from '@/lib/api'
+import { faCircle, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import useSWR from 'swr'
 
-export default function FeaturesPage() {
+function FeaturesPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedId = searchParams.get('id')
@@ -55,6 +57,7 @@ export default function FeaturesPage() {
     }
     
     if (error) return <div className={styles.error}>Failed to load features</div>
+
     if (!features) return <div className={styles.loading}>Loading features...</div>
     
     return (
@@ -121,12 +124,18 @@ export default function FeaturesPage() {
                 )}
             </div>
             
-            {showNewFeature && (
-                <NewFeatureModal
-                    onClose={() => setShowNewFeature(false)}
-                    onCreate={handleCreateFeature}
-                />
-            )}
+            {showNewFeature ? <NewFeatureModal
+                onClose={() => setShowNewFeature(false)}
+                onCreate={handleCreateFeature}
+            /> : null}
         </div>
+    )
+}
+
+export default function FeaturesPage() {
+    return (
+        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+            <FeaturesPageContent />
+        </Suspense>
     )
 }

@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { ensureStoragePath } from '@/lib/storage'
+import { getStoragePath, isBuildMode } from '@/lib/storage'
 import { Template } from '@/types'
 
 export async function GET() {
     try {
-        const templatesDir = await ensureStoragePath('templates')
+        // Return empty array during build
+        if (await isBuildMode()) {
+            return NextResponse.json([])
+        }
+
+        const templatesDir = await getStoragePath('templates')
+        if (!templatesDir) {
+            return NextResponse.json([])
+        }
+
         const files = await fs.readdir(templatesDir)
     
         const mdFiles = files.filter(file => file.endsWith('.md'))
@@ -44,6 +53,6 @@ export async function GET() {
     } catch (error) {
         console.error('Failed to read templates:', error)
 
-        return NextResponse.json({ error: 'Failed to read templates' }, { status: 500 })
+        return NextResponse.json([])
     }
 }

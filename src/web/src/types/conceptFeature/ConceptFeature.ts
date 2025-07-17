@@ -1,4 +1,4 @@
-export interface ConceptFeature {
+export type ConceptFeature = {
     id: string
     title: string
     description: string

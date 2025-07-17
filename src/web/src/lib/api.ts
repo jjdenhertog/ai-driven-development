@@ -119,6 +119,7 @@ export const api = {
         if (!response.ok) {
             throw new Error(`Failed to delete concept feature: ${response.statusText}`)
         }
+
         return response.json()
     },
 }
