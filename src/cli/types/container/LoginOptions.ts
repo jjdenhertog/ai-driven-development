@@ -1,7 +1,6 @@
 import { ContainerName, ContainerType } from './ContainerType';
 
-export type StartOptions = {
+export type LoginOptions = {
     name: ContainerName;
     type?: ContainerType;
-    port?: number;
 }

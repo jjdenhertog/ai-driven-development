@@ -484,7 +484,7 @@ function determineSuccess(options: DetermineSuccessOptions): DetermineSuccessRes
     if (todoWriteEntries.length > 0) {
         // Get the last TodoWrite entry
         const lastTodoEntry = todoWriteEntries.at(-1);
-        if (lastTodoEntry.details && Array.isArray(lastTodoEntry.details)) {
+        if (lastTodoEntry?.details && Array.isArray(lastTodoEntry.details)) {
             const todos = lastTodoEntry.details;
             const totalTodos = todos.length;
             const completedTodos = todos.filter(todo => todo.status === 'completed').length;

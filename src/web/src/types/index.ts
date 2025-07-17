@@ -28,3 +28,6 @@ export type { ExampleType } from './example/ExampleType'
 
 // Template exports
 export type { Template } from './template/Template'
+
+// Concept Feature exports
+export type { ConceptFeature, ConceptFeatureState } from './conceptFeature/ConceptFeature'

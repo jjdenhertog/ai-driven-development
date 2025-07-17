@@ -13,7 +13,7 @@ import { log } from '../utils/logger';
 const execAsync = promisify(exec);
 
 export async function containerStartCommand(options: StartOptions): Promise<void> {
-    const { name, type } = options;
+    const { name, type, port = 1212 } = options;
     
     try {
         log(`Starting ${name} container...`, 'info');
@@ -85,6 +85,12 @@ export async function containerStartCommand(options: StartOptions): Promise<void
             '-v', `${process.cwd()}:/workspace`,
             '--workdir', '/workspace'
         ];
+        
+        // Add port mapping for web container
+        if (configType === 'web') {
+            runArgs.push('-p', `${port}:${port}`);
+            log(`Mapping port ${port} for web container`, 'info');
+        }
         
         // Add environment variables
         runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096', containerName, '/bin/bash');

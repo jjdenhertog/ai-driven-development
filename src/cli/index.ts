@@ -19,6 +19,7 @@ import { saveCommand } from "./commands/saveCommand";
 import { cleanupGitInstances } from "./utils/git/getGitInstance";
 import { webCommand } from "./commands/webCommand";
 import { containerExecCommand } from "./commands/containerExecCommand";
+import { containerLoginCommand } from "./commands/containerLoginCommand";
 import { containerLogsCommand } from "./commands/containerLogsCommand";
 import { containerRestartCommand } from "./commands/containerRestartCommand";
 import { containerStartCommand } from "./commands/containerStartCommand";
@@ -302,10 +303,12 @@ const container = program
 container
     .command('start <name>')
     .description('Start a development container with the given name')
-    .option('-t, --type <type>', 'Devcontainer type to use (code or learn)', 'code')
+    .option('-t, --type <type>', 'Devcontainer type to use (code, learn, plan, or web)', 'code')
+    .option('-p, --port <port>', 'Port to expose for web container (default: 1212)', '1212')
     .action(async (name: string, cmdObject) => {
-        if (cmdObject.type && cmdObject.type !== 'code' && cmdObject.type !== 'learn') {
-            logError('Container type must be either "code" or "learn"');
+        const validTypes = ['code', 'learn', 'plan', 'web'];
+        if (cmdObject.type && !validTypes.includes(cmdObject.type)) {
+            logError(`Container type must be one of: ${validTypes.join(', ')}`);
             
             return;
         }
@@ -313,7 +316,8 @@ container
         try {
             await containerStartCommand({
                 name,
-                type: cmdObject.type
+                type: cmdObject.type,
+                port: parseInt(cmdObject.port, 10)
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -412,6 +416,23 @@ container
             await containerExecCommand({
                 name,
                 command
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
+container
+    .command('login <name>')
+    .description('Login to a running container with an interactive bash shell')
+    .action(async (name: string) => {
+        try {
+            await containerLoginCommand({
+                name
             })
         } catch (error) {
             if (error instanceof Error) {

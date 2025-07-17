@@ -28,7 +28,7 @@ export async function PUT(
     
         return NextResponse.json({ success: true })
     } catch (_error) {
-        console.error('Failed to update concept:', error)
+        console.error('Failed to update concept:', _error)
 
         return NextResponse.json({ error: 'Failed to update concept' }, { status: 500 })
     }

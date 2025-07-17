@@ -28,7 +28,7 @@ export async function PUT(
     
         return NextResponse.json({ success: true })
     } catch (_error) {
-        console.error('Failed to update preference:', error)
+        console.error('Failed to update preference:', _error)
 
         return NextResponse.json({ error: 'Failed to update preference' }, { status: 500 })
     }

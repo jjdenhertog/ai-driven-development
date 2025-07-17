@@ -16,8 +16,8 @@ export const Navigation: React.FC = () => {
     const pathname = usePathname()
 
     const navItems = useMemo<readonly NavItem[]>(() => [
+        { href: '/plan', label: 'Plan' },
         { href: '/tasks', label: 'Tasks' },
-        { href: '/concepts', label: 'Concepts' },
         { href: '/containers', label: 'Containers' },
         { href: '/settings', label: 'Settings' }
     ], [])

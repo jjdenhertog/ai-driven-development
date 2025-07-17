@@ -1,307 +1,325 @@
-# AIdev Autonomous Development with Containers
+# AIdev Development Containers
 
-AIdev's container management system enables you to create a fully autonomous development environment by running multiple AI-driven processes simultaneously. This setup allows AI to continuously plan, code, learn, and improve your project without manual intervention.
+AIdev provides a container management system that enables consistent development environments across different aspects of your project. By using containers, you ensure that all development activities happen in isolated, reproducible environments.
 
-## The Autonomous Development Vision
+## Overview
 
-By running multiple containers, you create a self-improving development ecosystem where:
-- AI continuously searches for and completes coding tasks
-- Completed work is analyzed and learned from
-- New tasks are planned based on project needs
-- The entire process runs autonomously 24/7
+AIdev supports four specialized container types:
+- **code**: General development and coding tasks
+- **learn**: Learning and analysis processes
+- **plan**: Planning and task specification
+- **web**: Web interface and server processes
 
-## Recommended Container Setup
+Each container type has its own devcontainer configuration and can be customized for specific workflows.
 
-For a fully autonomous development environment, we recommend running these specialized containers:
+## Getting Started
 
-### 1. Code Container
-**Purpose**: Continuously searches for and completes coding tasks
+### Prerequisites
+
+- Docker must be installed and running
+- Your project must be initialized with `aidev init`
+
+### Basic Container Commands
 
 ```bash
-# Start the coding container
-aidev container start code --type code
+# Start a container
+aidev container start <name> [--type <type>] [--port <port>]
 
-# Run the autonomous coding loop
-aidev container exec code aidev loop-tasks --dangerously-skip-permissions
+# Stop a container
+aidev container stop <name>
+
+# Restart a container
+aidev container restart <name>
+
+# Check container status
+aidev container status [name]
+
+# View container logs
+aidev container logs <name> [-f] [-n 50]
+
+# Execute commands in a container
+aidev container exec <name> <command>
+
+# Login to a container (interactive bash)
+aidev container login <name>
 ```
 
-The code container:
-- Monitors the task queue for pending tasks
-- Automatically executes tasks one by one
-- Creates pull requests for completed work
-- Runs continuously until all tasks are complete
+## Container Types
 
-### 2. Learn Container
-**Purpose**: Analyzes completed tasks and learns from merged code
+### Code Container
+The default container type for general development tasks.
 
 ```bash
-# Start the learning container
-aidev container start learn --type learn
+# Start a code container
+aidev container start mydev --type code
 
-# Run the autonomous learning process
-aidev container exec learn aidev learn --dangerously-skip-permissions
+# Login to work interactively
+aidev container login mydev
+
+# Or execute specific commands
+aidev container exec mydev npm test
+aidev container exec mydev npm run build
 ```
 
-The learn container:
-- Monitors the main branch for merged pull requests
-- Analyzes changes made by humans to AI-generated code
-- Updates its understanding and patterns
-- Improves future code generation quality
-
-### 3. Plan Container (Coming Soon)
-**Purpose**: Transforms high-level tasks into detailed specifications
+### Learn Container
+Specialized for learning and analysis workflows.
 
 ```bash
-# Start the planning container (when available)
-aidev container start plan --type code
+# Start a learn container
+aidev container start learner --type learn
 
-# Run the autonomous planning process (when available)
-aidev container exec plan aidev plan --dangerously-skip-permissions
+# Run learning processes
+aidev container exec learner aidev learn
 ```
 
-The plan container will:
-- Review created tasks that need specification
-- Transform high-level requirements into detailed specs
-- Prepare tasks for the code container to execute
-- Ensure tasks are well-defined and actionable
-
-### 4. Monitor Container (Optional)
-**Purpose**: Provides oversight and monitoring of all processes
+### Plan Container
+For planning and task specification activities.
 
 ```bash
-# Start a monitoring container
-aidev container start monitor --type code
+# Start a plan container
+aidev container start planner --type plan
 
-# Use it to check on other processes
-aidev container exec monitor aidev status
-aidev container exec monitor tail -f .aidev-storage/logs/latest.log
+# Work on task planning
+aidev container login planner
 ```
 
-## Setting Up Autonomous Development
-
-### Quick Start
+### Web Container
+Runs web services with configurable port mapping.
 
 ```bash
-# 1. Initialize your project (if not already done)
-aidev init
+# Start a web container with default port (1212)
+aidev container start webapp --type web
 
-# 2. Start all containers
-aidev container start code --type code
-aidev container start learn --type learn
-aidev container start plan --type code  # When available
+# Start with custom port
+aidev container start webapp --type web --port 3000
 
-# 3. Launch autonomous processes
-aidev container exec code aidev loop-tasks --dangerously-skip-permissions
-aidev container exec learn aidev learn --dangerously-skip-permissions
-# aidev container exec plan aidev plan --dangerously-skip-permissions  # When available
+# The web server will be accessible at http://localhost:1212 (or your custom port)
+```
 
-# 4. Monitor the system
+## Common Workflows
+
+### Interactive Development
+
+```bash
+# Start a development container
+aidev container start dev --type code
+
+# Login for interactive work
+aidev container login dev
+
+# Inside the container, you have access to:
+# - Your project files (mounted at /workspace)
+# - All development tools
+# - Consistent environment
+```
+
+### Running Tests
+
+```bash
+# Start a container for testing
+aidev container start test --type code
+
+# Run your test suite
+aidev container exec test npm test
+
+# Run specific tests
+aidev container exec test npm test -- --grep "user authentication"
+```
+
+### Web Development
+
+```bash
+# Start a web container
+aidev container start web --type web --port 3000
+
+# Check that it's running
+aidev container status web
+
+# View logs
+aidev container logs web -f
+
+# Your web app is now accessible at http://localhost:3000
+```
+
+### Multiple Containers
+
+You can run multiple containers simultaneously for different purposes:
+
+```bash
+# Development container
+aidev container start dev --type code
+
+# Testing container
+aidev container start test --type code
+
+# Web server
+aidev container start web --type web
+
+# Check all running containers
 aidev container status
 ```
 
-### Full Automation Script
+## Container Management
 
-Create a script to start your autonomous development environment:
+### Monitoring Containers
+
+```bash
+# Check status of all aidev containers
+aidev container status
+
+# Check specific container
+aidev container status mydev
+
+# Follow logs in real-time
+aidev container logs mydev -f
+
+# View last 100 lines of logs
+aidev container logs mydev -n 100
+```
+
+### Resource Usage
+
+Monitor container resource usage:
+
+```bash
+# Using Docker directly
+docker stats aidev-mydev
+
+# View all aidev containers
+docker stats $(docker ps -q --filter "name=aidev-")
+```
+
+### Cleaning Up
+
+```bash
+# Stop a specific container
+aidev container stop mydev
+
+# Stop all aidev containers
+docker stop $(docker ps -q --filter "name=aidev-")
+
+# Remove stopped containers
+docker rm $(docker ps -aq --filter "name=aidev-" --filter "status=exited")
+```
+
+## Configuration
+
+### Container Naming
+- All containers are prefixed with `aidev-`
+- Names must be unique
+- Use descriptive names for easy identification
+
+### Volume Mounts
+- Current directory is mounted at `/workspace`
+- All project files are accessible inside containers
+- Changes persist between container restarts
+
+### Environment Variables
+- `NODE_OPTIONS=--max-old-space-size=4096` is set by default
+- Additional environment variables can be added to devcontainer.json
+
+### Port Mapping
+- Only the web container exposes ports by default
+- Use `--port` flag to specify the port (default: 1212)
+- Ensure the port is not already in use
+
+## Best Practices
+
+### 1. Container Lifecycle
+- Start containers when beginning work
+- Stop containers when done to free resources
+- Use `restart` if a container becomes unresponsive
+
+### 2. Naming Conventions
+- Use descriptive names: `dev`, `test`, `prod-build`
+- Group related containers: `frontend-dev`, `backend-dev`
+- Include purpose in name: `api-test`, `ui-build`
+
+### 3. Security
+- Containers run with your user permissions
+- Project files are mounted read-write
+- Be cautious with commands that modify files
+
+### 4. Performance
+- Limit the number of concurrent containers
+- Monitor resource usage regularly
+- Restart containers if they consume too much memory
+
+## Troubleshooting
+
+### Container Won't Start
+```bash
+# Check if Docker is running
+docker info
+
+# Check if port is already in use (for web containers)
+lsof -i :1212
+
+# Check Docker logs
+docker logs aidev-mycontainer
+```
+
+### Container Exits Immediately
+```bash
+# Check the container logs
+aidev container logs mycontainer -n 50
+
+# Verify the devcontainer configuration exists
+ls -la .devcontainer/<type>/
+```
+
+### Permission Issues
+```bash
+# Ensure Docker has proper permissions
+sudo usermod -aG docker $USER
+
+# Restart your session after adding user to docker group
+```
+
+### Cannot Access Web Container
+```bash
+# Verify the container is running
+aidev container status web
+
+# Check port mapping
+docker port aidev-web
+
+# Try a different port
+aidev container stop web
+aidev container start web --type web --port 8080
+```
+
+## Advanced Usage
+
+### Custom Commands
+Create aliases for common container operations:
+
+```bash
+# Add to your shell profile
+alias aidev-dev="aidev container login dev"
+alias aidev-test="aidev container exec test npm test"
+alias aidev-build="aidev container exec build npm run build"
+```
+
+### Automation Scripts
+Create scripts for complex workflows:
 
 ```bash
 #!/bin/bash
-# start-autonomous-dev.sh
+# dev-setup.sh
 
-echo "Starting AIdev Autonomous Development Environment..."
+# Start all necessary containers
+aidev container start dev --type code
+aidev container start test --type code
+aidev container start web --type web
 
-# Start containers
-echo "Starting containers..."
-aidev container start code --type code
-aidev container start learn --type learn
-# aidev container start plan --type code  # Uncomment when available
+# Run initial setup
+aidev container exec dev npm install
+aidev container exec test npm install
 
-# Wait for containers to be ready
-sleep 5
-
-# Launch autonomous processes
-echo "Launching autonomous processes..."
-aidev container exec code aidev loop-tasks --dangerously-skip-permissions &
-aidev container exec learn aidev learn --dangerously-skip-permissions &
-# aidev container exec plan aidev plan --dangerously-skip-permissions &  # Uncomment when available
-
-echo "Autonomous development environment is running!"
-echo "Check status with: aidev container status"
+echo "Development environment ready!"
 ```
-
-## How the Containers Work Together
-
-### The Autonomous Loop
-
-1. **Planning Phase** (Plan Container - Coming Soon)
-   - Reviews high-level task descriptions
-   - Creates detailed specifications
-   - Prepares tasks for coding
-
-2. **Coding Phase** (Code Container)
-   - Picks up specified tasks
-   - Implements the solution
-   - Creates pull requests
-
-3. **Learning Phase** (Learn Container)
-   - Monitors merged pull requests
-   - Analyzes human corrections
-   - Updates patterns and preferences
-
-4. **Continuous Improvement**
-   - Each cycle improves the AI's understanding
-   - Code quality increases over time
-   - Less human intervention needed
-
-### Container Communication
-
-While containers run independently, they work on the same project:
-- All containers share the `.aidev-storage` directory
-- Tasks flow from planning → coding → learning
-- Each container focuses on its specific role
-
-## Monitoring Your Autonomous Setup
-
-### Check Container Status
-
-```bash
-# See all running containers
-aidev container status
-
-# Check specific container logs
-aidev container logs code -f
-aidev container logs learn -f
-```
-
-### Monitor Task Progress
-
-```bash
-# Check task queue status
-aidev container exec code aidev status
-
-# View recent activity
-aidev container exec code tail -f .aidev-storage/logs/latest.log
-aidev container exec learn tail -f .aidev-storage/logs/learning.log
-```
-
-### Performance Metrics
-
-Monitor system resources:
-
-```bash
-# Check container resource usage
-docker stats --no-stream $(docker ps -q --filter "name=aidev-")
-
-# View individual container stats
-docker stats aidev-code
-docker stats aidev-learn
-```
-
-## Best Practices for Autonomous Development
-
-### 1. Task Management
-- Keep tasks well-defined and atomic
-- Ensure tasks have clear acceptance criteria
-- Review and merge PRs promptly for learning
-
-### 2. Resource Allocation
-- Run containers on a dedicated machine or cloud instance
-- Ensure sufficient CPU and memory for all containers
-- Consider using cloud platforms for 24/7 operation
-
-### 3. Safety and Control
-- Set up GitHub branch protection rules
-- Require PR reviews before merging
-- Monitor container logs regularly
-- Use `--dangerously-skip-permissions` only in trusted environments
-
-### 4. Maintenance
-- Restart containers weekly to clear memory
-- Update AIdev regularly for improvements
-- Archive completed tasks periodically
-
-## Troubleshooting Autonomous Setup
-
-### Container Crashes
-If a container stops unexpectedly:
-
-```bash
-# Check container status
-aidev container status
-
-# View crash logs
-aidev container logs code -n 100
-
-# Restart the container
-aidev container restart code
-aidev container exec code aidev loop-tasks --dangerously-skip-permissions
-```
-
-### High Resource Usage
-If containers consume too many resources:
-
-```bash
-# Stop all containers
-aidev container stop code
-aidev container stop learn
-
-# Restart with breaks between tasks
-aidev container start code --type code
-aidev container exec code aidev loop-tasks --delay 300  # 5-minute delay between tasks
-```
-
-### Stuck Tasks
-If the code container gets stuck:
-
-```bash
-# Check current task
-aidev container exec code aidev status
-
-# Restart the coding process
-aidev container restart code
-aidev container exec code aidev loop-tasks --dangerously-skip-permissions
-```
-
-## Advanced Autonomous Setups
-
-### Running Multiple Code Containers
-
-For larger projects, run multiple coding containers:
-
-```bash
-# Start multiple coding containers
-aidev container start code1 --type code
-aidev container start code2 --type code
-aidev container start code3 --type code
-
-# Run them with different task filters (when supported)
-aidev container exec code1 aidev loop-tasks --tag frontend
-aidev container exec code2 aidev loop-tasks --tag backend
-aidev container exec code3 aidev loop-tasks --tag testing
-```
-
-### Cloud Deployment
-
-Deploy your autonomous setup to the cloud:
-
-```bash
-# Example using AWS EC2 or similar
-ssh user@your-server
-cd /path/to/project
-./start-autonomous-dev.sh
-
-# Set up monitoring
-aidev container logs code -f > code.log &
-aidev container logs learn -f > learn.log &
-```
-
-## Future Enhancements
-
-As AIdev evolves, expect:
-- Plan container for autonomous task specification
-- Review container for automated PR reviews
-- Test container for continuous testing
-- Deploy container for automated deployments
 
 ## Summary
 
-The AIdev container system transforms your development process into an autonomous, self-improving ecosystem. By running specialized containers for coding, learning, and planning, you create an AI-driven development team that works continuously to improve your project. Start with the code and learn containers today, and expand your autonomous setup as new capabilities become available.
+AIdev containers provide isolated, consistent development environments for different aspects of your project. Use the appropriate container type for your task, leverage the login command for interactive work, and monitor your containers to ensure smooth operation. The simplified container system makes it easy to maintain reproducible development environments across your team.

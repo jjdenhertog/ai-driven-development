@@ -1,5 +1,5 @@
 {
-    "name": "AI Driven Development - UI",
+    "name": "AI Driven Development - Plan",
     "description": "This container is ideally used to do the coding, you can use it to run the `aidev look tasks` command.",
     "build": {
       "context": "..",

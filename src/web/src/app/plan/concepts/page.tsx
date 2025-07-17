@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFileAlt } from '@fortawesome/free-regular-svg-icons'
 import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
-import styles from './ConceptSection.module.css'
+import styles from '@/features/Concepts/components/ConceptSection.module.css'
 
-export const ConceptSection: React.FC = () => {
+export default function ConceptsPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedFile = searchParams.get('file')
@@ -28,16 +28,16 @@ export const ConceptSection: React.FC = () => {
         }
     }, [selectedFile])
 
-    const handleSelectFile = (fileName: string) => {
-        router.push(`/concepts?file=${encodeURIComponent(fileName)}`)
-    }
+    const handleSelectFile = useCallback((fileName: string) => {
+        router.push(`/plan/concepts?file=${encodeURIComponent(fileName)}`)
+    }, [router])
 
-    const handleContentChange = (newContent: string) => {
+    const handleContentChange = useCallback((newContent: string) => {
         setContent(newContent)
         setHasChanges(true)
-    }
+    }, [])
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         if (!selectedFile) return
     
         setSaving(true)
@@ -45,12 +45,12 @@ export const ConceptSection: React.FC = () => {
             await api.updateConcept(selectedFile, content)
             mutate()
             setHasChanges(false)
-        } catch (error) {
-            console.error('Failed to save:', error)
+        } catch (_error) {
+            // console.error('Failed to save:', _error)
         } finally {
             setSaving(false)
         }
-    }
+    }, [selectedFile, content, mutate])
 
     if (error) return <div className={styles.error}>Failed to load concepts</div>
 
@@ -66,6 +66,7 @@ export const ConceptSection: React.FC = () => {
                 <div className={styles.fileList}>
                     {concepts.map((concept) => (
                         <button
+                            type="button"
                             key={concept.name}
                             onClick={() => handleSelectFile(concept.name)}
                             className={`${styles.fileItem} ${
@@ -93,6 +94,7 @@ export const ConceptSection: React.FC = () => {
                                 {hasChanges ? <span className={styles.unsaved}>• Unsaved changes</span> : null}
                             </div>
                             <button
+                                type="button"
                                 onClick={() => { handleSave() }}
                                 disabled={saving || !hasChanges}
                                 className={styles.saveButton}

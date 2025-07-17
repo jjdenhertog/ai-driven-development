@@ -1,6 +1,6 @@
+/* eslint-disable unicorn/prefer-module */
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { log } from '../utils/logger'
 import { checkGitInitialized } from '../utils/git/checkGitInitialized'
 import { promises as fs } from 'node:fs'
@@ -26,8 +26,6 @@ export async function webCommand(options?: { cwd?: string }) {
         log('Starting AIdev web interface...', 'info')
 
         // Navigate to web directory - handle both development and production paths
-        const __filename = fileURLToPath(import.meta.url)
-        const __dirname = path.dirname(__filename)
         let webDir = path.join(__dirname, '..', '..', '..', 'src', 'web')
     
         // Check if running from dist (production)
