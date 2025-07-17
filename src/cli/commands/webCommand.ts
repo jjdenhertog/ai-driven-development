@@ -1,9 +1,10 @@
 /* eslint-disable unicorn/prefer-module */
+/* eslint-disable no-console */
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { log } from '../utils/logger'
 import { checkGitInitialized } from '../utils/git/checkGitInitialized'
-import { existsSync } from 'fs-extra'
+import { existsSync, readdirSync } from 'fs-extra'
 
 export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
     try {
@@ -57,9 +58,10 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
             console.log(`[DEBUG] Level ${i}: ${currentPath}`)
             const parentPath = path.dirname(currentPath)
             if (existsSync(parentPath)) {
-                const contents = require('fs').readdirSync(parentPath)
+                const contents = readdirSync(parentPath)
                 console.log(`[DEBUG] Contents: ${contents.join(', ')}`)
             }
+
             currentPath = parentPath
         }
         
@@ -128,14 +130,14 @@ export async function webCommand(options?: { cwd?: string; dev?: boolean }) {
 
             // List contents of web directory
             if (existsSync(webDir)) {
-                console.log('[DEBUG] Web directory contents:', require('fs').readdirSync(webDir).join(', '))
+                console.log('[DEBUG] Web directory contents:', readdirSync(webDir).join(', '))
                 
                 const nextDir = path.join(webDir, '.next')
                 if (existsSync(nextDir)) {
-                    console.log('[DEBUG] .next directory contents:', require('fs').readdirSync(nextDir).join(', '))
+                    console.log('[DEBUG] .next directory contents:', readdirSync(nextDir).join(', '))
                     
                     if (existsSync(standaloneDir)) {
-                        console.log('[DEBUG] Standalone directory contents:', require('fs').readdirSync(standaloneDir).join(', '))
+                        console.log('[DEBUG] Standalone directory contents:', readdirSync(standaloneDir).join(', '))
                     }
                 }
             }
