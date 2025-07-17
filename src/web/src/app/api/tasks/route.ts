@@ -15,10 +15,11 @@ export async function GET() {
         for (const file of files) {
             if (file.endsWith('.json')) {
                 // Skip files with underscore (like learned_patterns.json)
-                if (file.includes('_') && !/^\d+-/.test(file)) continue
+                if (file.includes('_') && !/^\d+-/.test(file))
+                    continue
         
                 const content = await fs.readFile(path.join(tasksDir, file))
-                const task = JSON.parse(content) as Task
+                const task = JSON.parse(content.toString()) as Task
                 tasks.push(task)
             }
         }
