@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { ensureDirSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs-extra';
 import { dirname, join } from 'node:path';
 import { log } from '../logger';
