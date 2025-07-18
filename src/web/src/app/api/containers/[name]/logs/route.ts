@@ -4,13 +4,14 @@ import { isRunningInContainer } from '@/lib/utils/isRunningInContainer'
 import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
 
 type Params = {
-  params: {
+  params: Promise<{
     name: string
-  }
+  }>
 }
 
 // GET /api/containers/[name]/logs - Stream container logs
 export async function GET(request: NextRequest, { params }: Params) {
+    const { name } = await params
     // Check if we're running in a container
     if (isRunningInContainer()) {
         return NextResponse.json(
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest, { params }: Params) {
         )
     }
     
-    const containerName = params.name
+    const containerName = name
   
     // Get query parameters
     const {searchParams} = request.nextUrl

@@ -1,23 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { ensureStoragePath } from '@/lib/storage'
+import { ensureStoragePath, getStoragePath, isBuildMode } from '@/lib/storage'
 import { Task } from '@/types'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const tasksDir = await ensureStoragePath('tasks')
+        // Return 404 during build
+        if (await isBuildMode()) {
+            return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+        }
+
+        const { id } = await params
+        const tasksDir = await getStoragePath('tasks')
+        
+        if (!tasksDir) {
+            return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+        }
     
+        // Ensure the tasks directory exists
+        await fs.mkdir(tasksDir, { recursive: true })
+        
         // Try to find the task file - it might have a name suffix
         const files = await fs.readdir(tasksDir)
-        const taskFile = files.find(f => f.startsWith(`${params.id}-`) && f.endsWith('.json'))
+        const taskFile = files.find(f => f.startsWith(`${id}-`) && f.endsWith('.json'))
     
         if (!taskFile) {
             // Try exact match as fallback
-            const exactFile = path.join(tasksDir, `${params.id}.json`)
+            const exactFile = path.join(tasksDir, `${id}.json`)
             const content = await fs.readFile(exactFile)
             const task = JSON.parse(content.toString()) as Task
 
@@ -36,22 +49,23 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const updates = await request.json()
         const tasksDir = await ensureStoragePath('tasks')
     
         // Try to find the task file - it might have a name suffix
         const files = await fs.readdir(tasksDir)
-        const taskFile = files.find(f => f.startsWith(`${params.id}-`) && f.endsWith('.json'))
+        const taskFile = files.find(f => f.startsWith(`${id}-`) && f.endsWith('.json'))
     
         let fullPath: string
         if (taskFile) {
             fullPath = path.join(tasksDir, taskFile)
         } else {
             // Try exact match as fallback
-            fullPath = path.join(tasksDir, `${params.id}.json`)
+            fullPath = path.join(tasksDir, `${id}.json`)
         }
     
         // Read existing task
@@ -66,23 +80,22 @@ export async function PUT(
     
         return NextResponse.json(updatedTask)
     } catch (_error) {
-        console.error('Failed to update task:', _error)
-
         return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
     }
 }
 
 export async function DELETE(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const tasksDir = await ensureStoragePath('tasks')
         const tasksOutputDir = await ensureStoragePath('tasks_output')
     
         // Try to find the task file - it might have a name suffix
         const files = await fs.readdir(tasksDir)
-        const taskFile = files.find(f => f.startsWith(`${params.id}-`) && f.endsWith('.json'))
+        const taskFile = files.find(f => f.startsWith(`${id}-`) && f.endsWith('.json'))
     
         if (taskFile) {
             const fullPath = path.join(tasksDir, taskFile)
@@ -98,12 +111,12 @@ export async function DELETE(
             }
         } else {
             // Try exact match as fallback
-            const exactFile = path.join(tasksDir, `${params.id}.json`)
+            const exactFile = path.join(tasksDir, `${id}.json`)
             await fs.unlink(exactFile)
         }
     
         // Delete task output directory
-        const taskOutputPath = path.join(tasksOutputDir, params.id)
+        const taskOutputPath = path.join(tasksOutputDir, id)
         try {
             const stats = await fs.stat(taskOutputPath)
             if (stats.isDirectory()) {
@@ -119,8 +132,6 @@ export async function DELETE(
 
         return response
     } catch (_error) {
-        console.error('Failed to delete task:', _error)
-
         return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
     }
 }

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import { api, Task } from '@/lib/api'
 import { TaskListWithRouting } from '@/features/Tasks/components/TaskListWithRouting'
+import { SkeletonLoader } from '@/components/common/SkeletonLoader'
 import styles from '@/features/Tasks/components/TasksLayout.module.css'
 
 export default function Layout({ children }: { readonly children: React.ReactNode }) {
@@ -37,9 +38,41 @@ export default function Layout({ children }: { readonly children: React.ReactNod
         }
     }, [mutate])
 
-    if (error) return <div className="error">Failed to load tasks</div>
+    if (error) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.sidebar}>
+                    <div className={styles.header}>
+                        <h2 className={styles.title}>Tasks</h2>
+                    </div>
+                    <div className={styles.error}>
+                        <p>Failed to load tasks</p>
+                    </div>
+                </div>
+                <div className={styles.mainContent}>
+                    {children}
+                </div>
+            </div>
+        )
+    }
 
-    if (!tasks) return <div className="loading" />
+    if (!tasks) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.sidebar}>
+                    <div className={styles.header}>
+                        <h2 className={styles.title}>Tasks</h2>
+                    </div>
+                    <div className={styles.list}>
+                        <SkeletonLoader variant="list-item" count={5} />
+                    </div>
+                </div>
+                <div className={styles.mainContent}>
+                    {children}
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className={styles.container}>

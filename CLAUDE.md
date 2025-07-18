@@ -51,6 +51,13 @@ When working on this project:
 - Assume it will be run in a different project that has been initialized with `aidev init`
 - The `.aidev-storage` directory exists in the USER'S project, not here
 
+#### Development Mode
+- **This project is currently in active development**
+- **DO NOT worry about backwards compatibility** when refactoring
+- Breaking changes are acceptable and expected
+- Focus on clean, maintainable code rather than migration paths
+- Data format changes do not require migration scripts
+
 ### 5. Common Mistakes to Avoid
 
 1. **Don't test CLI commands here** - They're meant for other projects

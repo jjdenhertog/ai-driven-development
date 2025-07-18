@@ -10,6 +10,6 @@ export type TimelineEntry = {
     preview?: string;
     full_content?: string;
     expandable?: boolean;
-    details?: any;
+    details?: Record<string, unknown>;
     duration_ms?: number;
 } 

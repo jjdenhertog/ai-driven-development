@@ -110,7 +110,9 @@ function ConceptsPageContent() {
                                 value={content}
                                 onChange={handleContentChange}
                                 language="markdown"
-                                height="calc(100vh - 200px)"
+                                height="auto"
+                                minHeight={500}
+                                maxHeight={800}
                             />
                         </div>
                     </>

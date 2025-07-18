@@ -1,11 +1,12 @@
-/* eslint-disable no-alert */
 'use client'
 
 import { useState, useCallback } from 'react'
-import { ConceptFeature } from '@/types'
+import Image from 'next/image'
+import { ConceptFeature, ImageWithDescription } from '@/types'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faImage, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { ErrorNotification } from '@/components/common/ErrorNotification'
 import styles from './NewFeatureModal.module.css'
 
 type NewFeatureModalProps = {
@@ -19,16 +20,16 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [state, setState] = useState<ConceptFeature['state']>('draft')
-    const [images, setImages] = useState<string[]>([])
+    const [images, setImages] = useState<ImageWithDescription[]>([])
     const [creating, setCreating] = useState(false)
     const [uploading, setUploading] = useState(false)
-    const [isDragging, setIsDragging] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     
     const handleSubmitAsync = useCallback(async (e: React.FormEvent) => {
         e.preventDefault()
         
         if (!title.trim() || !description.trim()) {
-            alert('Please provide both title and description')
+            setErrorMessage('Please provide both title and description')
 
             return
         }
@@ -41,18 +42,15 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                 state,
                 images
             })
-        } catch (error) {
-            console.error('Failed to create feature:', error)
-            alert('Failed to create feature')
+        } catch (_error) {
+            setErrorMessage('Failed to create feature')
         } finally {
             setCreating(false)
         }
     }, [title, description, state, images, onCreate])
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
-        handleSubmitAsync(e).catch((error: unknown) => {
-            console.error('Form submission error:', error)
-        })
+        handleSubmitAsync(e)
     }, [handleSubmitAsync])
 
     const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,11 +70,11 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
     }, [])
 
     const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files
+        const { files } = e.target
         if (!files || files.length === 0) return
 
         setUploading(true)
-        const newImages: string[] = []
+        const newImages: ImageWithDescription[] = []
 
         try {
             for (const file of Array.from(files)) {
@@ -94,13 +92,15 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                 }
 
                 const data = await response.json()
-                newImages.push(data.path)
+                newImages.push({ 
+                    path: data.path, 
+                    description: data.description || undefined 
+                })
             }
 
             setImages([...images, ...newImages])
-        } catch (error) {
-            console.error('Failed to upload images:', error)
-            alert('Failed to upload images: ' + (error as Error).message)
+        } catch (_error) {
+            setErrorMessage(`Failed to upload images: ${(_error as Error).message}`)
         } finally {
             setUploading(false)
             // Reset input
@@ -108,8 +108,11 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
         }
     }, [images])
 
-    const handleImageRemove = useCallback(async (imagePath: string) => {
+    const handleImageRemove = useCallback(async (index: number) => {
         try {
+            const imageItem = images[index]
+            const imagePath = imageItem.path
+            
             // Extract filename from path
             const filename = imagePath.split('/').pop()
             if (!filename) return
@@ -124,66 +127,12 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
             }
 
             // Remove from local state
-            setImages(images.filter(img => img !== imagePath))
-        } catch (error) {
-            console.error('Failed to remove image:', error)
-            alert('Failed to remove image')
+            setImages(images.filter((_, i) => i !== index))
+        } catch (_error) {
+            setErrorMessage('Failed to remove image')
         }
     }, [images])
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(true)
-    }, [])
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
-    }, [])
-
-    const handleDrop = useCallback(async (e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
-
-        const files = Array.from(e.dataTransfer.files).filter(file => 
-            file.type.startsWith('image/')
-        )
-
-        if (files.length === 0) return
-
-        setUploading(true)
-        const newImages: string[] = []
-
-        try {
-            for (const file of files) {
-                const formData = new FormData()
-                formData.append('file', file)
-
-                const response = await fetch('/api/concept-features/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-
-                if (!response.ok) {
-                    const error = await response.json()
-                    throw new Error(error.error || 'Failed to upload image')
-                }
-
-                const data = await response.json()
-                newImages.push(data.path)
-            }
-
-            setImages([...images, ...newImages])
-        } catch (error) {
-            console.error('Failed to upload images:', error)
-            alert('Failed to upload images: ' + (error as Error).message)
-        } finally {
-            setUploading(false)
-        }
-    }, [images])
     
     return (
         <div className={styles.overlay} onClick={onClose}>
@@ -194,94 +143,96 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                 </div>
                 
                 <form onSubmit={handleSubmit} className={styles.form}>
-                    <div className={styles.field}>
-                        <label htmlFor="title">Title</label>
-                        <input
-                            id="title"
-                            type="text"
-                            value={title}
-                            onChange={handleTitleChange}
-                            placeholder="Brief feature title (e.g., User Authentication)"
-                            className={styles.input}
-                            autoFocus
-                        />
-                    </div>
-                    
-                    <div className={styles.field}>
-                        <label htmlFor="description">Description</label>
-                        <div className={styles.editorWrapper}>
-                            <CodeEditor
-                                value={description}
-                                onChange={handleDescriptionChange}
-                                language="markdown"
-                                height="300px"
+                    <div className={styles.formContent}>
+                        <div className={styles.field}>
+                            <label htmlFor="title">Title</label>
+                            <input
+                                id="title"
+                                type="text"
+                                value={title}
+                                onChange={handleTitleChange}
+                                placeholder="Brief feature title (e.g., User Authentication)"
+                                className={styles.input}
+                                autoFocus
                             />
                         </div>
-                    </div>
-                    
-                    <div className={styles.field}>
-                        <label htmlFor="state">Initial State</label>
-                        <select
-                            id="state"
-                            value={state}
-                            onChange={handleStateChange}
-                            className={styles.select}
-                        >
-                            <option value="draft">Draft</option>
-                            <option value="ready">Let AI evaluate the feature</option>
-                        </select>
-                    </div>
-
-                    <div className={styles.field}>
-                        <label>Images</label>
-                        <div 
-                            className={`${styles.imagesSection} ${isDragging ? styles.dragging : ''}`}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                        >
-                            <div className={styles.imagesList}>
-                                {images.map((imagePath, index) => (
-                                    <div key={index} className={styles.imageItem}>
-                                        <img
-                                            src={`/api/${imagePath}`}
-                                            alt={`Feature image ${index + 1}`}
-                                            className={styles.imageThumbnail}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleImageRemove(imagePath)}
-                                            className={styles.removeImageButton}
-                                            title="Remove image"
-                                        >
-                                            <FontAwesomeIcon icon={faTimes} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className={styles.uploadSection}>
-                                <label htmlFor="new-image-upload" className={styles.uploadButton}>
-                                    {isDragging ? (
-                                        <>
-                                            <FontAwesomeIcon icon={faImage} />
-                                            Drop images here
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FontAwesomeIcon icon={faImage} />
-                                            {uploading ? 'Uploading...' : 'Add Images'}
-                                        </>
-                                    )}
-                                </label>
-                                <input
-                                    id="new-image-upload"
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleImageUpload}
-                                    disabled={uploading}
-                                    className={styles.uploadInput}
+                        
+                        <div className={styles.field}>
+                            <label htmlFor="description">Description</label>
+                            <div className={styles.editorWrapper}>
+                                <CodeEditor
+                                    value={description}
+                                    onChange={handleDescriptionChange}
+                                    language="markdown"
+                                    height="auto"
+                                    minHeight={300}
+                                    maxHeight={1000}
                                 />
+                            </div>
+                        </div>
+                        
+                        <div className={styles.field}>
+                            <label htmlFor="state">Initial State</label>
+                            <select
+                                id="state"
+                                value={state}
+                                onChange={handleStateChange}
+                                className={styles.select}
+                            >
+                                <option value="draft">Draft</option>
+                                <option value="ready">Let AI evaluate the feature</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.field}>
+                            <label>Images</label>
+                            <div className={styles.imagesSection}>
+                                <div className={styles.imagesList}>
+                                    {images.map((image, index) => (
+                                        <div key={index} className={styles.imageItem}>
+                                            <div className={styles.imageWrapper}>
+                                                <Image
+                                                    src={`/api/${image.path}`}
+                                                    alt={image.description || `Feature image ${index + 1}`}
+                                                    width={150}
+                                                    height={150}
+                                                    className={styles.imageThumbnail}
+                                                    style={{ objectFit: 'cover' }}
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    handleImageRemove(index)
+                                                }}
+                                                className={styles.removeImageButton}
+                                                title="Remove image"
+                                            >
+                                                <FontAwesomeIcon icon={faTimes} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className={styles.uploadSection}>
+                                    <label htmlFor="new-image-upload" className={styles.uploadButton}>
+                                        <>
+                                            <FontAwesomeIcon icon={faImage} />
+                                            {uploading ? 'Uploading...' : 'Add Image'}
+                                        </>
+                                    </label>
+                                    <input
+                                        id="new-image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            handleImageUpload(e).catch(() => {
+                                                // Error handled in handleImageUpload
+                                            })
+                                        }}
+                                        disabled={uploading}
+                                        className={styles.uploadInput}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -304,6 +255,12 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                     </div>
                 </form>
             </div>
+            {errorMessage && (
+                <ErrorNotification
+                    message={errorMessage}
+                    onClose={() => setErrorMessage('')}
+                />
+            )}
         </div>
     )
 }

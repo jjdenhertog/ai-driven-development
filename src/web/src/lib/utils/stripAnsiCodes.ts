@@ -5,5 +5,5 @@
  */
 export function stripAnsiCodes(str: string): string {
     // eslint-disable-next-line no-control-regex
-    return str.replace(/\u001b\[[0-9;]*m/g, '')
+    return str.replace(/\u001B\[[\d;]*m/g, '')
 }

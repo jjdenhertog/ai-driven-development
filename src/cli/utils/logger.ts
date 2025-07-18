@@ -18,6 +18,7 @@ export function log(message: string, type: 'info' | 'warn' | 'success' | 'error'
             break;
     }
 
+    // eslint-disable-next-line no-console
     console.log(styledMessage);
 
     if (logPath) {
@@ -30,5 +31,6 @@ export function log(message: string, type: 'info' | 'warn' | 'success' | 'error'
 }
 
 export function logError(message: string, prefix: string = '[aidev]') {
+    // eslint-disable-next-line no-console
     console.log(`${prefix} \x1B[31mERROR:\x1B[0m ${message}`);
 }

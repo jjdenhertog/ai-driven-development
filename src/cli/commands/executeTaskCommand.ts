@@ -59,7 +59,7 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     const worktreeFolder = branchName.split('/').at(-1) || branchName;
     const worktreePath = `.aidev-${worktreeFolder}`;
 
-    await ensureWorktree(branchName, worktreePath);
+    await ensureWorktree({ branch: branchName, path: worktreePath });
     await pullBranch(branchName, worktreePath);
 
     // Ensure common directories are in .gitignore

@@ -36,6 +36,7 @@ export default function ContainersPage() {
         if (isRefresh) {
             setRefreshing(true)
         }
+        
         try {
             const data = await api.getContainers()
             setContainers(data)

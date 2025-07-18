@@ -90,7 +90,9 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
                             onChange={() => { /* read-only */ }}
                             language="text"
                             readOnly
-                            height="400px"
+                            height="auto"
+                            minHeight={200}
+                            maxHeight={600}
                         />
                     </div> : null}
                 </div>

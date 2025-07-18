@@ -8,15 +8,16 @@ const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd()
 // GET /api/uploads/[...path]
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { path: string[] } }
+    { params }: { params: Promise<{ path: string[] }> }
 ) {
     try {
+        const { path: pathSegments } = await params
         // Return error during build
         if (await isBuildMode()) {
             return NextResponse.json({ error: 'Not available during build' }, { status: 503 })
         }
 
-        const filePath = params.path.join('/')
+        const filePath = pathSegments.join('/')
         const fullPath = path.join(PROJECT_ROOT, '.aidev-storage', 'uploads', filePath)
 
         // Security check - ensure path doesn't escape uploads directory
@@ -54,8 +55,8 @@ export async function GET(
                 'Cache-Control': 'public, max-age=31536000'
             }
         })
-    } catch (error) {
-        console.error('Failed to serve file:', error)
+    } catch (_error) {
+        
         return NextResponse.json({ error: 'Failed to serve file' }, { status: 500 })
     }
 }

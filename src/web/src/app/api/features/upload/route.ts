@@ -11,8 +11,7 @@ const UPLOADS_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'uploads', 'featur
 async function ensureUploadsDir() {
     try {
         await fs.mkdir(UPLOADS_DIR, { recursive: true })
-    } catch (error) {
-        console.error('Failed to create uploads directory:', error)
+    } catch (_error) {
     }
 }
 
@@ -57,10 +56,10 @@ export async function POST(request: NextRequest) {
             size: file.size,
             type: file.type
         })
-    } catch (error) {
-        console.error('Failed to upload file:', error)
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
     }
+
 }
 
 // DELETE /api/features/upload
@@ -91,8 +90,8 @@ export async function DELETE(request: NextRequest) {
         await fs.unlink(filePath)
 
         return NextResponse.json({ success: true })
-    } catch (error) {
-        console.error('Failed to delete file:', error)
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 })
     }
+
 }

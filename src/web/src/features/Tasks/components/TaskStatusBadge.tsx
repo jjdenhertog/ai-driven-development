@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleDot, faCheck, faExclamationCircle, faSpinner, faTimes, faArchive } from '@fortawesome/free-solid-svg-icons'
+import { faCircleDot, faCheck, faSpinner, faTimes, faArchive } from '@fortawesome/free-solid-svg-icons'
 import styles from './TaskDetails.module.css'
 
 type TaskStatusBadgeProps = {

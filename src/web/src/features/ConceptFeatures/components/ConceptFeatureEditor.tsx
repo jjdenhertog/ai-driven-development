@@ -1,10 +1,14 @@
+/* eslint-disable max-lines */
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faTrash, faImage, faTimes } from '@fortawesome/free-solid-svg-icons'
-import { ConceptFeature } from '@/types'
+import { ConceptFeature, ImageWithDescription } from '@/types'
 import { CodeEditor } from '@/components/common/CodeEditor'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { ErrorNotification } from '@/components/common/ErrorNotification'
 import styles from './ConceptFeatureEditor.module.css'
 
 type ConceptFeatureEditorProps = {
@@ -19,11 +23,16 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [state, setState] = useState<ConceptFeature['state']>('draft')
-    const [images, setImages] = useState<string[]>([])
+    const [images, setImages] = useState<ImageWithDescription[]>([])
+    const [imagesToDelete, setImagesToDelete] = useState<string[]>([])
     const [saving, setSaving] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
     const [uploading, setUploading] = useState(false)
-    const [isDragging, setIsDragging] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [showDescriptionModal, setShowDescriptionModal] = useState(false)
+    const [pendingFiles, setPendingFiles] = useState<File[]>([])
+    const [editingImage, setEditingImage] = useState<{index: number, description: string} | null>(null)
 
     useEffect(() => {
         if (feature) {
@@ -32,6 +41,7 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
             setState(feature.state)
             setImages(feature.images || [])
             setHasChanges(false)
+            setImagesToDelete([]) // Reset deletion list when feature changes
         }
     }, [feature])
 
@@ -40,19 +50,36 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
 
         setSaving(true)
         try {
-            await onUpdate(feature.id, { title, description, state, images })
+            // Delete images that were marked for deletion
+            for (const filename of imagesToDelete) {
+                try {
+                    const response = await fetch(`/api/concept-features/upload?filename=${encodeURIComponent(filename)}`, {
+                        method: 'DELETE'
+                    })
+                    if (!response.ok) {
+                        console.error('Failed to delete image:', filename)
+                    }
+                } catch (error) {
+                    console.error('Error deleting image:', filename, error)
+                }
+            }
+            
+            const { id } = feature
+            await onUpdate(id, { title, description, state, images })
             setHasChanges(false)
-        } catch (error) {
-            console.error('Failed to save feature:', error)
+            setImagesToDelete([]) // Clear the deletion list after successful save
+        } catch (_error) {
         } finally {
             setSaving(false)
         }
-    }, [feature, hasChanges, onUpdate, title, description, state, images])
+    }, [feature, hasChanges, onUpdate, title, description, state, images, imagesToDelete])
 
     const handleDelete = useCallback(async () => {
         if (!feature) return
 
-        await onDelete(feature.id)
+        const { id } = feature
+        await onDelete(id)
+        setShowDeleteConfirm(false)
     }, [feature, onDelete])
 
     const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,24 +99,42 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
     }, [])
 
     const handleSaveClick = useCallback(() => {
-        handleSave().catch((error: unknown) => console.error(error))
+        handleSave().catch(() => {
+            // Error is already handled in handleSave
+        })
     }, [handleSave])
 
     const handleDeleteClick = useCallback(() => {
-        handleDelete().catch((error: unknown) => console.error(error))
-    }, [handleDelete])
+        setShowDeleteConfirm(true)
+    }, [])
 
     const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files
+        const { files } = e.target
         if (!files || files.length === 0) return
 
+        // Only take the first file
+        const [file] = files
+        
+        // Store file and show description modal
+        setPendingFiles([file])
+        setShowDescriptionModal(true)
+        
+        // Reset input
+        e.target.value = ''
+    }, [])
+
+    const uploadImagesWithDescriptions = useCallback(async (descriptions: Map<string, string>) => {
         setUploading(true)
-        const newImages: string[] = []
+        const newImages: ImageWithDescription[] = []
 
         try {
-            for (const file of Array.from(files)) {
+            for (const file of pendingFiles) {
                 const formData = new FormData()
                 formData.append('file', file)
+                const description = descriptions.get(file.name)
+                if (description) {
+                    formData.append('description', description)
+                }
 
                 const response = await fetch('/api/concept-features/upload', {
                     method: 'POST',
@@ -102,99 +147,135 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                 }
 
                 const data = await response.json()
-                newImages.push(data.path)
-            }
-
-            setImages([...images, ...newImages])
-            setHasChanges(true)
-        } catch (error) {
-            console.error('Failed to upload images:', error)
-            alert('Failed to upload images: ' + (error as Error).message)
-        } finally {
-            setUploading(false)
-            // Reset input
-            e.target.value = ''
-        }
-    }, [images])
-
-    const handleImageRemove = useCallback(async (imagePath: string) => {
-        try {
-            // Extract filename from path
-            const filename = imagePath.split('/').pop()
-            if (!filename) return
-
-            // Delete from server
-            const response = await fetch(`/api/concept-features/upload?filename=${encodeURIComponent(filename)}`, {
-                method: 'DELETE'
-            })
-
-            if (!response.ok) {
-                throw new Error('Failed to delete image')
-            }
-
-            // Remove from local state
-            setImages(images.filter(img => img !== imagePath))
-            setHasChanges(true)
-        } catch (error) {
-            console.error('Failed to remove image:', error)
-            alert('Failed to remove image')
-        }
-    }, [images])
-
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(true)
-    }, [])
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
-    }, [])
-
-    const handleDrop = useCallback(async (e: React.DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsDragging(false)
-
-        const files = Array.from(e.dataTransfer.files).filter(file => 
-            file.type.startsWith('image/')
-        )
-
-        if (files.length === 0) return
-
-        setUploading(true)
-        const newImages: string[] = []
-
-        try {
-            for (const file of files) {
-                const formData = new FormData()
-                formData.append('file', file)
-
-                const response = await fetch('/api/concept-features/upload', {
-                    method: 'POST',
-                    body: formData
+                // Always store as ImageWithDescription
+                newImages.push({ 
+                    path: data.path, 
+                    description: data.description || undefined 
                 })
-
-                if (!response.ok) {
-                    const error = await response.json()
-                    throw new Error(error.error || 'Failed to upload image')
-                }
-
-                const data = await response.json()
-                newImages.push(data.path)
             }
 
             setImages([...images, ...newImages])
             setHasChanges(true)
-        } catch (error) {
-            console.error('Failed to upload images:', error)
-            alert('Failed to upload images: ' + (error as Error).message)
+        } catch (_error) {
+            setErrorMessage(`Failed to upload images: ${(_error as Error).message}`)
         } finally {
             setUploading(false)
+            setPendingFiles([])
+            setShowDescriptionModal(false)
         }
+    }, [pendingFiles, images])
+
+    const handleImageRemove = useCallback((index: number) => {
+        const imageItem = images[index]
+        const imagePath = imageItem.path
+        
+        // Extract filename from path
+        const filename = imagePath.split('/').pop()
+        if (!filename) return
+
+        // Add to deletion list (will be deleted on save)
+        setImagesToDelete(prev => [...prev, filename])
+        
+        // Remove from local state
+        setImages(images.filter((_, i) => i !== index))
+        setHasChanges(true)
     }, [images])
+
+    const handleDescriptionUpdate = useCallback((index: number, description: string) => {
+        const updatedImages = [...images]
+        updatedImages[index] = { ...updatedImages[index], description }
+        
+        setImages(updatedImages)
+        setHasChanges(true)
+        setEditingImage(null)
+    }, [images])
+
+
+
+    const handleImageUploadWrapper = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        handleImageUpload(e).catch(() => {
+            // Error is already handled in handleImageUpload
+        })
+    }, [handleImageUpload])
+
+    // Handler functions for inline arrow functions
+    const handleImageRemoveClick = useCallback((index: number) => {
+        handleImageRemove(index)
+    }, [handleImageRemove])
+
+    const createImageRemoveHandler = useCallback((index: number) => {
+        return () => handleImageRemoveClick(index)
+    }, [handleImageRemoveClick])
+
+    const handleConfirmDelete = useCallback(() => {
+        handleDelete().catch(() => {
+            // Error is already handled in handleDelete
+        })
+    }, [handleDelete])
+
+    const handleCancelDelete = useCallback(() => {
+        setShowDeleteConfirm(false)
+    }, [])
+
+    const handleCloseError = useCallback(() => {
+        setErrorMessage('')
+    }, [])
+
+    // Wrapper functions for inline handlers to avoid ESLint warnings
+    const handleImageDescriptionChange = useCallback((index: number, value: string) => {
+        setEditingImage({index, description: value})
+    }, [])
+
+    const handleImageDescriptionBlur = useCallback((index: number) => {
+        if (editingImage && editingImage.index === index) {
+            handleDescriptionUpdate(index, editingImage.description)
+        }
+    }, [editingImage, handleDescriptionUpdate])
+
+    const handleImageDescriptionKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && editingImage && editingImage.index === index) {
+            handleDescriptionUpdate(index, editingImage.description)
+        } else if (e.key === 'Escape') {
+            setEditingImage(null)
+        }
+    }, [editingImage, handleDescriptionUpdate])
+
+    const handleImageDescriptionClick = useCallback((index: number, currentDescription: string) => {
+        setEditingImage({index, description: currentDescription || ''})
+    }, [])
+
+    // Event handler creators
+    const createImageDescriptionChangeHandler = useCallback((index: number) => {
+        return (e: React.ChangeEvent<HTMLInputElement>) => handleImageDescriptionChange(index, e.target.value)
+    }, [handleImageDescriptionChange])
+
+    const createImageDescriptionBlurHandler = useCallback((index: number) => {
+        return () => handleImageDescriptionBlur(index)
+    }, [handleImageDescriptionBlur])
+
+    const createImageDescriptionKeyDownHandler = useCallback((index: number) => {
+        return (e: React.KeyboardEvent) => handleImageDescriptionKeyDown(index, e)
+    }, [handleImageDescriptionKeyDown])
+
+    const createImageDescriptionClickHandler = useCallback((index: number, description: string) => {
+        return () => handleImageDescriptionClick(index, description)
+    }, [handleImageDescriptionClick])
+
+    const handleUploadModalSubmit = useCallback(() => {
+        const descriptions = new Map<string, string>()
+        pendingFiles.forEach((file, index) => {
+            const input = document.getElementById(`file-desc-${index}`) as HTMLInputElement
+            if (input?.value) {
+                descriptions.set(file.name, input.value)
+            }
+        })
+        uploadImagesWithDescriptions(descriptions)
+    }, [pendingFiles, uploadImagesWithDescriptions])
+
+    const handleUploadModalCancel = useCallback(() => {
+        setShowDescriptionModal(false)
+        setPendingFiles([])
+    }, [])
 
     if (!feature) {
         return <div className={styles.loading}>Loading feature...</div>
@@ -214,17 +295,19 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                     {/* User can always select draft or ready */}
                     <option value="draft">Draft</option>
                     <option value="ready">Ready</option>
-                    
+
                     {/* Show AI states when active */}
                     {state === 'reviewing' && <option value="reviewing" disabled>Reviewing (AI processing...)</option>}
                     {state === 'questions' && <option value="questions" disabled>Questions (AI set)</option>}
                     {state === 'reviewed' && <option value="reviewed" disabled>Reviewed (AI set)</option>}
-                    
+
                     {/* Approved only available when in reviewed state */}
                     {state === 'reviewed' && <option value="approved">Approved</option>}
                     {state === 'approved' && <option value="approved">Approved</option>}
                 </select>
-                {hasChanges && <span className={styles.unsaved}>• Unsaved</span>}
+
+                {!!hasChanges && <span className={styles.unsaved}>• Unsaved</span>}
+                
                 <div className={styles.headerActions}>
                     <button
                         type="button"
@@ -261,13 +344,81 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
 
 
                 <div className={styles.field}>
+                    <label>Images</label>
+                    <div className={styles.imagesSection}>
+                        <div className={styles.imagesList}>
+                            {images.map((image, index) => (
+                                <div key={index} className={styles.imageItem}>
+                                    <div className={styles.imageWrapper}>
+                                        <Image
+                                            src={`/api/${image.path}`}
+                                            alt={image.description || `Feature image ${index + 1}`}
+                                            width={150}
+                                            height={150}
+                                            className={styles.imageThumbnail}
+                                            style={{ objectFit: 'cover' }}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={createImageRemoveHandler(index)}
+                                        className={styles.removeImageButton}
+                                        title="Remove image"
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </button>
+                                    <div className={styles.imageDescription}>
+                                        {editingImage?.index === index ? (
+                                            <input
+                                                type="text"
+                                                value={editingImage.description}
+                                                onChange={createImageDescriptionChangeHandler(index)}
+                                                onBlur={createImageDescriptionBlurHandler(index)}
+                                                onKeyDown={createImageDescriptionKeyDownHandler(index)}
+                                                className={styles.descriptionInput}
+                                                placeholder="Add description..."
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            <div 
+                                                className={styles.descriptionText}
+                                                onClick={createImageDescriptionClickHandler(index, image.description || '')}
+                                                title="Click to edit description"
+                                            >
+                                                {image.description || <span className={styles.placeholderText}>Click to add description</span>}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={styles.uploadSection}>
+                            <label htmlFor="image-upload" className={styles.uploadButton}>
+                                <FontAwesomeIcon icon={faImage} />
+                                {uploading ? 'Uploading...' : 'Add Image'}
+                            </label>
+                            <input
+                                id="image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUploadWrapper}
+                                disabled={uploading}
+                                className={styles.uploadInput}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.field}>
                     <label>Description</label>
                     <div className={styles.editorWrapper}>
                         <CodeEditor
                             value={description}
                             onChange={handleDescriptionChange}
                             language="markdown"
-                            height="400px"
+                            height="auto"
+                            minHeight={300}
+                            maxHeight={1000}
                         />
                     </div>
                 </div>
@@ -282,61 +433,65 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                         <span>{new Date(feature.updatedAt).toLocaleString()}</span>
                     </div>
                 </div>
-
-                <div className={styles.field}>
-                    <label>Images</label>
-                    <div 
-                        className={`${styles.imagesSection} ${isDragging ? styles.dragging : ''}`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        <div className={styles.imagesList}>
-                            {images.map((imagePath, index) => (
-                                <div key={index} className={styles.imageItem}>
-                                    <img
-                                        src={`/api/${imagePath}`}
-                                        alt={`Feature image ${index + 1}`}
-                                        className={styles.imageThumbnail}
+            </div>
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Feature"
+                message={`Are you sure you want to delete "${feature.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
+            />
+            {errorMessage.length > 0 && (
+                <ErrorNotification
+                    message={errorMessage}
+                    onClose={handleCloseError}
+                />
+            )}
+            
+            {/* Description Modal */}
+            {showDescriptionModal ? (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <h3>Add Image Descriptions</h3>
+                        <p className={styles.modalDescription}>
+                            Provide descriptions for the images to help AI understand their context and purpose.
+                        </p>
+                        <div className={styles.fileList}>
+                            {pendingFiles.map((file, index) => (
+                                <div key={index} className={styles.fileItem}>
+                                    <div className={styles.fileName}>{file.name}</div>
+                                    <input
+                                        type="text"
+                                        placeholder="Describe what this image shows and why it's relevant..."
+                                        className={styles.fileDescriptionInput}
+                                        id={`file-desc-${index}`}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleImageRemove(imagePath)}
-                                        className={styles.removeImageButton}
-                                        title="Remove image"
-                                    >
-                                        <FontAwesomeIcon icon={faTimes} />
-                                    </button>
                                 </div>
                             ))}
                         </div>
-                        <div className={styles.uploadSection}>
-                            <label htmlFor="image-upload" className={styles.uploadButton}>
-                                {isDragging ? (
-                                    <>
-                                        <FontAwesomeIcon icon={faImage} />
-                                        Drop images here
-                                    </>
-                                ) : (
-                                    <>
-                                        <FontAwesomeIcon icon={faImage} />
-                                        {uploading ? 'Uploading...' : 'Add Images'}
-                                    </>
-                                )}
-                            </label>
-                            <input
-                                id="image-upload"
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={handleImageUpload}
+                        <div className={styles.modalActions}>
+                            <button
+                                type="button"
+                                onClick={handleUploadModalSubmit}
+                                className={styles.uploadWithDescriptions}
                                 disabled={uploading}
-                                className={styles.uploadInput}
-                            />
+                            >
+                                {uploading ? 'Uploading...' : 'Upload Images'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleUploadModalCancel}
+                                className={styles.cancelModalButton}
+                                disabled={uploading}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            ) : null}
         </div>
     )
 }

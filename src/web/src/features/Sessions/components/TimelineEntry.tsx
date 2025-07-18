@@ -94,7 +94,9 @@ const TimelineEntryComponent: React.FC<TimelineEntryProps> = ({
                             }}
                             language="text"
                             readOnly
-                            height="300px"
+                            height="auto"
+                            minHeight={200}
+                            maxHeight={600}
                         />
                     </div>
                 </div> : null}

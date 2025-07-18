@@ -2,7 +2,7 @@
  * Parses and cleans container log output
  */
 
-export interface ParsedLogLine {
+export type ParsedLogLine = {
     text: string
     type: 'info' | 'success' | 'error' | 'warning' | 'system' | 'normal'
     timestamp?: string
@@ -13,7 +13,7 @@ export interface ParsedLogLine {
  */
 function removeAnsiCodes(text: string): string {
     // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1B\[[0-9;]*[A-Za-z]/g, '')
+    return text.replace(/\x1B\[[\d;]*[A-Za-z]/g, '')
 }
 
 /**
@@ -22,7 +22,7 @@ function removeAnsiCodes(text: string): string {
 function removeProgressIndicators(text: string): string {
     // Only remove isolated progress indicators, not slashes that are part of URLs
     // Match patterns like: | / - \ at the beginning/end of lines or surrounded by spaces
-    return text.replace(/(?:^|\s)[|/\\-]+(?:\s|$)/g, ' ').trim()
+    return text.replace(/(?:^|\s)[/\\|-]+(?:\s|$)/g, ' ').trim()
 }
 
 /**
@@ -73,20 +73,19 @@ export function parseLogLine(rawLine: string): ParsedLogLine | null {
     }
     
     // Skip duplicate progress output (npm install progress, etc)
-    if (text.match(/^\d+\s+packages?/) || text.match(/^run\s+`npm/)) {
+    if (/^\d+\s+packages?/.test(text) || /^run\s+`npm/.test(text)) {
         return null
     }
     
     // Extract timestamp if present (format: [HH:MM:SS])
-    const timestampMatch = text.match(/^\[(\d{2}:\d{2}:\d{2})\]\s*(.*)/)
+    const timestampMatch = /^\[(\d{2}:\d{2}:\d{2})]\s*(.*)/.exec(text)
     let timestamp: string | undefined
     if (timestampMatch) {
-        timestamp = timestampMatch[1]
-        text = timestampMatch[2]
+        [, timestamp, text] = timestampMatch
     }
     
     // Clean up aidev prefix
-    text = text.replace(/^\[aidev\]\s*/, '')
+    text = text.replace(/^\[aidev]\s*/, '')
     
     // Detect log type
     const type = detectLogType(text)

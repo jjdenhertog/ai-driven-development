@@ -1,6 +1,7 @@
 import { existsSync, readJsonSync, writeFileSync } from "fs-extra";
 import { join } from "node:path";
 import { log } from "../logger";
+import { ClaudeSettings } from "../../types/claude/ClaudeSettings";
 
 export default function removeHooks(path:string) {
     const claudeSettingsPath = join(path, '.claude', 'settings.json');
@@ -10,16 +11,18 @@ export default function removeHooks(path:string) {
         return;
 
     // Read existing settings
-    let settings: any = {};
+    let settings: ClaudeSettings = {};
     try {
-        settings = readJsonSync(claudeSettingsPath);
-    } catch (_err) {
+        settings = readJsonSync(claudeSettingsPath) as ClaudeSettings;
+    } catch {
         return;
     }
 
     // Check if hooks exist
-    if (!settings.hooks) 
+    if (!settings.hooks) {
         log('No hooks found in Claude settings - nothing to remove', 'info');
+        return;
+    }
 
     // List of hook types that addHooks adds
     const hookTypesToRemove = ['PreToolUse', 'PostToolUse', 'Notification', 'Stop'];

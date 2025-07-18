@@ -137,7 +137,9 @@
     flex-direction: column;
     gap: 2rem;
     overflow-y: auto;
-    padding-top: 0.5rem;
+    padding-right: 0.5rem;
+    padding-bottom: 2rem;
+    min-height: 0;
 }
 
 .field {
@@ -208,16 +210,24 @@
 
 .imagesList {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
 }
 
 .imageItem {
     position: relative;
-    aspect-ratio: 1;
     border-radius: 0.5rem;
-    overflow: hidden;
     border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.imageWrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .imageThumbnail {
@@ -278,15 +288,168 @@
     display: none;
 }
 
-.imagesSection.dragging {
-    background: rgba(59, 130, 246, 0.1);
-    border: 2px dashed var(--accent-color);
-    border-radius: 0.5rem;
-    padding: 1rem;
+
+/* Image Description Styles */
+.imageDescription {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
 }
 
-.imagesSection.dragging .uploadButton {
+.descriptionText {
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.descriptionText:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.placeholderText {
+    opacity: 0.5;
+    font-style: italic;
+}
+
+.descriptionInput {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.descriptionInput:focus {
+    outline: none;
     border-color: var(--accent-color);
-    color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.modalContent h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modalDescription {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.fileList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.fileItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+}
+
+.fileName {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.fileDescriptionInput {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.fileDescriptionInput:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.uploadWithDescriptions {
+    padding: 0.75rem 1.5rem;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.uploadWithDescriptions:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.uploadWithDescriptions:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cancelModalButton {
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelModalButton:hover {
+    background: var(--bg-tertiary);
 }
 

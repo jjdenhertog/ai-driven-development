@@ -13,7 +13,6 @@ export function waitForExit(ptyProcess: IPty): Promise<number> {
         
         // Function to reset the silence timer
         const resetSilenceTimer = () => {
-            
             if (silenceTimer) {
                 clearTimeout(silenceTimer);
             }
@@ -42,7 +41,7 @@ export function waitForExit(ptyProcess: IPty): Promise<number> {
                 try {
                     ptyProcess.kill();
                 } catch {
-                    // Process might already be dead
+                    // Process might already be dead, ignore error
                 }
             }
         };

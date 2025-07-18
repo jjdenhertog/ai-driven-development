@@ -4,13 +4,14 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string; file: string } }
+    { params }: { params: Promise<{ id: string; file: string }> }
 ) {
     try {
-    // Decode the file parameter to handle paths with slashes
-        const decodedFile = decodeURIComponent(params.file)
+        const { id, file } = await params
+        // Decode the file parameter to handle paths with slashes
+        const decodedFile = decodeURIComponent(file)
         const filePath = await ensureStoragePath(
-            `tasks_output/${params.id}/${decodedFile}`
+            `tasks_output/${id}/${decodedFile}`
         )
     
         const content = await fs.readFile(filePath, 'utf8')

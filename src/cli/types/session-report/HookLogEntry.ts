@@ -7,8 +7,8 @@ export type HookLogEntry = {
         transcript_path?: string;
         hook_event_name?: string;
         tool_name?: string;
-        tool_input?: any;
-        tool_response?: any;
+        tool_input?: Record<string, unknown>;
+        tool_response?: string | Record<string, unknown>;
     };
     inputData?: string;
 } 

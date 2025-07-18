@@ -11,8 +11,7 @@ const UPLOADS_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'uploads', 'concep
 async function ensureUploadsDir() {
     try {
         await fs.mkdir(UPLOADS_DIR, { recursive: true })
-    } catch (error) {
-        console.error('Failed to create uploads directory:', error)
+    } catch (_error) {
     }
 }
 
@@ -28,6 +27,7 @@ export async function POST(request: NextRequest) {
 
         const formData = await request.formData()
         const file = formData.get('file') as File
+        const description = formData.get('description') as string
         
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -55,12 +55,13 @@ export async function POST(request: NextRequest) {
             filename: uniqueName,
             path: relativePath,
             size: file.size,
-            type: file.type
+            type: file.type,
+            description: description || undefined
         })
-    } catch (error) {
-        console.error('Failed to upload file:', error)
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
     }
+
 }
 
 // DELETE /api/concept-features/upload
@@ -91,8 +92,8 @@ export async function DELETE(request: NextRequest) {
         await fs.unlink(filePath)
 
         return NextResponse.json({ success: true })
-    } catch (error) {
-        console.error('Failed to delete file:', error)
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 })
     }
+
 }

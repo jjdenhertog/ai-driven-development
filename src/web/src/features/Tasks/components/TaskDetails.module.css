@@ -384,9 +384,6 @@
 }
 
 .specEditorWrapper {
-  min-height: 600px;
-  height: calc(100vh - 400px);
-  max-height: 800px;
   display: flex;
   flex-direction: column;
 }

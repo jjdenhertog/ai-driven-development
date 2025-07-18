@@ -53,8 +53,6 @@ export async function GET() {
     
         return NextResponse.json(preferences)
     } catch (_error) {
-        console.error('Failed to read preferences:', _error)
-
         return NextResponse.json([])
     }
 }

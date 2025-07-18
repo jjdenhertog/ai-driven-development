@@ -4,10 +4,11 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { name: string } }
+    { params }: { params: Promise<{ name: string }> }
 ) {
     try {
-        const filePath = await ensureStoragePath(`preferences/${params.name}`)
+        const { name } = await params
+        const filePath = await ensureStoragePath(`preferences/${name}`)
         const content = await fs.readFile(filePath, 'utf8')
     
         return NextResponse.json({ content })
@@ -18,18 +19,17 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { name: string } }
+    { params }: { params: Promise<{ name: string }> }
 ) {
     try {
+        const { name } = await params
         const { content } = await request.json()
-        const filePath = await ensureStoragePath(`preferences/${params.name}`)
+        const filePath = await ensureStoragePath(`preferences/${name}`)
     
         await fs.writeFile(filePath, content, 'utf8')
     
         return NextResponse.json({ success: true })
     } catch (_error) {
-        console.error('Failed to update preference:', _error)
-
         return NextResponse.json({ error: 'Failed to update preference' }, { status: 500 })
     }
 }

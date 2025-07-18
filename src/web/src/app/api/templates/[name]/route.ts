@@ -4,11 +4,12 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { name: string } }
+    { params }: { params: Promise<{ name: string }> }
 ) {
     try {
+        const { name } = await params
         // Add .md extension if not present
-        const fileName = params.name.endsWith('.md') ? params.name : `${params.name}.md`
+        const fileName = name.endsWith('.md') ? name : `${name}.md`
         const filePath = await ensureStoragePath(`templates/${fileName}`)
         const content = await fs.readFile(filePath, 'utf8')
     
@@ -20,20 +21,19 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { name: string } }
+    { params }: { params: Promise<{ name: string }> }
 ) {
     try {
+        const { name } = await params
         const { content } = await request.json()
         // Add .md extension if not present
-        const fileName = params.name.endsWith('.md') ? params.name : `${params.name}.md`
+        const fileName = name.endsWith('.md') ? name : `${name}.md`
         const filePath = await ensureStoragePath(`templates/${fileName}`)
     
         await fs.writeFile(filePath, content, 'utf8')
     
         return NextResponse.json({ success: true })
     } catch (_error) {
-        console.error('Failed to update template:', _error)
-
         return NextResponse.json({ error: 'Failed to update template' }, { status: 500 })
     }
 }

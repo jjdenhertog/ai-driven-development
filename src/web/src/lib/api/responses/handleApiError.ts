@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { ApiError } from '../types/ApiError'
 
 export function handleApiError(error: unknown): NextResponse<ApiError> {
-    console.error('API Error:', error)
   
     if (error instanceof Error) {
         return NextResponse.json(

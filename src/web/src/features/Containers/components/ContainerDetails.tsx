@@ -1,3 +1,5 @@
+/* eslint-disable max-depth */
+/* eslint-disable unicorn/prefer-switch */
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
@@ -21,6 +23,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
     const [isStreaming, setIsStreaming] = useState(false)
     const [showStopOptions, setShowStopOptions] = useState(false)
     const [showRestartOptions, setShowRestartOptions] = useState(false)
+    const [showWebWarning, setShowWebWarning] = useState<{ action: 'stop' | 'restart', clean?: boolean } | null>(null)
     const [modalState, setModalState] = useState<{
         isOpen: boolean
         action: string
@@ -56,17 +59,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         }
     }, [container.name])
 
-    const handleAction = useCallback(async (action: 'start' | 'stop' | 'restart', options?: { clean?: boolean }) => {
-        // Special handling for web container
-        if (container.name === 'web' && (action === 'stop' || (action === 'restart' && options?.clean))) {
-            const confirmMessage = action === 'stop' 
-                ? 'Stopping the web container will shut down this interface. You can restart it using "aidev container web start" from the command line. Continue?'
-                : 'Restarting the web container with --clean will rebuild and shut down this interface. You can restart it using "aidev container web start" from the command line. Continue?'
-            
-            if (!window.confirm(confirmMessage)) {
-                return
-            }
-        }
+    const handleActionInternal = useCallback(async (action: 'start' | 'stop' | 'restart', options?: { clean?: boolean }) => {
         
         // Reset option displays
         setShowStopOptions(false)
@@ -113,7 +106,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
-                            const data = JSON.parse(line.substring(6))
+                            const data = JSON.parse(line.slice(6))
                             
                             if (data.type === 'stdout' || data.type === 'stderr' || data.type === 'start') {
                                 setModalState(prev => ({
@@ -145,21 +138,32 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                                     logs: [...prev.logs, `Error: ${data.message}`]
                                 }))
                             }
-                        } catch (e) {
-                            // Ignore parsing errors
+                        } catch (_e) {
+                            // Ignore parse errors
+                            continue
                         }
                     }
                 }
             }
-        } catch (error) {
-            console.error(`Failed to ${action} container:`, error)
+        } catch (_error) {
             setModalState(prev => ({
                 ...prev,
                 isComplete: true,
-                logs: [...prev.logs, `Error: ${error instanceof Error ? error.message : String(error)}`]
+                logs: [...prev.logs, `Error: ${_error instanceof Error ? _error.message : String(_error)}`]
             }))
         }
     }, [container.name, container.type, onStatusChange])
+
+    const handleAction = useCallback(async (action: 'start' | 'stop' | 'restart', options?: { clean?: boolean }) => {
+        // Special handling for web container
+        if (container.name === 'web' && (action === 'stop' || (action === 'restart' && options?.clean))) {
+            setShowWebWarning({ action, clean: options?.clean })
+            
+            return
+        }
+        
+        return handleActionInternal(action, options)
+    }, [container.name, handleActionInternal])
 
     const handleStart = useCallback(() => {
         handleAction('start')
@@ -209,10 +213,10 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                     const lines = fullText.split('\n')
                     
                     // Keep the last line if it doesn't end with newline (partial line)
-                    if (!fullText.endsWith('\n')) {
-                        pendingTextRef.current = lines.pop() || ''
-                    } else {
+                    if (fullText.endsWith('\n')) {
                         pendingTextRef.current = ''
+                    } else {
+                        pendingTextRef.current = lines.pop() || ''
                     }
                     
                     // Parse and add new log lines
@@ -223,14 +227,16 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                     if (parsedLines.length > 0) {
                         setLogs(prev => {
                             const combined = [...prev, ...parsedLines]
+                            
                             // Group similar lines to reduce clutter
                             return groupLogLines(combined)
                         })
                     }
                 }
-            } catch (error) {
-                if (error instanceof Error && error.name !== 'AbortError') {
-                    // console.error('Failed to stream logs:', error)
+            } catch (_error) {
+                if (_error instanceof Error && _error.name !== 'AbortError') {
+                    // Log non-abort errors if needed
+                    console.error('Error fetching logs:', _error)
                 }
             } finally {
                 setIsStreaming(false)
@@ -250,6 +256,16 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
             isComplete: false
         })
     }, [])
+
+    const handleWebWarningConfirm = useCallback(async () => {
+        if (!showWebWarning) return
+        
+        const { action, clean } = showWebWarning
+        setShowWebWarning(null)
+        
+        // Now proceed with the action directly
+        await handleActionInternal(action, { clean })
+    }, [showWebWarning, handleActionInternal])
 
     return (
         <div className={styles.container}>
@@ -399,6 +415,42 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 isComplete={modalState.isComplete}
                 onClose={handleCloseModal}
             />
+            
+            {showWebWarning && (
+                <div className={styles.warningModal}>
+                    <div className={styles.warningModalContent}>
+                        <h3>
+                            <FontAwesomeIcon icon={faExclamationTriangle} />
+                            Warning
+                        </h3>
+                        <p>
+                            {showWebWarning.action === 'stop' 
+                                ? 'Stopping the web container will shut down this interface. You can restart it using "aidev container web start" from the command line.'
+                                : 'Restarting the web container with --clean will rebuild and shut down this interface. You can restart it using "aidev container web start" from the command line.'}
+                        </p>
+                        <div className={styles.warningModalActions}>
+                            <button
+                                type="button"
+                                className={styles.warningModalCancel}
+                                onClick={() => setShowWebWarning(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.warningModalConfirm}
+                                onClick={() => {
+                                    handleWebWarningConfirm().catch(() => {
+                                        // Error handled in handleWebWarningConfirm
+                                    })
+                                }}
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

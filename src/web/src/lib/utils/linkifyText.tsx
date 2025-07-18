@@ -7,12 +7,15 @@ import React from 'react'
  */
 export function linkifyText(text: string): React.ReactNode[] {
     // Regex to match URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const urlRegex = /(https?:\/\/\S+)/g
     
     const parts = text.split(urlRegex)
     
     return parts.map((part, index) => {
-        if (part.match(urlRegex)) {
+        if (urlRegex.test(part)) {
+            // Reset regex lastIndex after test
+            urlRegex.lastIndex = 0
+            
             return (
                 <a
                     key={index}
@@ -28,6 +31,7 @@ export function linkifyText(text: string): React.ReactNode[] {
                 </a>
             )
         }
+        
         return <span key={index}>{part}</span>
     })
 }

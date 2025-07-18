@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
-import crypto from 'crypto'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import crypto from 'node:crypto'
 
 const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd()
 const UPLOADS_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'uploads', 'tasks')
@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData()
         const file = formData.get('file') as File
+        const description = formData.get('description') as string
         
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -26,7 +27,9 @@ export async function POST(request: NextRequest) {
 
         // Generate unique filename
         const buffer = Buffer.from(await file.arrayBuffer())
-        const hash = crypto.createHash('md5').update(buffer).digest('hex')
+        const hash = crypto.createHash('md5')
+            .update(buffer)
+            .digest('hex')
         const ext = path.extname(file.name)
         const filename = `${hash}${ext}`
         const filepath = path.join(UPLOADS_DIR, filename)
@@ -40,10 +43,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ 
             filename,
             path: relativePath,
-            url: `/api${relativePath}`
+            url: `/api${relativePath}`,
+            description: description || undefined
         })
     } catch (error) {
-        console.error('Upload error:', error)
+        
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Upload failed' },
             { status: 500 }

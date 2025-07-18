@@ -1,10 +1,10 @@
+import { OpenOptions } from '../types/commands/OpenOptions';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { ensureWorktree } from '../utils/git/ensureWorktree';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from "../utils/logger";
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { getTasks } from '../utils/tasks/getTasks';
-import { OpenOptions } from '../types/commands/OpenOptions';
 
 export async function openCommand(options: OpenOptions) {
     const { taskId } = options;
@@ -44,7 +44,12 @@ export async function openCommand(options: OpenOptions) {
     log(`Setting up worktree for branch '${branchName}' at '${worktreePath}'...`, 'info');
 
     try {
-        await ensureWorktree(branchName, worktreePath, true);
+        await ensureWorktree({
+            branch: branchName,
+            path: worktreePath,
+            skipSymlink: true,
+            skipClaudeCommands: true
+        });
         log(`Worktree created successfully at: ${worktreePath}`, 'success');
 
         log(`You can now navigate to the worktree with: cd ${worktreePath}`, 'info');

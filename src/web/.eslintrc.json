@@ -1,0 +1,27 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-void": "off",
+    "@typescript-eslint/no-misused-promises": ["error", {
+      "checksVoidReturn": {
+        "attributes": false
+      }
+    }]
+  },
+  "overrides": [
+    {
+      "files": ["src/features/ConceptFeatures/components/ConceptFeatureEditor.tsx"],
+      "rules": {
+        "max-lines": ["error", {"max": 600}]
+      }
+    },
+    {
+      "files": ["src/features/Containers/components/ContainerDetails.tsx"],
+      "rules": {
+        "max-depth": "off",
+        "unicorn/prefer-switch": "off",
+        "no-empty": ["error", { "allowEmptyCatch": true }]
+      }
+    }
+  ]
+}

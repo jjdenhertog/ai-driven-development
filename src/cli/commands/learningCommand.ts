@@ -146,12 +146,8 @@ export async function learningCommand(options: LearningOptions) {
 
                         }
 
-
-                        throw new Error("TODO: Implement learning from commits here");
-
                         // await processCompletedTask(task, dangerouslySkipPermission);
                     } catch (error) {
-
                         log(`Error processing task ${task.id}: ${String(error)}`, 'error');
                     }
                 }
@@ -159,7 +155,7 @@ export async function learningCommand(options: LearningOptions) {
 
             // Sleep for 30 seconds before next check
 
-            console.log("Sleeping for 300 seconds, waiting for next iteration");
+            log("Sleeping for 300 seconds, waiting for next iteration", 'info');
 
             iteration++;
             await sleep(300_000);

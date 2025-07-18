@@ -32,3 +32,6 @@ export type { Template } from './template/Template'
 // Concept Feature exports
 export type { ConceptFeature } from './conceptFeature/ConceptFeature'
 export type { ConceptFeatureState } from './conceptFeature/ConceptFeatureState'
+
+// Common exports
+export type { ImageWithDescription } from './common/ImageWithDescription'

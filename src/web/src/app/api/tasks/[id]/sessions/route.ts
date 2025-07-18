@@ -4,10 +4,11 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const outputDir = await ensureStoragePath(`tasks_output/${params.id}`)
+        const { id } = await params
+        const outputDir = await ensureStoragePath(`tasks_output/${id}`)
     
         try {
             const entries = await fs.readdir(outputDir)
@@ -24,8 +25,6 @@ export async function GET(
             return NextResponse.json({ sessions: [] })
         }
     } catch (_error) {
-        console.error('Failed to read sessions:', _error)
-
         return NextResponse.json({ error: 'Failed to read sessions' }, { status: 500 })
     }
 }

@@ -42,8 +42,6 @@ export async function GET() {
         
         return NextResponse.json(examples)
     } catch (_error) {
-        console.error('Failed to read examples:', _error)
-        
         return NextResponse.json([])
     }
 }

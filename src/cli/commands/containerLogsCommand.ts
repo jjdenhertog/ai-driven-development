@@ -58,9 +58,16 @@ export async function containerLogsCommand(options: Options): Promise<void> {
         
         // Handle SIGINT for follow mode
         if (follow) {
-            process.on('SIGINT', () => {
+            const handleSigint = () => {
                 logsProcess.kill('SIGINT');
                 process.exit(0);
+            };
+            
+            process.once('SIGINT', handleSigint);
+            
+            // Clean up the handler when the process exits
+            logsProcess.on('exit', () => {
+                process.removeListener('SIGINT', handleSigint);
             });
         }
         

@@ -1,7 +1,6 @@
-/* eslint-disable no-alert */
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useCallback } from 'react'
 import { ConceptFeatureEditor } from '@/features/ConceptFeatures/components/ConceptFeatureEditor'
 import styles from '@/features/ConceptFeatures/components/ConceptFeatures.module.css'
 import { NewFeatureModal } from '@/features/ConceptFeatures/components/NewFeatureModal'
@@ -13,7 +12,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import { useSnackbar } from 'notistack'
 
-function FeaturesPageContent() {
+export default function FeaturesPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedId = searchParams.get('id')
@@ -22,11 +21,19 @@ function FeaturesPageContent() {
     const { data: features, error, mutate } = useSWR('concept-features', api.getConceptFeatures)
     const [showNewFeature, setShowNewFeature] = useState(false)
     
-    const handleSelectFeature = (id: string) => {
+    const handleSelectFeature = useCallback((id: string) => {
         router.push(`/plan/features?id=${id}`)
-    }
+    }, [router])
     
-    const handleCreateFeature = async (feature: Omit<ConceptFeature, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const handleShowNewFeature = useCallback(() => {
+        setShowNewFeature(true)
+    }, [])
+    
+    const handleCloseNewFeature = useCallback(() => {
+        setShowNewFeature(false)
+    }, [])
+    
+    const handleCreateFeature = useCallback(async (feature: Omit<ConceptFeature, 'id' | 'createdAt' | 'updatedAt'>) => {
         try {
             const newFeature = await api.createConceptFeature(feature)
             mutate()
@@ -34,12 +41,12 @@ function FeaturesPageContent() {
             enqueueSnackbar('Feature created successfully', { variant: 'success' })
             // Automatically select the newly created feature
             handleSelectFeature(newFeature.id)
-        } catch (error) {
+        } catch {
             enqueueSnackbar('Failed to create feature', { variant: 'error' })
         }
-    }
+    }, [mutate, enqueueSnackbar, handleSelectFeature])
     
-    const handleUpdateFeature = async (id: string, updates: Partial<ConceptFeature>) => {
+    const handleUpdateFeature = useCallback(async (id: string, updates: Partial<ConceptFeature>) => {
         try {
             // Get the current feature to check state changes
             const currentFeature = features?.find(f => f.id === id)
@@ -55,8 +62,7 @@ function FeaturesPageContent() {
                 // Trigger AI assessment (the external process will change to 'reviewing' when it starts)
                 try {
                     await api.assessConceptFeature(id)
-                } catch (assessError) {
-                    console.error('Failed to trigger AI assessment:', assessError)
+                } catch (_assessError) {
                     enqueueSnackbar('Failed to trigger AI assessment', { variant: 'error' })
                 }
             } else {
@@ -64,26 +70,29 @@ function FeaturesPageContent() {
             }
             
             mutate()
-        } catch (error) {
+        } catch (_error) {
             enqueueSnackbar('Failed to save feature', { variant: 'error' })
-            throw error // Re-throw to let ConceptFeatureEditor handle it
+            throw _error // Re-throw to let ConceptFeatureEditor handle it
         }
-    }
+    }, [features, enqueueSnackbar, mutate])
     
-    const handleDeleteFeature = async (id: string) => {
-        if (confirm('Are you sure you want to delete this feature?')) {
-            try {
-                await api.deleteConceptFeature(id)
-                mutate()
-                if (selectedId === id) {
-                    router.push('/plan/features')
-                }
-                enqueueSnackbar('Feature deleted successfully', { variant: 'success' })
-            } catch (error) {
-                enqueueSnackbar('Failed to delete feature', { variant: 'error' })
+    const handleDeleteFeature = useCallback(async (id: string) => {
+        try {
+            await api.deleteConceptFeature(id)
+            mutate()
+            if (selectedId === id) {
+                router.push('/plan/features')
             }
+            
+            enqueueSnackbar('Feature deleted successfully', { variant: 'success' })
+        } catch {
+            enqueueSnackbar('Failed to delete feature', { variant: 'error' })
         }
-    }
+    }, [mutate, selectedId, router, enqueueSnackbar])
+    
+    const createFeatureClickHandler = useCallback((featureId: string) => {
+        return () => handleSelectFeature(featureId)
+    }, [handleSelectFeature])
     
     const getStateColor = (state: ConceptFeature['state']) => {
         switch (state) {
@@ -101,81 +110,95 @@ function FeaturesPageContent() {
 
     if (!features) return <div className={styles.loading}>Loading features...</div>
     
-    return (
-        <div className={styles.container}>
-            <div className={styles.sidebar}>
-                <div className={styles.sidebarHeader}>
-                    <h3>Features</h3>
+    const renderFeatureList = () => {
+        if (features.length === 0) {
+            return (
+                <div className={styles.empty}>
+                    <p>No features yet</p>
                     <button
-                        onClick={() => setShowNewFeature(true)}
-                        className={styles.newButton}
-                        title="New Feature"
+                        type="button"
+                        onClick={handleShowNewFeature}
+                        className={styles.emptyActionButton}
                     >
                         <FontAwesomeIcon icon={faPlus} />
+                        Create your first feature
                     </button>
                 </div>
-                
-                <div className={styles.featureList}>
-                    {features.length === 0 ? (
-                        <div className={styles.empty}>
-                            <p>No features yet</p>
-                            <button
-                                onClick={() => setShowNewFeature(true)}
-                                className={styles.emptyButton}
-                            >
-                                Create your first feature
-                            </button>
-                        </div>
-                    ) : (
-                        features.map(feature => (
-                            <button
-                                key={feature.id}
-                                onClick={() => handleSelectFeature(feature.id)}
-                                className={`${styles.featureItem} ${
-                                    selectedId === feature.id ? styles.selected : ''
-                                } ${styles[`status-${feature.state}`]}`}
-                            >
-                                <div className={styles.featureHeader}>
-                                    <span className={styles.featureTitle}>{feature.title}</span>
-                                    <FontAwesomeIcon 
-                                        icon={faCircle} 
-                                        className={styles.stateIcon}
-                                        style={{ color: getStateColor(feature.state) }}
-                                        title={feature.state}
-                                    />
-                                </div>
-                            </button>
-                        ))
-                    )}
-                </div>
-            </div>
-            
-            <div className={styles.main}>
-                {selectedId && features ? (
-                    <ConceptFeatureEditor
-                        feature={features.find(f => f.id === selectedId)}
-                        onUpdate={handleUpdateFeature}
-                        onDelete={handleDeleteFeature}
+            )
+        }
+        
+        return features.map(feature => (
+            <button
+                key={feature.id}
+                type="button"
+                onClick={createFeatureClickHandler(feature.id)}
+                className={`${styles.featureItem} ${
+                    selectedId === feature.id ? styles.selected : ''
+                } ${styles[`status-${feature.state}`]}`}
+            >
+                <div className={styles.featureHeader}>
+                    <span className={styles.featureTitle}>{feature.title}</span>
+                    <FontAwesomeIcon 
+                        icon={faCircle} 
+                        className={styles.stateIcon}
+                        style={{ color: getStateColor(feature.state) }}
+                        title={feature.state}
                     />
-                ) : (
-                    <div className={styles.placeholder}>
-                        <p>Select a feature to view details</p>
-                    </div>
-                )}
-            </div>
-            
-            {showNewFeature ? <NewFeatureModal
-                onClose={() => setShowNewFeature(false)}
-                onCreate={handleCreateFeature}
-            /> : null}
-        </div>
-    )
-}
-
-export default function FeaturesPage() {
+                </div>
+            </button>
+        ))
+    }
+    
     return (
         <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
-            <FeaturesPageContent />
+            <div className={styles.container}>
+                <div className={styles.sidebar}>
+                    <div className={styles.sidebarHeader}>
+                        <h3>Features</h3>
+                        <button
+                            type="button"
+                            onClick={handleShowNewFeature}
+                            className={styles.newButton}
+                            title="New Feature"
+                        >
+                            <FontAwesomeIcon icon={faPlus} />
+                        </button>
+                    </div>
+                    
+                    <div className={styles.featureList}>
+                        {renderFeatureList()}
+                    </div>
+                </div>
+                
+                <div className={styles.main}>
+                    {selectedId && features ? (
+                        <ConceptFeatureEditor
+                            feature={features.find(f => f.id === selectedId)}
+                            onUpdate={handleUpdateFeature}
+                            onDelete={handleDeleteFeature}
+                        />
+                    ) : (
+                        <div className={styles.placeholder}>
+                            <p>Select a feature to view details</p>
+                            {features.length === 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleShowNewFeature}
+                                    className={styles.emptyActionButton}
+                                >
+                                    <FontAwesomeIcon icon={faPlus} />
+                                    Create your first feature
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+                
+                {showNewFeature ? <NewFeatureModal
+                    onClose={handleCloseNewFeature}
+                    onCreate={handleCreateFeature}
+                /> : null}
+            </div>
         </Suspense>
     )
 }

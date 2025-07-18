@@ -110,8 +110,6 @@ export async function GET() {
             return NextResponse.json(containers)
         }
     } catch (_error) {
-        // console.error('Failed to get container status:', _error)
-
         return NextResponse.json(
             { error: 'Failed to get container status' },
             { status: 500 }

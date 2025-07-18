@@ -4,11 +4,12 @@ import { ensureStoragePath } from '@/lib/storage'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string; sessionId: string } }
+    { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
     try {
+        const { id, sessionId } = await params
         const sessionFile = await ensureStoragePath(
-            `tasks_output/${params.id}/${params.sessionId}/claude.json`
+            `tasks_output/${id}/${sessionId}/claude.json`
         )
     
         const content = await fs.readFile(sessionFile)

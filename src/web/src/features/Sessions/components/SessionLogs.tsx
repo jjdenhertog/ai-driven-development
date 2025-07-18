@@ -49,9 +49,8 @@ export const SessionLogs: React.FC<SessionLogsProps> = ({ logsData }) => {
                 })}
             </div>
         )
-    } catch (error) {
-        console.error('Failed to parse logs:', error)
-
+    } catch (_error) {
+        // Display raw content if parsing fails
         return <pre>{logsData.content}</pre>
     }
 }

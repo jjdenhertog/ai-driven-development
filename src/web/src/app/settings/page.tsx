@@ -29,7 +29,6 @@ function SettingsPageContent() {
 
     const loadFileContent = useCallback(async (file: string, type: SettingsTab) => {
         try {
-            // console.log('Loading file:', file, 'type:', type) // Debug log
             setContent('') // Clear content while loading
             let response
             if (type === 'preferences') {
@@ -43,7 +42,6 @@ function SettingsPageContent() {
             setContent(response.content)
             setHasChanges(false)
         } catch (_error) {
-            console.error('Failed to load file:', _error)
             setContent('Failed to load content')
         }
     }, [])
@@ -81,7 +79,8 @@ function SettingsPageContent() {
             }
 
             setHasChanges(false)
-            enqueueSnackbar(`${activeTab.slice(0, -1).charAt(0).toUpperCase() + activeTab.slice(1, -1)} saved successfully`, { variant: 'success' })
+            enqueueSnackbar(`${activeTab.slice(0, -1).charAt(0)
+                .toUpperCase() + activeTab.slice(1, -1)} saved successfully`, { variant: 'success' })
         } catch (_error) {
             enqueueSnackbar(`Failed to save ${activeTab.slice(0, -1)}`, { variant: 'error' })
         } finally {
@@ -176,7 +175,9 @@ function SettingsPageContent() {
                                 value={content}
                                 onChange={handleContentChange}
                                 language={selectedFile.endsWith('.json') ? 'json' : 'markdown'}
-                                height="calc(100vh - 200px)"
+                                height="auto"
+                                minHeight={500}
+                                maxHeight={800}
                             />
                         </div>
                     </>

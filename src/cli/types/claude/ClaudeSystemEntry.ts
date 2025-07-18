@@ -5,7 +5,11 @@ export type ClaudeSystemEntry = {
     cwd: string;
     session_id: string;
     tools: string[];
-    mcp_servers: any[];
+    mcp_servers: {
+        name?: string;
+        type?: string;
+        [key: string]: unknown;
+    }[];
     model: string;
     permissionMode: string;
     apiKeySource: string;

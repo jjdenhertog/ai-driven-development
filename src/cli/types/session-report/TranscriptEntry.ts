@@ -3,8 +3,15 @@ export type TranscriptEntry = {
     timestamp: string;
     message?: {
         role?: string;
-        content?: any;
+        content?: string | Record<string, unknown>;
+        usage?: {
+            input_tokens?: number;
+            output_tokens?: number;
+        };
     };
-    toolUseResult?: any;
+    toolUseResult?: {
+        content?: string | Record<string, unknown>;
+        [key: string]: unknown;
+    };
     uuid?: string;
 } 

@@ -14,6 +14,7 @@ import { EnhancedSessionList } from '@/features/Tasks/components/EnhancedSession
 import { TaskMetadataGrid } from '@/features/Tasks/components/TaskMetadataGrid'
 import { TaskSpecification } from '@/features/Tasks/components/TaskSpecification'
 import { TaskUploads } from '@/features/Tasks/components/TaskUploads'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import styles from '@/features/Tasks/components/TaskDetails.module.css'
 
 export default function TaskPage({ params }: { readonly params: Promise<{ id: string }> }) {
@@ -29,6 +30,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const [activeTab, setActiveTab] = useState<'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads'>(tabParam || 'overview')
     const [selectedSession, setSelectedSession] = useState<string | null>(sessionParam)
     const [taskContent, setTaskContent] = useState('')
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
     const { data: task, mutate: mutateTask } = useSWR(
         taskId ? `tasks/${taskId}` : null,
@@ -88,8 +90,11 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
 
     // Auto-select session from URL on initial load
     useEffect(() => {
-        if (sessionParam && sessionsData?.sessions?.includes(sessionParam)) {
-            setSelectedSession(sessionParam)
+        if (sessionParam && sessionsData?.sessions) {
+            const sessions = sessionsData.sessions as string[];
+            if (sessions.includes(sessionParam)) {
+                setSelectedSession(sessionParam)
+            }
         }
     }, [sessionParam, sessionsData])
 
@@ -145,18 +150,16 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const handleDeleteTask = useCallback(async () => {
         if (!task) return
 
-        // eslint-disable-next-line no-alert
-        if (confirm(`Are you sure you want to delete task ${task.id}: ${task.name}?`)) {
-            try {
-                await api.deleteTask(task.id)
-                enqueueSnackbar('Task deleted successfully', { variant: 'success' })
-                // Navigate back to tasks list
-                router.push('/tasks')
-                // Trigger a refresh of the parent task list
-                window.dispatchEvent(new Event('task-deleted'))
-            } catch (_error) {
-                enqueueSnackbar('Failed to delete task', { variant: 'error' })
-            }
+        try {
+            await api.deleteTask(task.id)
+            enqueueSnackbar('Task deleted successfully', { variant: 'success' })
+            setShowDeleteConfirm(false)
+            // Navigate back to tasks list
+            router.push('/tasks')
+            // Trigger a refresh of the parent task list
+            window.dispatchEvent(new Event('task-deleted'))
+        } catch (_error) {
+            enqueueSnackbar('Failed to delete task', { variant: 'error' })
         }
     }, [task, enqueueSnackbar, router])
 
@@ -209,7 +212,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                 </div>
                 <button
                     type="button"
-                    onClick={() => { handleDeleteTask() }}
+                    onClick={() => setShowDeleteConfirm(true)}
                     className={styles.deleteButton}
                     title="Delete task"
                 >
@@ -279,6 +282,8 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                                 language="markdown"
                                 readOnly
                                 height="auto"
+                                minHeight={200}
+                                maxHeight={100_000}
                             />
                         </div> : null}
 
@@ -323,7 +328,9 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                                 onChange={() => { /* read-only */ }}
                                 language="markdown"
                                 readOnly
-                                height="100%"
+                                height="auto"
+                                minHeight={400}
+                                maxHeight={800}
                             />
                         ) : lastResultData ? (
                             <CodeEditor
@@ -331,7 +338,9 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                                 onChange={() => { /* read-only */ }}
                                 language="markdown"
                                 readOnly
-                                height="100%"
+                                height="auto"
+                                minHeight={400}
+                                maxHeight={800}
                             />
                         ) : (
                             <div className={styles.empty}>No PRP data available</div>
@@ -365,6 +374,16 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
 
 
             </div>
+            
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Task"
+                message={`Are you sure you want to delete task ${task.id}: ${task.name}? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={handleDeleteTask}
+                onCancel={() => setShowDeleteConfirm(false)}
+            />
         </div>
     )
 }

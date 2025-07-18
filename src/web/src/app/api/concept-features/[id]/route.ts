@@ -9,20 +9,19 @@ const CONCEPT_FEATURES_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'concept-
 // GET /api/concept-features/[id]
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const filePath = path.join(CONCEPT_FEATURES_DIR, `${params.id}.json`)
+        const { id } = await params
+        const filePath = path.join(CONCEPT_FEATURES_DIR, `${id}.json`)
         const content = await fs.readFile(filePath)
         const feature = JSON.parse(content.toString()) as ConceptFeature
 
         return NextResponse.json(feature)
-    } catch (error) {
-        if ((error as any).code === 'ENOENT') {
+    } catch (_error) {
+        if ((_error as any).code === 'ENOENT') {
             return NextResponse.json({ error: 'Feature not found' }, { status: 404 })
         }
-
-        console.error('Failed to get concept feature:', error)
 
         return NextResponse.json({ error: 'Failed to get concept feature' }, { status: 500 })
     }
@@ -31,10 +30,11 @@ export async function GET(
 // PUT /api/concept-features/[id]
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const filePath = path.join(CONCEPT_FEATURES_DIR, `${params.id}.json`)
+        const { id } = await params
+        const filePath = path.join(CONCEPT_FEATURES_DIR, `${id}.json`)
         
         // Check if file exists
         try {
@@ -52,7 +52,7 @@ export async function PUT(
         const updatedFeature: ConceptFeature = {
             ...existingFeature,
             ...body,
-            id: params.id, // Ensure ID doesn't change
+            id, // Ensure ID doesn't change
             updatedAt: new Date().toISOString()
         }
         
@@ -63,9 +63,7 @@ export async function PUT(
         )
         
         return NextResponse.json(updatedFeature)
-    } catch (error) {
-        console.error('Failed to update concept feature:', error)
-
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to update concept feature' }, { status: 500 })
     }
 }
@@ -73,19 +71,18 @@ export async function PUT(
 // DELETE /api/concept-features/[id]
 export async function DELETE(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const filePath = path.join(CONCEPT_FEATURES_DIR, `${params.id}.json`)
+        const { id } = await params
+        const filePath = path.join(CONCEPT_FEATURES_DIR, `${id}.json`)
         await fs.unlink(filePath)
         
         return NextResponse.json({ success: true })
-    } catch (error) {
-        if ((error as any).code === 'ENOENT') {
+    } catch (_error) {
+        if ((_error as any).code === 'ENOENT') {
             return NextResponse.json({ error: 'Feature not found' }, { status: 404 })
         }
-
-        console.error('Failed to delete concept feature:', error)
 
         return NextResponse.json({ error: 'Failed to delete concept feature' }, { status: 500 })
     }

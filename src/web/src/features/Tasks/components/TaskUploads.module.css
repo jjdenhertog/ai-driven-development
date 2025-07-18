@@ -37,6 +37,41 @@
     background: var(--danger-hover);
 }
 
+.clearSection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirmText {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.confirmButton {
+    background: var(--danger);
+}
+
+.confirmButton:hover {
+    background: var(--danger-hover);
+}
+
+.cancelButton {
+    padding: 0.5rem 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelButton:hover {
+    background: var(--hover-bg);
+}
+
 .uploadArea {
     flex: 1;
     border: 2px dashed var(--border-color);
@@ -45,15 +80,11 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background: var(--background);
+    background: var(--bg-primary);
     transition: all 0.2s;
     min-height: 400px;
 }
 
-.uploadArea.dragging {
-    border-color: var(--primary);
-    background: var(--primary-hover-bg);
-}
 
 .imageGrid {
     display: grid;
@@ -67,7 +98,7 @@
     aspect-ratio: 1;
     border-radius: 0.5rem;
     overflow: hidden;
-    background: var(--card-background);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
 }
 
@@ -160,6 +191,148 @@
     display: none;
 }
 
+/* Image Description Styles */
+.imageDescription {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.descriptionText {
+    cursor: pointer;
+    min-height: 1.2rem;
+    line-height: 1.4;
+}
+
+.descriptionText:hover {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem;
+    margin: -0.25rem;
+    border-radius: 0.25rem;
+}
+
+.placeholderText {
+    opacity: 0.5;
+    font-style: italic;
+}
+
+.descriptionInput {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    color: #000;
+    border-radius: 0.25rem;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.modalContent h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modalDescription {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.fileList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.fileItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+}
+
+.fileName {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.fileDescriptionInput {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background: var(--bg-primary);
+}
+
+.fileDescriptionInput:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.uploadWithDescriptions {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.uploadWithDescriptions:hover:not(:disabled) {
+    background: var(--primary-hover);
+}
+
+.uploadWithDescriptions:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .imageGrid {
@@ -168,5 +341,9 @@
     
     .uploadArea {
         padding: 1rem;
+    }
+    
+    .modalContent {
+        padding: 1.5rem;
     }
 }

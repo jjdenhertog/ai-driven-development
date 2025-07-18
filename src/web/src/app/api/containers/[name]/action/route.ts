@@ -4,14 +4,15 @@ import { isRunningInContainer } from '@/lib/utils/isRunningInContainer'
 import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
 
 type Params = {
-    params: {
+    params: Promise<{
         name: string
-    }
+    }>
 }
 
 // POST /api/containers/[name]/action - Stream container action output
 export async function POST(request: NextRequest, { params }: Params) {
     try {
+        const { name } = await params
         // Check if we're running in a container
         if (isRunningInContainer()) {
             return NextResponse.json(
@@ -31,8 +32,8 @@ export async function POST(request: NextRequest, { params }: Params) {
         
         const body = await request.json()
         const { action, clean = false, port = 1212 } = body
-        const containerName = params.name
-        const type = body.type || params.name
+        const containerName = name
+        const type = body.type || name
 
         // Build the aidev CLI command
         const args = ['container', action, containerName]
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             if (type && type !== containerName) {
                 args.push('--type', type)
             }
+            
             if (type === 'web' && port) {
                 args.push('--port', String(port))
             }
@@ -63,16 +65,22 @@ export async function POST(request: NextRequest, { params }: Params) {
                 controller.enqueue(encoder.encode(`data: {"type":"start","message":"Executing: aidev ${args.join(' ')}"}\n\n`))
 
                 // Handle stdout
+                
                 childProcess.stdout.on('data', (data) => {
-                    const lines = data.toString().split('\n').filter((line: string) => line.trim())
+                    const lines = data.toString().split('\n')
+                        .filter((line: string) => line.trim())
+                    
                     for (const line of lines) {
                         controller.enqueue(encoder.encode(`data: {"type":"stdout","message":${JSON.stringify(line)}}\n\n`))
                     }
                 })
 
                 // Handle stderr
+                
                 childProcess.stderr.on('data', (data) => {
-                    const lines = data.toString().split('\n').filter((line: string) => line.trim())
+                    const lines = data.toString().split('\n')
+                        .filter((line: string) => line.trim())
+                    
                     for (const line of lines) {
                         controller.enqueue(encoder.encode(`data: {"type":"stderr","message":${JSON.stringify(line)}}\n\n`))
                     }
@@ -85,6 +93,7 @@ export async function POST(request: NextRequest, { params }: Params) {
                     } else {
                         controller.enqueue(encoder.encode(`data: {"type":"complete","code":${code},"message":"Command failed with exit code ${code}"}\n\n`))
                     }
+                    
                     controller.close()
                 })
 

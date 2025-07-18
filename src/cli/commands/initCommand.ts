@@ -1,12 +1,14 @@
-import { copySync, ensureDirSync, existsSync, readdirSync, removeSync, writeFileSync } from 'fs-extra';
+import { copySync, ensureDirSync, existsSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
 
-import { CONFIG_PATH, STORAGE_FOLDER, STORAGE_PATH } from '../config';
+import { CONFIG_PATH, STORAGE_FOLDER, STORAGE_PATH, TEMPLATES_ROOT } from '../config';
 import { InitOptions } from '../types/commands/InitOptions';
+import { addCommands } from '../utils/claude/addCommands';
 import { addToGitignore } from '../utils/git/addToGitignore';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from '../utils/logger';
+import { addTemplates } from '../utils/claude/addTemplates';
 
 export async function initCommand(options: InitOptions): Promise<void> {
     const { force } = options;
@@ -25,24 +27,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         // Create aidev-storage worktree
         ensureDirSync(STORAGE_PATH);
         addToGitignore(process.cwd(), STORAGE_FOLDER);
-
-        /////////////////////////////////////////////
-        //
-        // SETUP CONFIG FILE
-        // - Create .aidev.json
-        //
-        /////////////////////////////////////////////
-
-        if(!existsSync(CONFIG_PATH)) {
-            writeFileSync(CONFIG_PATH, JSON.stringify({
-                branchStartingPoint: 'main',
-                mainBranch: 'main',
-                storageBranch: 'aidev-storage'
-            }, null, 2));
-
-            log('Config file created', 'success');
-
-        }
+        addToGitignore(process.cwd(), '.aidev-containers', '');
 
         /////////////////////////////////////////////
         //
@@ -54,34 +39,49 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
         // The templates folder is at the root of the package (../../templates from dist/commands/)
         // eslint-disable-next-line unicorn/prefer-module
-        const packageRoot = join(__dirname, '..', '..', '..');
-        const templatesRoot = join(packageRoot, 'templates');
 
         // Create subdirectories
-        const subdirs = ['tasks', 'concept', 'examples', 'preferences', 'templates'];
-
-        for (const subdir of subdirs) {
-            const subdirPath = join(STORAGE_PATH, subdir);
-            ensureDirSync(subdirPath);
-        }
+        ensureDirSync(join(STORAGE_PATH, 'tasks'));
+        ensureDirSync(join(STORAGE_PATH, 'concept'));
 
         // Copy examples folder
-        const examplesSourceDir = join(templatesRoot, 'examples');
+        const examplesSourceDir = join(TEMPLATES_ROOT, 'examples');
         const examplesTargetDir = join(STORAGE_PATH, 'examples');
-        copySync(examplesSourceDir, examplesTargetDir, { overwrite: true });
-        log('Copied examples folder', 'success');
+        if (!existsSync(examplesTargetDir)) {
+            ensureDirSync(examplesTargetDir);
+            copySync(examplesSourceDir, examplesTargetDir, { overwrite: true });
+            log('Copied examples folder', 'success');
+        }
+
 
         // Copy preferences folder
-        const preferencesSourceDir = join(templatesRoot, 'preferences');
+        const preferencesSourceDir = join(TEMPLATES_ROOT, 'preferences');
         const preferencesTargetDir = join(STORAGE_PATH, 'preferences');
-        copySync(preferencesSourceDir, preferencesTargetDir, { overwrite: true });
-        log('Copied preferences folder', 'success');
+        if (!existsSync(preferencesTargetDir)) {
+            ensureDirSync(preferencesTargetDir);
+            copySync(preferencesSourceDir, preferencesTargetDir, { overwrite: true });
+            log('Copied preferences folder', 'success');
+        }
 
         // Copy templates folder
-        const templatesSourceDir = join(templatesRoot, 'templates');
-        const templatesTargetDir = join(STORAGE_PATH, 'templates');
-        copySync(templatesSourceDir, templatesTargetDir, { overwrite: true });
-        log('Copied templates folder', 'success');
+        addTemplates()
+
+        /////////////////////////////////////////////
+        //
+        // SETUP CONFIG FILE
+        // - Create .aidev-storage/settings.json
+        //
+        /////////////////////////////////////////////
+
+        if (!existsSync(CONFIG_PATH)) {
+            writeFileSync(CONFIG_PATH, JSON.stringify({
+                branchStartingPoint: 'main',
+                mainBranch: 'main'
+            }, null, 2));
+
+            log('Config file created', 'success');
+        }
+
 
         /////////////////////////////////////////////
         //
@@ -93,7 +93,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         /////////////////////////////////////////////
 
         // Copy CLAUDE.md to root directory
-        const claudeMdSource = join(templatesRoot, 'CLAUDE.md');
+        const claudeMdSource = join(TEMPLATES_ROOT, 'CLAUDE.md');
         const claudeMdTarget = join(process.cwd(), 'CLAUDE.md');
         if (existsSync(claudeMdTarget) && !force) {
             log('CLAUDE.md already exists in root directory. Not overwriting, run --force to overwrite', 'warn');
@@ -103,7 +103,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
         }
 
         // Copy .devcontainer to root directory
-        const devcontainerSource = join(templatesRoot, 'devcontainers');
+        const devcontainerSource = join(TEMPLATES_ROOT, 'devcontainers');
         const devcontainerTarget = join(process.cwd(), '.aidev-containers');
         if (existsSync(devcontainerTarget) && !force) {
             log('.aidev-containers already exists in root directory. Not overwriting, run --force to overwrite', 'warn');
@@ -112,29 +112,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
             log('Copied .aidev-containers to root directory', 'success');
         }
 
-        // Create .claude directory if it doesn't exist
-        const claudeDir = join(process.cwd(), '.claude');
-        ensureDirSync(claudeDir);
-        const claudeCommandsDir = join(claudeDir, 'commands');
-        ensureDirSync(claudeCommandsDir);
+        addCommands()
+        log(`Copied Claude commands`)
 
-        // Copy command files one by one to .claude/commands
-        const commandsSourceDir = join(templatesRoot, 'commands');
-        if (existsSync(commandsSourceDir)) {
-            const commandFiles = readdirSync(commandsSourceDir);
 
-            for (const file of commandFiles) {
-                const sourceFile = join(commandsSourceDir, file);
-                const targetFile = join(claudeCommandsDir, file);
-                // Only copy if target doesn't exist (to preserve custom commands)
-                copySync(sourceFile, targetFile, { overwrite: true });
-                log(`Copied command file: ${file}`, 'success');
-            }
-        }
-
-        
     } catch (error) {
-        removeSync(STORAGE_PATH);
         log(`Failed to initialize aidev: ${error instanceof Error ? error.message : String(error)}`, 'error');
         throw error;
     }

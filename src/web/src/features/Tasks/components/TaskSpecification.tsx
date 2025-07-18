@@ -1,8 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
+import React, { useState, useCallback, useEffect } from 'react'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import styles from './TaskDetails.module.css'
 
@@ -17,58 +15,42 @@ export const TaskSpecification: React.FC<TaskSpecificationProps> = ({
     canEdit,
     onSave
 }) => {
-    const [collapsed, setCollapsed] = useState(false)
-    const [editing, setEditing] = useState(false)
     const [editedContent, setEditedContent] = useState(content)
     const [saving, setSaving] = useState(false)
+    const [hasChanges, setHasChanges] = useState(false)
+
+    // Update editedContent when content prop changes
+    useEffect(() => {
+        setEditedContent(content)
+        setHasChanges(false)
+    }, [content])
+
+    const handleContentChange = useCallback((value: string) => {
+        setEditedContent(value)
+        setHasChanges(value !== content)
+    }, [content])
 
     const handleSave = useCallback(async () => {
         setSaving(true)
         try {
             await onSave(editedContent)
-            setEditing(false)
+            setHasChanges(false)
         } finally {
             setSaving(false)
         }
     }, [editedContent, onSave])
 
     const handleCancel = useCallback(() => {
-        setEditing(false)
         setEditedContent(content)
+        setHasChanges(false)
     }, [content])
-
-    const handleToggleCollapse = useCallback(() => {
-        setCollapsed(!collapsed)
-    }, [collapsed])
-
-    const handleStartEdit = useCallback((_e: React.MouseEvent) => {
-        _e.stopPropagation()
-        setEditing(true)
-    }, [])
 
     return (
         <div className={styles.specification}>
             <div className={styles.sectionHeader}>
-                <button
-                    className={styles.collapseButton}
-                    onClick={handleToggleCollapse}
-                    type="button"
-                >
-                    <FontAwesomeIcon 
-                        icon={collapsed ? faChevronDown : faChevronUp} 
-                        className={styles.collapseIcon}
-                    />
-                    <h3>Task Specification</h3>
-                </button>
+                <h3>Task Specification</h3>
                 <div className={styles.headerActions}>
-                    {canEdit && !editing && !collapsed ? <button 
-                        onClick={handleStartEdit}
-                        className={styles.editButton}
-                        type="button"
-                    >
-                Edit
-                    </button> : null}
-                    {editing ? <>
+                    {canEdit && hasChanges ? <>
                         <button 
                             onClick={() => { handleSave() }}
                             disabled={saving}
@@ -82,33 +64,24 @@ export const TaskSpecification: React.FC<TaskSpecificationProps> = ({
                             className={styles.cancelButton}
                             type="button"
                         >
-                  Cancel
+                            Cancel
                         </button>
                     </> : null}
                 </div>
             </div>
-            {!collapsed && (
-                <div className={styles.sectionContent}>
-                    {editing ? (
-                        <CodeEditor
-                            value={editedContent}
-                            onChange={setEditedContent}
-                            language="markdown"
-                            height="400px"
-                        />
-                    ) : (
-                        <div className={styles.specEditorWrapper}>
-                            <CodeEditor
-                                value={content}
-                                onChange={() => { /* read-only */ }}
-                                language="markdown"
-                                readOnly
-                                height="100%"
-                            />
-                        </div>
-                    )}
+            <div className={styles.sectionContent}>
+                <div className={styles.specEditorWrapper}>
+                    <CodeEditor
+                        value={editedContent}
+                        onChange={handleContentChange}
+                        language="markdown"
+                        readOnly={!canEdit}
+                        height="auto"
+                        minHeight={400}
+                        maxHeight={50000}
+                    />
                 </div>
-            )}
+            </div>
         </div>
     )
 }

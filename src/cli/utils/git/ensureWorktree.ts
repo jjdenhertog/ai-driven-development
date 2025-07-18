@@ -1,14 +1,23 @@
-import { existsSync, removeSync } from 'fs-extra';
+import { existsSync, rmSync } from 'fs-extra';
 import { symlink } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
 import { STORAGE_PATH } from '../../config';
+import { addCommands } from '../claude/addCommands';
 import { log } from '../logger';
 import { addToGitignore } from './addToGitignore';
 import { getGitInstance } from './getGitInstance';
 import { getWorktrees } from './getWorktrees';
 
-export async function ensureWorktree(branch: string, path: string, skipSymlink: boolean = false): Promise<void> {
+type Options = {
+    branch: string
+    path: string
+    skipSymlink?: boolean;
+    skipClaudeCommands?: boolean
+}
+export async function ensureWorktree(options: Options): Promise<void> {
+    const { branch, path, skipSymlink = false, skipClaudeCommands = false } = options;
+
     log(`Ensuring worktree for branch '${branch}' at path '${path}'...`, 'info');
 
     const git = getGitInstance();
@@ -36,6 +45,9 @@ export async function ensureWorktree(branch: string, path: string, skipSymlink: 
     log(`Creating worktree at ${path}...`, 'info');
     await git.raw(['worktree', 'add', path, branch]);
 
+    if (!skipClaudeCommands)
+        addCommands(path)
+
     if (!skipSymlink) {
         // Create a symlink to storage branch
         const symlinkPath = join(path, '.aidev-storage');
@@ -43,7 +55,7 @@ export async function ensureWorktree(branch: string, path: string, skipSymlink: 
         try {
             // Remove existing symlink if it exists
             if (existsSync(symlinkPath))
-                removeSync(symlinkPath);
+                rmSync(symlinkPath, { force: true, recursive: true });
 
             // Calculate relative path from the worktree to the storage
             const relativeStoragePath = relative(path, STORAGE_PATH);

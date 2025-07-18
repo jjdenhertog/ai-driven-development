@@ -50,9 +50,7 @@ export async function GET() {
         )
     
         return NextResponse.json(templates)
-    } catch (error) {
-        console.error('Failed to read templates:', error)
-
+    } catch (_error) {
         return NextResponse.json([])
     }
 }

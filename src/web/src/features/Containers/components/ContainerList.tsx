@@ -3,6 +3,7 @@
 import React, { useCallback } from 'react'
 import { Container } from '@/types'
 import { ContainerItem } from './ContainerItem'
+import { SkeletonLoader } from '@/components/common/SkeletonLoader'
 import styles from './ContainerList.module.css'
 
 type ContainerListProps = {
@@ -33,7 +34,10 @@ export const ContainerList: React.FC<ContainerListProps> = ({
     if (loading) {
         return (
             <div className={styles.container}>
-                <div className={styles.loading}>Loading containers...</div>
+                <h2 className={styles.title}>Containers</h2>
+                <div className={styles.list}>
+                    <SkeletonLoader variant="list-item" count={3} />
+                </div>
             </div>
         )
     }

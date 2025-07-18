@@ -55,14 +55,13 @@ export const DecisionTree: React.FC<DecisionTreeProps> = ({ data }) => {
         const lines = data.trim().split('\n')
             .filter(line => line.trim())
     
-        return lines.map((line, index) => {
+        return lines.map((line, _index) => {
             try {
                 const decision = JSON.parse(line) as DecisionNode
 
                 return decision
-            } catch (e) {
-                console.error(`Failed to parse decision line ${index + 1}:`, e)
-
+            } catch (_e) {
+                // Silently skip invalid lines
                 return null
             }
         }).filter(Boolean) as DecisionNode[]

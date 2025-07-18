@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { ensureStoragePath } from '@/lib/storage'
+import { ensureStoragePath, getStoragePath, isBuildMode } from '@/lib/storage'
 import { handleApiError, createNoCacheResponse } from '@/lib/api-helpers'
 import { Task } from '@/types'
 
 export async function GET() {
     try {
-        const tasksDir = await ensureStoragePath('tasks')
+        // Return empty array during build
+        if (await isBuildMode()) {
+            return NextResponse.json([])
+        }
+
+        const tasksDir = await getStoragePath('tasks')
+        if (!tasksDir) {
+            return NextResponse.json([])
+        }
+
+        // Ensure the tasks directory exists
+        await fs.mkdir(tasksDir, { recursive: true })
         const files = await fs.readdir(tasksDir)
     
         const tasks: Task[] = []
@@ -26,7 +37,8 @@ export async function GET() {
     
         return createNoCacheResponse(tasks)
     } catch (error) {
-        return handleApiError(error)
+        console.error('Error loading tasks:', error)
+        return NextResponse.json([])
     }
 }
 

@@ -1,5 +1,6 @@
 import { getGitInstance } from './getGitInstance';
 import { BranchInfo } from '../../types/git/BranchInfo';
+import { log } from '../logger';
 
 export async function getBranches(): Promise<BranchInfo[]> {
     try {
@@ -19,7 +20,7 @@ export async function getBranches(): Promise<BranchInfo[]> {
             };
         });
     } catch (error) {
-        console.error('Failed to get branches:', error);
+        log(`Failed to get branches: ${error instanceof Error ? error.message : String(error)}`, 'error');
         
         return [];
     }

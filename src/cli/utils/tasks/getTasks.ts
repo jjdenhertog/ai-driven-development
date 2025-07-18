@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { TASKS_DIR } from "../../config";
 import { Task } from "../../types/tasks/Task";
 import { loadTaskFromFile } from "./loadTaskFromFile";
+import { log } from "../logger";
 
 type Options = {
     status?: 'pending' | 'in-progress' | 'completed' | 'archived' | 'failed';
@@ -32,8 +33,9 @@ export async function getTasks(options: Options = {}): Promise<Task[]> {
             if (task && (!status || task.status === status))
                 foundTasks.push(task);
         }
-    } catch {
-        // Directory doesn't exist or other error occurred
+    } catch (error) {
+        // Log error for debugging but don't fail
+        log(`Failed to read tasks directory: ${error instanceof Error ? error.message : String(error)}`, 'warn');
     }
 
     return foundTasks;

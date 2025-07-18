@@ -87,10 +87,12 @@
 
 .navLink.active {
   color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .navLink.active::after {
   width: calc(100% - 3rem);
+  height: 3px;
 }
 
 .placeholder {

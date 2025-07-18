@@ -2,8 +2,7 @@ import { existsSync, readFileSync } from "fs-extra";
 import { join, resolve } from "node:path";
 
 export const STORAGE_FOLDER = '.aidev-storage';
-export const CONFIG_FILE = '.aidev.json';
-
+export const CONFIG_FILE = 'settings.json';
 
 type AidevConfig = {
     branchStartingPoint: string;
@@ -18,7 +17,6 @@ function loadAidevConfig(): AidevConfig {
     if (existsSync(CONFIG_PATH)) {
         try {
             const configContent = readFileSync(CONFIG_PATH, 'utf8');
-
             const data = JSON.parse(configContent);
 
             return {
@@ -37,9 +35,6 @@ function loadAidevConfig(): AidevConfig {
     };
 }
 
-export const TARGET_ROOT = process.cwd();
-export const CONFIG_PATH = join(TARGET_ROOT, CONFIG_FILE);
-
 const aidevConfig = loadAidevConfig();
 
 /**
@@ -48,6 +43,9 @@ const aidevConfig = loadAidevConfig();
 export const BRANCH_STARTING_POINT = aidevConfig.branchStartingPoint;
 export const MAIN_BRANCH = aidevConfig.mainBranch;
 
-export const STORAGE_PATH = resolve(process.cwd(), STORAGE_FOLDER)
+export const TARGET_ROOT = process.cwd();
+export const STORAGE_PATH = resolve(TARGET_ROOT, STORAGE_FOLDER)
 export const TASKS_DIR = join(STORAGE_PATH, 'tasks');
 export const TASKS_OUTPUT_DIR = join(STORAGE_PATH, 'tasks_output');
+export const CONFIG_PATH = join(STORAGE_PATH, CONFIG_FILE);
+export const TEMPLATES_ROOT = join(__dirname, '..', '..', 'templates');

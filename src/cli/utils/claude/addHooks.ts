@@ -1,6 +1,7 @@
 import { ensureDirSync, existsSync, readJsonSync, writeFileSync } from "fs-extra";
 import { join } from "node:path";
 import { log } from "../logger";
+import { ClaudeSettings } from "../../types/claude/ClaudeSettings";
 
 export default function addHooks(path:string) {
     const claudeSettingsPath = join(path, '.claude', 'settings.json');
@@ -61,11 +62,11 @@ export default function addHooks(path:string) {
     };
 
     // Read existing settings or create new
-    let settings: any = {};
+    let settings: ClaudeSettings = {};
     if (existsSync(claudeSettingsPath)) {
         try {
-            settings = readJsonSync(claudeSettingsPath);
-        } catch (_err) {
+            settings = readJsonSync(claudeSettingsPath) as ClaudeSettings;
+        } catch {
             log('Warning: Could not parse existing Claude settings.json', 'warn');
             settings = {};
         }

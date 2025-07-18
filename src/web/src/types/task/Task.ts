@@ -1,6 +1,7 @@
 import { TaskType } from './TaskType'
 import { TaskPriority } from './TaskPriority'
 import { TaskStatus } from './TaskStatus'
+import { ImageWithDescription } from '../common/ImageWithDescription'
 
 export type Task = {
   id: string
@@ -15,5 +16,5 @@ export type Task = {
   started_at?: string
   completed_at?: string
   hold?: boolean
-  images?: string[]
+  images?: ImageWithDescription[]
 }

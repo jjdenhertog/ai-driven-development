@@ -11,8 +11,7 @@ const CONCEPT_FEATURES_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'concept-
 async function ensureDir() {
     try {
         await fs.mkdir(CONCEPT_FEATURES_DIR, { recursive: true })
-    } catch (error) {
-        console.error('Failed to create concept-features directory:', error)
+    } catch (_error) {
     }
 }
 
@@ -53,8 +52,7 @@ export async function GET() {
                     const content = await fs.readFile(path.join(conceptFeaturesDir, file))
                     const feature = JSON.parse(content.toString()) as ConceptFeature
                     features.push(feature)
-                } catch (error) {
-                    console.error(`Failed to read feature file ${file}:`, error)
+                } catch (_error) {
                 }
             }
         }
@@ -63,9 +61,7 @@ export async function GET() {
         features.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
         return NextResponse.json(features)
-    } catch (error) {
-        console.error('Failed to read concept features:', error)
-
+    } catch (_error) {
         return NextResponse.json([])
     }
 }
@@ -99,9 +95,7 @@ export async function POST(request: NextRequest) {
         )
 
         return NextResponse.json(feature)
-    } catch (error) {
-        console.error('Failed to create concept feature:', error)
-
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to create concept feature' }, { status: 500 })
     }
 }

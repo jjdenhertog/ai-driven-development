@@ -25,8 +25,6 @@ export async function GET() {
     
         return NextResponse.json(concepts)
     } catch (_error) {
-        console.error('Failed to read concepts:', _error)
-
         return NextResponse.json([])
     }
 }

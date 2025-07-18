@@ -7,15 +7,16 @@ import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
 const execAsync = promisify(exec)
 
 type Params = {
-  params: {
+  params: Promise<{
     name: string
-  }
+  }>
 }
 
 
 // POST /api/containers/[name] - Perform action on container
 export async function POST(request: NextRequest, { params }: Params) {
     try {
+        const { name } = await params
         // Check if we're running in a container
         if (isRunningInContainer()) {
             return NextResponse.json(
@@ -35,8 +36,8 @@ export async function POST(request: NextRequest, { params }: Params) {
         
         const body = await request.json()
         const { action, clean = false, port = 1212 } = body
-        const containerName = params.name
-        const type = body.type || params.name // Use name as type if not specified
+        const containerName = name
+        const type = body.type || name // Use name as type if not specified
 
         switch (action) {
             case 'start': {
@@ -53,40 +54,36 @@ export async function POST(request: NextRequest, { params }: Params) {
                 
                 try {
                     const command = `aidev ${args.join(' ')}`
-                    console.log(`[Container API] Executing command: ${command}`)
                     
                     const { stdout, stderr } = await execAsync(command)
                     
-                    console.log(`[Container API] Command stdout: ${stdout}`)
-                    console.log(`[Container API] Command stderr: ${stderr}`)
                     
                     // Check if there was an error in stderr or stdout
                     if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
-                        console.error(`[Container API] Error detected in output`)
                         return NextResponse.json(
                             { error: stderr || stdout },
                             { status: 400 }
                         )
                     }
                     
+                    
                     // Check if container actually started
                     if (stdout?.toLowerCase().includes('failed')) {
-                        console.error(`[Container API] Start failed`)
                         return NextResponse.json(
                             { error: stdout },
                             { status: 400 }
                         )
                     }
                     
-                    console.log(`[Container API] Start successful`)
+                    
                     return NextResponse.json({ 
                         success: true, 
                         message: stdout.trim() || `Container ${containerName} started successfully`,
                         ...(type === 'web' && { port })
                     })
                 } catch (error) {
+                    
                     const errorMessage = error instanceof Error ? error.message : String(error)
-                    console.error(`[Container API] Command execution failed:`, error)
                     
                     // Parse common error messages
                     if (errorMessage.includes('.aidev-containers directory not found')) {
@@ -120,28 +117,24 @@ export async function POST(request: NextRequest, { params }: Params) {
                 
                 try {
                     const command = `aidev ${args.join(' ')}`
-                    console.log(`[Container API] Executing command: ${command}`)
                     
                     const { stdout, stderr } = await execAsync(command)
                     
-                    console.log(`[Container API] Command stdout: ${stdout}`)
-                    console.log(`[Container API] Command stderr: ${stderr}`)
                     
                     // Check if there was an error
                     if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
-                        console.error(`[Container API] Error detected in output`)
                         return NextResponse.json(
                             { error: stderr || stdout },
                             { status: 400 }
                         )
                     }
                     
-                    console.log(`[Container API] Stop command completed`)
                     return NextResponse.json({ 
                         success: true, 
                         message: stdout.trim() || `Container ${containerName} stopped successfully` 
                     })
                 } catch (error) {
+                    
                     const errorMessage = error instanceof Error ? error.message : String(error)
                     
                     // If container not found, it's not really an error
@@ -151,6 +144,7 @@ export async function POST(request: NextRequest, { params }: Params) {
                             message: `Container ${containerName} not found` 
                         })
                     }
+                    
                     
                     return NextResponse.json(
                         { error: errorMessage },
@@ -169,28 +163,24 @@ export async function POST(request: NextRequest, { params }: Params) {
                 
                 try {
                     const command = `aidev ${args.join(' ')}`
-                    console.log(`[Container API] Executing command: ${command}`)
                     
                     const { stdout, stderr } = await execAsync(command)
                     
-                    console.log(`[Container API] Command stdout: ${stdout}`)
-                    console.log(`[Container API] Command stderr: ${stderr}`)
                     
                     // Check if there was an error
                     if (stderr?.toLowerCase().includes('error') || stdout?.toLowerCase().includes('error')) {
-                        console.error(`[Container API] Error detected in output`)
                         return NextResponse.json(
                             { error: stderr || stdout },
                             { status: 400 }
                         )
                     }
                     
-                    console.log(`[Container API] Restart command completed`)
                     return NextResponse.json({ 
                         success: true, 
                         message: stdout.trim() || `Container ${containerName} restarted successfully` 
                     })
                 } catch (error) {
+                    
                     const errorMessage = error instanceof Error ? error.message : String(error)
                     
                     return NextResponse.json(
@@ -201,6 +191,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             }
 
             default:
+                
                 return NextResponse.json(
                     { error: `Unknown action: ${action}` },
                     { status: 400 }
@@ -208,7 +199,6 @@ export async function POST(request: NextRequest, { params }: Params) {
         }
     } catch (error) {
         // Log error for debugging
-        // console.error('Container action failed:', error)
 
         return NextResponse.json(
             { error: `Failed to perform action: ${error instanceof Error ? error.message : String(error)}` },

@@ -9,10 +9,11 @@ const CONCEPT_FEATURES_DIR = path.join(PROJECT_ROOT, '.aidev-storage', 'concept-
 // POST /api/concept-features/[id]/assess
 export async function POST(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const filePath = path.join(CONCEPT_FEATURES_DIR, `${params.id}.json`)
+        const { id } = await params
+        const filePath = path.join(CONCEPT_FEATURES_DIR, `${id}.json`)
         
         // Read existing feature
         const content = await fs.readFile(filePath)
@@ -38,7 +39,7 @@ export async function POST(
             return NextResponse.json({ error: 'Feature not found' }, { status: 404 })
         }
         
-        console.error('Failed to assess concept feature:', error)
+        
         return NextResponse.json({ error: 'Failed to assess concept feature' }, { status: 500 })
     }
 }

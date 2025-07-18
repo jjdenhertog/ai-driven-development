@@ -76,18 +76,61 @@
 .status {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .statusIcon {
   font-size: 0.75rem;
+  filter: blur(4px);
+  animation: pulse 2s infinite;
 }
 
 .statusIcon.running {
   color: #22c55e;
+  filter: blur(3px);
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.statusIcon.running::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse-ring 2s infinite;
 }
 
 .statusIcon.stopped {
   color: #ef4444;
+  animation: none;
+  filter: none;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
 }
 
 .info {

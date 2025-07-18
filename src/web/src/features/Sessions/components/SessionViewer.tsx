@@ -416,7 +416,9 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                                 onChange={() => { /* read-only */ }}
                                                 language={getFileLanguage(fileName)}
                                                 readOnly
-                                                height="400px"
+                                                height="auto"
+                                                minHeight={200}
+                                                maxHeight={600}
                                             />
                                         </div> : null}
                                     </div>
@@ -442,8 +444,7 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                             try {
                                                 return JSON.parse(line)
                                             } catch (_e) {
-                                                console.error('Failed to parse log line:', line)
-
+                                                // Skip invalid log lines
                                                 return null
                                             }
                                         })
@@ -475,9 +476,8 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                             })}
                                         </div>
                                     )
-                                } catch (error) {
-                                    console.error('Failed to parse logs:', error)
-
+                                } catch (_error) {
+                                    // Display raw content if parsing fails
                                     return <pre>{logsData.content}</pre>
                                 }
                             })()}
