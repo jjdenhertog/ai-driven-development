@@ -84,13 +84,12 @@ export default function Layout({ children }: { readonly children: React.ReactNod
         >
             {children}
             
-            {showNewTask && (
+            {showNewTask ? (
                 <NewTaskModal
-                    tasks={tasks || []}
                     onClose={handleCloseNewTask}
                     onCreate={handleCreateTask}
                 />
-            )}
+            ) : null}
         </PageLayout>
     )
 }
