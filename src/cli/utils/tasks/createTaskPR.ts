@@ -19,7 +19,9 @@ export async function createTaskPR(task: Task, branchName: string, worktreePath:
         log('Creating pull request...', 'info');
         // Use stdin to pass the body content to avoid shell escaping issues
         // Escape title to prevent shell injection
-        const escapedTitle = title.replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`');
+        const escapedTitle = title.replace(/"/g, String.raw`\"`)
+            .replace(/\$/g, String.raw`\$`)
+            .replace(/`/g, String.raw`\``);
         const prOutput = execSync(
             `gh pr create --title "${escapedTitle}" --body-file - --base main --head ${branchName}`,
             { 

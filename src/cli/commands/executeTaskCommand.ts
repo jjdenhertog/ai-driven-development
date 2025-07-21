@@ -34,7 +34,7 @@ type Options = {
 }
 
 export async function executeTaskCommand(options: Options) {
-    const { taskId, dryRun, force, dangerouslySkipPermission, phase = 0 } = options;
+    const { taskId, dryRun, force, dangerouslySkipPermission } = options;
 
     // Ensure git auth
     if (!await checkGitInitialized())

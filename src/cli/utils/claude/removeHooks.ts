@@ -21,6 +21,7 @@ export default function removeHooks(path:string) {
     // Check if hooks exist
     if (!settings.hooks) {
         log('No hooks found in Claude settings - nothing to remove', 'info');
+        
         return;
     }
 

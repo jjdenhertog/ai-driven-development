@@ -26,7 +26,7 @@ export function getGitInstance(baseDir?: string): SimpleGit {
         maxConcurrentProcesses: 6,
         abort: controller.signal,
         timeout: {
-            block: 60000, // 60 seconds timeout for blocking operations
+            block: 60_000, // 60 seconds timeout for blocking operations
         },
     });
     
@@ -40,7 +40,7 @@ export function getGitInstance(baseDir?: string): SimpleGit {
  */
 export async function cleanupGitInstances(): Promise<void> {
     // Abort all pending git operations
-    for (const [path, { controller }] of gitInstanceCache) {
+    for (const [, { controller }] of gitInstanceCache) {
         controller.abort();
     }
     
@@ -48,5 +48,7 @@ export async function cleanupGitInstances(): Promise<void> {
     gitInstanceCache.clear();
     
     // Give a small delay to ensure processes are terminated
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise<void>(resolve => {
+        setTimeout(resolve, 100);
+    });
 }

@@ -488,23 +488,4 @@ container
         }
     });
 
-// Proxy command (for manual proxy start)
-// program
-//     .command('proxy')
-//     .description('Start a proxy server for container management (usually started automatically by web command)')
-//     .option('-p, --port <port>', 'Port to listen on', '8888')
-//     .action(async (options) => {
-//         try {
-//             await proxyCommand({
-//                 port: parseInt(options.port, 10)
-//             })
-//         } catch (error) {
-//             if (error instanceof Error) {
-//                 logError(error.message);
-//             } else {
-//                 logError(String(error));
-//             }
-//         }
-//     });
-
 program.parse(process.argv);

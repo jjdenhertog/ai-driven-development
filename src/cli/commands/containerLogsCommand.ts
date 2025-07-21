@@ -60,7 +60,7 @@ export async function containerLogsCommand(options: Options): Promise<void> {
         if (follow) {
             const handleSigint = () => {
                 logsProcess.kill('SIGINT');
-                process.exit(0);
+                throw new Error('Process interrupted by user');
             };
             
             process.once('SIGINT', handleSigint);
