@@ -25,12 +25,14 @@ import { getContainerStatus } from "./utils/docker/getContainerStatus";
 import { cleanupGitInstances } from "./utils/git/getGitInstance";
 import { log, logError } from "./utils/logger";
 import { sleep } from "./utils/sleep";
+import { executePlanCommand } from "./commands/executePlanCommands";
 
 // Read version from package.json
 const packageJsonPath = join(__dirname, '..', '..', 'package.json');
 const { version } = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 const program = new Command();
+
 
 // Program configuration
 program
@@ -57,13 +59,38 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
+program
+    .command('plan')
+    .description('Plan the project')
+    .option('--phase <phase>', 'Phase to start from', '0')
+    .option('--reset', 'Reset the planning process')
+    .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
+    .action(async (cmdObject) => {
+
+        try {
+            await executePlanCommand({
+                dangerouslySkipPermission: !!cmdObject.dsp,
+                phase: Number(cmdObject.phase) + 1,
+                reset: !!cmdObject.reset
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+
+    })
 // Execute task command
 program
     .command('execute <taskId>')
     .description('Execute a specific task by ID')
     .option('--dry-run', 'Show what would be executed without making changes')
+    .option('--phase <phase>', 'Phase to start from', '0')
     .option('--force', 'Force execution even if task is already in progress')
     .option('--dangerously-skip-permissions, --dsp', 'Skip permission checks of Claude Code')
     .action(async (taskId: string, cmdObject) => {
@@ -73,7 +100,8 @@ program
                 taskId,
                 dryRun: !!cmdObject.dryRun,
                 force: !!cmdObject.force,
-                dangerouslySkipPermission: !!cmdObject.dsp
+                dangerouslySkipPermission: !!cmdObject.dsp,
+                phase: Number(cmdObject.phase) + 1
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -84,6 +112,7 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 // Execute next task command
@@ -109,6 +138,7 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 // Loop tasks command
@@ -184,6 +214,7 @@ program
 
         log("Cleaning up git instances", 'info');
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 // Log command - for capturing output from Claude Code hooks
@@ -203,11 +234,13 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     });
 
 // Clear command
 program
     .command('clear')
+    .alias('clean')
     .description('Clear invalid worktrees')
     .action(async () => {
         try {
@@ -221,6 +254,7 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 // Open command
@@ -258,6 +292,7 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 program
@@ -277,6 +312,7 @@ program
         }
 
         await cleanupGitInstances();
+        process.exit(0);
     })
 
 // Web command
@@ -333,6 +369,9 @@ container
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
+        process.exit(0);
     });
 
 container
@@ -350,6 +389,9 @@ container
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
+        process.exit(0);
     });
 
 container
@@ -390,6 +432,9 @@ container
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
+        process.exit(0);
     });
 
 container
@@ -421,6 +466,9 @@ container
                 logError(String(error));
             }
         }
+
+        await cleanupGitInstances();
+        process.exit(0);
     });
 
 container

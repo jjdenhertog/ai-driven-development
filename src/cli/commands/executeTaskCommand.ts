@@ -1,9 +1,8 @@
-import { existsSync, rmSync } from 'fs-extra';
+import { ensureDirSync, existsSync, rmSync } from 'fs-extra';
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { join } from 'node:path';
+import { join, parse } from 'node:path';
 
 import { executeClaudeCommand } from '../../claude-wrapper';
-import { ExecuteTaskOptions } from '../types/commands/ExecuteTaskOptions';
 import addHooks from '../utils/claude/addHooks';
 import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
 import removeHooks from '../utils/claude/removeHooks';
@@ -24,9 +23,18 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
+import { STORAGE_PATH } from '../config';
 
-export async function executeTaskCommand(options: ExecuteTaskOptions) {
-    const { taskId, dryRun, force, dangerouslySkipPermission } = options;
+type Options = {
+    taskId: string
+    dryRun: boolean
+    force: boolean
+    dangerouslySkipPermission: boolean
+    phase?: number
+}
+
+export async function executeTaskCommand(options: Options) {
+    const { taskId, dryRun, force, dangerouslySkipPermission, phase = 0 } = options;
 
     // Ensure git auth
     if (!await checkGitInitialized())
@@ -80,13 +88,19 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
 
     const removeWorktree = async () => {
         log(`Removing worktree...`, 'info', undefined, logPath);
-        const git = getGitInstance();
+        // Use git instance from the parent repository, not the worktree
+        const git = getGitInstance(process.cwd());
         try {
             await git.raw(['worktree', 'remove', '--force', worktreePath]);
         } catch (_error) {
             rmSync(worktreePath, { force: true, recursive: true });
         }
-        await git.raw(['branch', '-D', branchName, '--force']);
+        try {
+            await git.raw(['branch', '-D', branchName, '--force']);
+        } catch (_error) {
+            // Branch might not exist or might be checked out elsewhere
+            log(`Could not delete branch ${branchName}: ${_error}`, 'warn', undefined, logPath);
+        }
     }
 
     // Create session
@@ -108,49 +122,135 @@ export async function executeTaskCommand(options: ExecuteTaskOptions) {
     // Add hooks for claude
     addHooks(worktreePath);
 
+    // Set the output path for the task
+    const outputPath = join('.aidev-storage', 'tasks_output', task.id);
+    const outputAbsolutPath = join(STORAGE_PATH, 'tasks_output', task.id);
+    ensureDirSync(outputAbsolutPath);
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'inventory'));
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'architect'));
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'implement'));
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'validate'));
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'test_fix'));
+    ensureDirSync(join(outputAbsolutPath, 'phase_outputs', 'review'));
 
-    const claudeCommand = async () => {
-        const args = [];
-        if (dangerouslySkipPermission)
-            args.push('--dangerously-skip-permissions');
+    const claudeCommand = (prompt: string) => {
+
+        return async () => {
+            const args = [];
+            if (dangerouslySkipPermission)
+                args.push('--dangerously-skip-permissions');
 
 
-        // Execute Claude and wait for completion
-        const result = await executeClaudeCommand({
-            cwd: worktreePath,
-            command: `/aidev-code-task ${task.id}-${task.name}`,
-            args,
-        });
+            // Execute Claude and wait for completion
+            const result = await executeClaudeCommand({
+                cwd: worktreePath,
+                command: `Please complete the following steps IN ORDER:
 
-        // We no longer capture output - hooks will handle logging
-        log(`\nClaude command exited with code: ${result.exitCode}`, 'info', undefined, logPath);
+1. First, use the Read tool to read the entire contents of the file: .aidev-storage/prompts/${prompt}
+   IMPORTANT: The .aidev-storage directory is in your current working directory. Do NOT use ../.aidev-storage
 
-        // Create session report from debug logs and transcript
-        log('Creating session report...', 'info', undefined, logPath);
-        const sessionReport = await createSessionReport({
-            taskId: task.id,
-            taskName: task.name,
-            worktreePath,
-            logsDir,
-            exitCode: result.exitCode
-        });
+2. After reading the file, list the key constraints and outputs for this phase.
 
-        return sessionReport;
+3. Then execute the instructions from that file with these parameters: {"task_filename": "${task.id}-${task.name}", "task_output_folder": "${outputPath}", "use_preference_files": true, "use_examples": true }
+
+4. Show me progress as you work through the phase.
+
+CRITICAL: You are in a git worktree. ALL work must be done within the current directory. NEVER use ../ paths.`,
+                args,
+            });
+
+            // We no longer capture output - hooks will handle logging
+            log(`\nClaude command exited with code: ${result.exitCode}`, 'info', undefined, logPath);
+
+            // Create session report from debug logs and transcript
+            log('Creating session report...', 'info', undefined, logPath);
+
+            const promptBase = parse(prompt).name;
+
+            const sessionReport = await createSessionReport({
+                taskId: task.id,
+                taskName: task.name,
+                worktreePath,
+                logsDir,
+                exitCode: result.exitCode,
+                fileName: promptBase
+            });
+
+            return sessionReport;
+        }
     }
 
-    const sessionReport = await autoRetryClaude({ claudeCommand, logPath });
-    // Remove hooks for claude
-    removeHooks(worktreePath);
 
-    if (!sessionReport?.success) {
-        log(`Claude command failed`, 'error', undefined, logPath);
-        updateTaskFile(task.path, {
-            status: 'failed'
-        });
-        await removeWorktree();
+    //@TODO: Check if indexation exists, and if not run the indexation command
+    await autoRetryClaude({ claudeCommand: claudeCommand('aidev-index.md'), logPath });
 
-        return;
+    const phases = [
+        'aidev-code-phase0.md',
+        'aidev-code-phase1.md',
+        'aidev-code-phase2.md',
+        'aidev-code-phase3.md',
+        'aidev-code-phase4a.md',
+        'aidev-code-phase4b.md',
+        'aidev-code-phase5.md'
+    ]
+
+
+    for (const phase of phases) {
+        const sessionReport = await autoRetryClaude({ claudeCommand: claudeCommand(phase), logPath });
+        if (!sessionReport?.success) {
+            log(`Phase ${phase} failed`, 'error', undefined, logPath);
+            removeHooks(worktreePath);
+            updateTaskFile(task.path, {
+                status: 'failed'
+            });
+            await removeWorktree();
+
+            return;
+        }
     }
+
+    await autoRetryClaude({ claudeCommand: claudeCommand('aidev-update-index.md'), logPath });
+
+
+
+    // const sessionReportPhase1 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase1.md'), logPath });
+    // if (!sessionReportPhase1?.success) {
+    //     log(`Phase 1 failed`, 'error', undefined, logPath);
+    //     removeHooks(worktreePath);
+    //     updateTaskFile(task.path, {
+    //         status: 'failed'
+    //     });
+    //     await removeWorktree();
+
+    //     return;
+    // }
+
+
+    // const sessionReportPhase2 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase2.md'), logPath });
+    // if (!sessionReportPhase2?.success) {
+
+    //     log(`Phase 2 failed`, 'error', undefined, logPath);
+    //     removeHooks(worktreePath);
+    //     updateTaskFile(task.path, {
+    //         status: 'failed'
+    //     });
+    //     await removeWorktree();
+
+    //     return;
+    // }
+
+    // const sessionReportPhase3 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase3.md'), logPath });
+    // if (!sessionReportPhase3?.success) {
+    //     log(`Phase 3 failed`, 'error', undefined, logPath);
+    //     removeHooks(worktreePath);
+    //     updateTaskFile(task.path, {
+    //         status: 'failed'
+    //     });
+    //     await removeWorktree();
+
+    //     return;
+    // }
+
 
     ///////////////////////////////////////////////////////////
     // Update task status and create PR

@@ -56,7 +56,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
         <div className={styles.container}>
             <h2 className={styles.title}>
                 Containers
-                {refreshing && <span className={styles.refreshing}> (Refreshing...)</span>}
+                {!!refreshing && <span className={styles.refreshing}> (Refreshing...)</span>}
             </h2>
             <div className={styles.list}>
                 {containers.map((container) => (

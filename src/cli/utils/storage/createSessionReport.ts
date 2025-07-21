@@ -2,12 +2,11 @@
 import { ensureDirSync, existsSync, readdirSync, rmSync, writeFileSync } from 'fs-extra';
 import { join } from 'node:path';
 
-import { log } from '../logger';
 import { SessionReport } from '../../types/session-report/SessionReport';
-import { CreateSessionReportOptions } from '../../types/session-report/CreateSessionReportOptions';
 import { TranscriptEntry } from '../../types/session-report/TranscriptEntry';
-import { findTranscriptPath } from '../session-report/findTranscriptPath';
+import { log } from '../logger';
 import { buildSessionReport } from '../session-report/buildSessionReport';
+import { findTranscriptPath } from '../session-report/findTranscriptPath';
 import { parseLogFile } from '../session-report/parseLogFile';
 import { parseTranscriptFile } from '../session-report/parseTranscriptFile';
 import { saveErrorReport } from '../session-report/saveErrorReport';
@@ -17,10 +16,19 @@ export { SessionReport } from '../../types/session-report/SessionReport';
 /**
  * Creates a session report from debug logs and transcript files
  */
+export type CreateSessionReportOptions = {
+    taskId: string;
+    taskName: string;
+    worktreePath: string;
+    logsDir: string;
+    exitCode?: number;
+    fileName: string;
+} 
+
 export async function createSessionReport(options: CreateSessionReportOptions): Promise<SessionReport> {
-    const { taskId, taskName, worktreePath, logsDir, exitCode } = options;
+    const { taskId, taskName, worktreePath, logsDir, exitCode, fileName } = options;
     const debugLogsPath = join(worktreePath, 'debug_logs');
-    const outputPath = join(logsDir, 'claude.json');
+    const outputPath = join(logsDir, `${fileName}.json`);
     ensureDirSync(logsDir);
 
     try {
@@ -32,7 +40,7 @@ export async function createSessionReport(options: CreateSessionReportOptions): 
                 taskId,
                 taskName,
                 errorMessage: 'Debug logs directory not found',
-                outputPath: join(logsDir, 'claude.json')
+                outputPath: join(logsDir, `${fileName}.json`)
             });
         }
 
@@ -45,7 +53,7 @@ export async function createSessionReport(options: CreateSessionReportOptions): 
                 taskId,
                 taskName,
                 errorMessage: 'No log files found in debug_logs directory',
-                outputPath: join(logsDir, 'claude.json')
+                outputPath: join(logsDir, `${fileName}.json`)
             });
         }
 
@@ -64,7 +72,7 @@ export async function createSessionReport(options: CreateSessionReportOptions): 
                 taskId,
                 taskName,
                 errorMessage: 'Session ID not found in logs',
-                outputPath: join(logsDir, 'claude.json')
+                outputPath: join(logsDir, `${fileName}.json`)
             });
         }
 

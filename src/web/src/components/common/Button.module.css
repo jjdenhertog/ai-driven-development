@@ -1,0 +1,117 @@
+.button {
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.button:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color-light);
+  transform: translateX(2px);
+}
+
+.button:active {
+  transform: translateX(0);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Sizes */
+.small {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  min-height: 32px;
+}
+
+.medium {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  min-height: 40px;
+}
+
+.large {
+  padding: 1rem;
+  font-size: 0.875rem;
+  min-height: 48px;
+}
+
+/* Variants */
+.primary {
+  background: var(--accent-muted);
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.primary:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent-color);
+}
+
+.secondary {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color-light);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--error-color);
+}
+
+.danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--error-color);
+}
+
+/* Full width modifier */
+.fullWidth {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* Compact button style for icon-only buttons */
+.button.iconOnly {
+  padding: 0.5rem;
+  justify-content: center;
+  min-width: 40px;
+  width: auto;
+}
+
+.button.iconOnly.small {
+  padding: 0.375rem;
+  min-width: 32px;
+}

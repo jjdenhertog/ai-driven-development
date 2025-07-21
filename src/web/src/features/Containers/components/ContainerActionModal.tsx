@@ -5,15 +5,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { stripAnsiCodes } from '@/lib/utils/stripAnsiCodes'
 import { linkifyText } from '@/lib/utils/linkifyText'
+import { Button } from '@/components/common/Button'
 import styles from './ContainerActionModal.module.css'
 
 type ContainerActionModalProps = {
-    isOpen: boolean
-    action: string
-    containerName: string
-    logs: string[]
-    isComplete: boolean
-    onClose: () => void
+    readonly isOpen: boolean
+    readonly action: string
+    readonly containerName: string
+    readonly logs: string[]
+    readonly isComplete: boolean
+    readonly onClose: () => void
 }
 
 export const ContainerActionModal: React.FC<ContainerActionModalProps> = ({
@@ -40,15 +41,16 @@ export const ContainerActionModal: React.FC<ContainerActionModalProps> = ({
                             </>
                         )}
                     </h3>
-                    {isComplete && (
-                        <button
-                            type="button"
+                    {!!isComplete && (
+                        <Button
+                            variant="ghost"
+                            size="small"
                             className={styles.closeButton}
                             onClick={onClose}
                             aria-label="Close"
                         >
                             <FontAwesomeIcon icon={faTimes} />
-                        </button>
+                        </Button>
                     )}
                 </div>
                 
@@ -66,15 +68,15 @@ export const ContainerActionModal: React.FC<ContainerActionModalProps> = ({
                     </div>
                 </div>
                 
-                {isComplete && (
+                {!!isComplete && (
                     <div className={styles.footer}>
-                        <button
-                            type="button"
-                            className={styles.primaryButton}
+                        <Button
+                            variant="primary"
+                            size="medium"
                             onClick={onClose}
                         >
                             Close
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

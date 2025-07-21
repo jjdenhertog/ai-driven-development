@@ -3,6 +3,7 @@
 import React, { useCallback, useMemo } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
+import { Button } from '@/components/common/Button'
 import styles from './TaskDetails.module.css'
 
 type EnhancedSessionListProps = {
@@ -55,6 +56,10 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
         return `${minutes}m${seconds % 60}s`
     }, [])
 
+    const createSessionClickHandler = useCallback((sessionId: string) => () => {
+        onSelectSession(sessionId)
+    }, [onSelectSession])
+
     const renderSession = useCallback((sessionId: string) => {
     // Parse session date from format: 2025-07-16T09-58-23-615Z
         const dateStr = sessionId.replace(/T/, ' ').replace(/-/g, (_match, offset) => {
@@ -62,17 +67,19 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
         })
             .replace(/Z$/, '');
     
+        const handleClick = createSessionClickHandler(sessionId)
+        
         try {
             const date = new Date(dateStr);
             const isValidDate = !isNaN(date.getTime());
       
             return (
-                <button
+                <Button
                     key={sessionId}
-                    className={`${styles.sessionItem} ${
-                        selectedSession === sessionId ? styles.active : ''
-                    }`}
-                    onClick={() => onSelectSession(sessionId)}
+                    variant={selectedSession === sessionId ? 'primary' : 'ghost'}
+                    fullWidth
+                    onClick={handleClick}
+                    className={styles.sessionItem}
                 >
                     <div className={styles.sessionInfo}>
                         <div className={styles.sessionHeader}>
@@ -94,22 +101,22 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
                             </span> : null}
                         </div>
                     </div>
-                </button>
+                </Button>
             );
         } catch (_e) {
             return (
-                <button
+                <Button
                     key={sessionId}
-                    className={`${styles.sessionItem} ${
-                        selectedSession === sessionId ? styles.active : ''
-                    }`}
-                    onClick={() => onSelectSession(sessionId)}
+                    variant={selectedSession === sessionId ? 'primary' : 'ghost'}
+                    fullWidth
+                    onClick={handleClick}
+                    className={styles.sessionItem}
                 >
                     {sessionId}
-                </button>
+                </Button>
             );
         }
-    }, [selectedSession, onSelectSession, sessionMetadata, formatDuration])
+    }, [selectedSession, sessionMetadata, formatDuration, createSessionClickHandler])
 
     // Group sessions by type
     const { codeSessions, learnSessions } = useMemo(() => {

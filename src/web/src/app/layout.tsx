@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Navigation } from '@/components/common/Navigation'
 import { Providers } from '@/components/common/Providers'
 import './globals.css'
+import styles from './layout.module.css'
 
 // Font Awesome configuration
 import '@fortawesome/fontawesome-svg-core/styles.css'
@@ -12,7 +13,7 @@ config.autoAddCss = false // Prevent Font Awesome from adding CSS automatically
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-    title: 'AIdev Manager',
+    title: 'AI Driven Development',
     description: 'Manage your AI-driven development workflow',
 }
 
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <body className={inter.className}>
                 <Providers>
                     <Navigation />
-                    <main style={{ minHeight: '100vh', paddingTop: '72px' }}>
+                    <main className={styles.main}>
                         {children}
                     </main>
                 </Providers>

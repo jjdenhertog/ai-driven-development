@@ -477,6 +477,16 @@
   color: var(--text-secondary);
 }
 
+/* Indent classes for nested list items */
+.indent1 { margin-left: 0.5rem; }
+.indent2 { margin-left: 1rem; }
+.indent3 { margin-left: 1.5rem; }
+.indent4 { margin-left: 2rem; }
+.indent5 { margin-left: 2.5rem; }
+.indent6 { margin-left: 3rem; }
+.indent7 { margin-left: 3.5rem; }
+.indent8 { margin-left: 4rem; }
+
 .mdEmptyLine {
   height: 0.5rem;
 }

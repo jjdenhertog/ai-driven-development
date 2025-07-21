@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faListCheck, faLightbulb, faCog, faServer } from '@fortawesome/free-solid-svg-icons'
@@ -39,6 +40,10 @@ const sections = [
 export default function HomePage() {
     const router = useRouter()
 
+    const createSectionClickHandler = useCallback((href: string) => {
+        return () => router.push(href)
+    }, [router])
+
     return (
         <div className={styles.container}>
             <div className={styles.hero}>
@@ -49,8 +54,9 @@ export default function HomePage() {
             <div className={styles.grid}>
                 {sections.map((section) => (
                     <button
+                        type="button"
                         key={section.id}
-                        onClick={() => router.push(section.href)}
+                        onClick={createSectionClickHandler(section.href)}
                         className={styles.card}
                     >
                         <div className={styles.icon}>

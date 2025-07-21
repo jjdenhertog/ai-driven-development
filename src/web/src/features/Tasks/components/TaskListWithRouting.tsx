@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faArchive, faHourglassHalf, faCircle, faPause, faTimes } from '@fortawesome/free-solid-svg-icons'
@@ -7,17 +8,20 @@ import { Task } from '@/lib/api'
 import styles from './TaskList.module.css'
 
 type TaskListWithRoutingProps = {
-  tasks: Task[]
-  onUpdateTask: (taskId: string, updates: Partial<Task>) => void
+    readonly tasks: Task[]
 }
 
-export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
-    tasks,
-    onUpdateTask: _onUpdateTask,
-}) => {
+export const TaskListWithRouting = (props: TaskListWithRoutingProps) => {
+
+    const { tasks } = props
+
     const router = useRouter()
     const params = useParams()
     const selectedTaskId = params?.id as string
+
+    const createTaskClickHandler = useCallback((taskId: string) => {
+        return () => router.push(`/tasks/${taskId}`)
+    }, [router])
 
     const getStatusIcon = (status: Task['status'] | 'draft') => {
         switch (status) {
@@ -57,19 +61,19 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
         archived: tasks.filter(t => t.status === 'archived'),
     }
 
-    const renderTaskGroup = (title: string, tasks: Task[], showDivider = true, isDraft = false, isFailed = false) => {
+    const renderTaskGroup = (title: string, tasks: Task[], isDraft = false, isFailed = false) => {
         if (tasks.length === 0) return null
 
         return (
             <div className={styles.taskGroup}>
-                {showDivider ? <div className={styles.divider}>{title}</div> : null}
+                <div className={styles.divider}>{title}</div> 
+                {/* {showDivider ? <div className={styles.divider}>{title}</div> : null} */}
                 {tasks.map((task) => (
                     <div
                         key={task.id}
-                        className={`${styles.task} ${
-                            selectedTaskId === task.id ? styles.selected : ''
+                        className={`${styles.task} ${selectedTaskId === task.id ? styles.selected : ''
                         } ${isDraft ? styles.draft : ''} ${isFailed || task.status === 'failed' ? styles.failed : ''} ${!isDraft && task.hold ? styles.hold : ''}`}
-                        onClick={() => router.push(`/tasks/${task.id}`)}
+                        onClick={createTaskClickHandler(task.id)}
                     >
                         <span className={styles.icon}>
                             {task.hold && !isDraft ? (
@@ -100,11 +104,11 @@ export const TaskListWithRouting: React.FC<TaskListWithRoutingProps> = ({
             <div className={styles.list}>
                 {categorizedTasks.draft.length > 0 && (
                     <div className={styles.draftSection}>
-                        {renderTaskGroup('Working On', categorizedTasks.draft, true, true)}
+                        {renderTaskGroup('Working On', categorizedTasks.draft, true)}
                     </div>
                 )}
-                {renderTaskGroup('In Progress', categorizedTasks.inProgress, false)}
-                {renderTaskGroup('Failed', categorizedTasks.failed, categorizedTasks.inProgress.length > 0, false, true)}
+                {renderTaskGroup('In Progress', categorizedTasks.inProgress)}
+                {renderTaskGroup('Failed', categorizedTasks.failed, categorizedTasks.inProgress.length > 0, true)}
                 {renderTaskGroup('Pending', categorizedTasks.pending, categorizedTasks.inProgress.length > 0 || categorizedTasks.failed.length > 0)}
                 {renderTaskGroup('Waiting (Dependencies)', categorizedTasks.waiting)}
                 {renderTaskGroup('Completed', categorizedTasks.completed)}

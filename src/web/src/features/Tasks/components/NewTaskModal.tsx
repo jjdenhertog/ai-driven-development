@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleInfo, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { Task } from '@/lib/api'
+import { Button } from '@/components/common/Button'
 import styles from './NewTaskModal.module.css'
 
 type NewTaskModalProps = {
@@ -53,9 +54,15 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({ onClose, onCreate })
             <div className={styles.modal} onClick={handleModalClick}>
                 <div className={styles.header}>
                     <h2>Request New Task</h2>
-                    <button onClick={onClose} className={styles.closeButton} aria-label="Close">
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        onClick={onClose}
+                        className={styles.closeButton}
+                        aria-label="Close"
+                    >
                         <FontAwesomeIcon icon={faTimes} />
-                    </button>
+                    </Button>
                 </div>
 
                 <form onSubmit={handleSubmit} className={styles.content}>
@@ -90,12 +97,12 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({ onClose, onCreate })
                     </div>
 
                     <div className={styles.footer}>
-                        <button type="button" onClick={onClose} className={styles.cancelButton}>
-              Cancel
-                        </button>
-                        <button type="submit" className={styles.submitButton}>
-              Request Task
-                        </button>
+                        <Button type="button" variant="ghost" onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary">
+                            Request Task
+                        </Button>
                     </div>
                 </form>
             </div>

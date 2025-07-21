@@ -36,6 +36,7 @@
 
 html,
 body {
+  height: 100%;
   max-width: 100vw;
   overflow-x: hidden;
   background-color: var(--bg-primary);
@@ -54,17 +55,19 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--text-primary);
+  margin: 0;
 }
 
-h1 { font-size: 2rem; }
+/* Standardized heading sizes */
+h1 { font-size: 1.75rem; }
 h2 { font-size: 1.5rem; }
 h3 { font-size: 1.25rem; }
-h4 { font-size: 1rem; }
-h5 { font-size: 0.875rem; }
-h6 { font-size: 0.75rem; }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
 
 a {
   color: var(--accent-color);
@@ -170,9 +173,8 @@ label {
 
 /* Layout utilities */
 .container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
+  width: 100%;
 }
 
 .card {

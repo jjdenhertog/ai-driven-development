@@ -1,28 +1,23 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
-import useSWR from 'swr'
-import { api, Task } from '@/lib/api'
-import { TaskListWithRouting } from '@/features/Tasks/components/TaskListWithRouting'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader'
-import styles from '@/features/Tasks/components/TasksLayout.module.css'
+import { PageLayout } from '@/components/common/PageLayout'
+import { Button } from '@/components/common/Button'
+import { TaskListWithRouting } from '@/features/Tasks/components/TaskListWithRouting'
+import { NewTaskModal } from '@/features/Tasks/components/NewTaskModal'
+import { api } from '@/lib/api'
+import { useEffect, useState, useCallback } from 'react'
+import useSWR from 'swr'
+import styles from './tasks.module.css'
 
 export default function Layout({ children }: { readonly children: React.ReactNode }) {
-    const params = useParams()
-    const _selectedTaskId = params?.id as string
+    const [showNewTask, setShowNewTask] = useState(false)
   
     const { data: tasks, error, mutate } = useSWR('tasks', api.getTasks, {
         refreshInterval: 5000, // Poll every 5 seconds for status updates
         revalidateOnFocus: true,
         revalidateOnReconnect: true,
     })
-
-    const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
-        await api.updateTask(taskId, updates)
-        mutate()
-    }, [mutate])
-
 
     // Listen for task deletion events
     useEffect(() => {
@@ -38,59 +33,64 @@ export default function Layout({ children }: { readonly children: React.ReactNod
         }
     }, [mutate])
 
-    if (error) {
-        return (
-            <div className={styles.container}>
-                <div className={styles.sidebar}>
-                    <div className={styles.header}>
-                        <h2 className={styles.title}>Tasks</h2>
-                    </div>
-                    <div className={styles.error}>
-                        <p>Failed to load tasks</p>
-                    </div>
-                </div>
-                <div className={styles.mainContent}>
-                    {children}
-                </div>
-            </div>
-        )
-    }
+    const handleShowNewTask = useCallback(() => {
+        setShowNewTask(true)
+    }, [])
 
-    if (!tasks) {
-        return (
-            <div className={styles.container}>
-                <div className={styles.sidebar}>
-                    <div className={styles.header}>
-                        <h2 className={styles.title}>Tasks</h2>
-                    </div>
-                    <div className={styles.list}>
-                        <SkeletonLoader variant="list-item" count={5} />
-                    </div>
+    const handleCloseNewTask = useCallback(() => {
+        setShowNewTask(false)
+    }, [])
+
+    const handleCreateTask = useCallback(async () => {
+        await mutate()
+        setShowNewTask(false)
+    }, [mutate])
+
+    const sidebarHeader = (
+        <>
+            <h1 className={styles.title}>Tasks</h1>
+            <Button 
+                onClick={handleShowNewTask}
+                variant="primary"
+                size="medium"
+                className={styles.newButton}
+            >
+                + New
+            </Button>
+        </>
+    )
+
+    const sidebarContent = (
+        <>
+            {error ? (
+                <div style={{ padding: '1rem', color: 'var(--text-error)' }}>
+                    <p>Failed to load tasks</p>
                 </div>
-                <div className={styles.mainContent}>
-                    {children}
+            ) : tasks === undefined ? (
+                <div style={{ padding: '1rem' }}>
+                    <SkeletonLoader variant="list-item" count={5} />
                 </div>
-            </div>
-        )
-    }
+            ) : (
+                <TaskListWithRouting tasks={tasks} />
+            )}
+        </>
+    )
 
     return (
-        <div className={styles.container}>
-            <div className={styles.sidebar}>
-                <div className={styles.header}>
-                    <h2 className={styles.title}>Tasks</h2>
-                </div>
-
-                <TaskListWithRouting
-                    tasks={tasks}
-                    onUpdateTask={(taskId, updates) => { handleTaskUpdate(taskId, updates) }}
+        <PageLayout
+            variant="sidebar"
+            sidebarHeader={sidebarHeader}
+            sidebarContent={sidebarContent}
+        >
+            {children}
+            
+            {showNewTask && (
+                <NewTaskModal
+                    tasks={tasks || []}
+                    onClose={handleCloseNewTask}
+                    onCreate={handleCreateTask}
                 />
-            </div>
-
-            <div className={styles.mainContent}>
-                {children}
-            </div>
-
-        </div>
+            )}
+        </PageLayout>
     )
 }

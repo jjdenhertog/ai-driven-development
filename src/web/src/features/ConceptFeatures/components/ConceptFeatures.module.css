@@ -2,6 +2,7 @@
     display: flex;
     height: 100%;
     background: var(--bg-primary);
+    flex: 1;
 }
 
 .sidebar {
@@ -19,6 +20,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sidebarActions {
+    margin-top: 1rem;
 }
 
 .sidebarHeader h3 {
@@ -182,7 +192,10 @@
 
 .main {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 .placeholder {

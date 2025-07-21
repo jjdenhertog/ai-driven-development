@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { TimelineEntry as TimelineEntryType } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
+import { Button } from '@/components/common/Button'
 import styles from './SessionViewer.module.css'
 
 type TimelineEntryProps = {
@@ -27,6 +28,10 @@ const TimelineEntryComponent: React.FC<TimelineEntryProps> = ({
     const handleToggle = useCallback(() => {
         onToggleExpanded(index)
     }, [index, onToggleExpanded])
+    
+    const noop = useCallback(() => {
+        // Read-only editor, no-op
+    }, [])
 
     const hasParameters = entry.name === 'Bash' 
         ? entry.command
@@ -46,7 +51,10 @@ const TimelineEntryComponent: React.FC<TimelineEntryProps> = ({
     return (
         <div className={`${styles.timelineItem} ${entry.error ? styles.error : ''}`}>
             <div className={styles.timelineHeader}>
-                {hasContent ? <button
+                {hasContent ? <Button
+                    type="button"
+                    variant="ghost"
+                    size="small"
                     className={styles.expandButton}
                     onClick={handleToggle}
                 >
@@ -54,7 +62,7 @@ const TimelineEntryComponent: React.FC<TimelineEntryProps> = ({
                         icon={faChevronRight} 
                         className={`${styles.expandIcon} ${isExpanded ? styles.expanded : ''}`}
                     />
-                </button> : null}
+                </Button> : null}
                 <span className={styles.toolIcon}>{getToolIcon(entry.name || '')}</span>
                 <span className={styles.toolName}>{entry.name || 'Unknown'}</span>
                 <span className={styles.description}>
@@ -89,9 +97,7 @@ const TimelineEntryComponent: React.FC<TimelineEntryProps> = ({
                     <div className={styles.fileContent}>
                         <CodeEditor
                             value={entry.result}
-                            onChange={() => {
-                                // Read-only editor, no-op
-                            }}
+                            onChange={noop}
                             language="text"
                             readOnly
                             height="auto"

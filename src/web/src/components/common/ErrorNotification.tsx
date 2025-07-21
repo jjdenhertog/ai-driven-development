@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { Button } from './Button'
 import styles from './ErrorNotification.module.css'
 
 type ErrorNotificationProps = {
-    message: string
-    onClose: () => void
-    duration?: number
+    readonly message: string
+    readonly onClose: () => void
+    readonly duration?: number
 }
 
 export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
@@ -24,14 +25,16 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
     return (
         <div className={styles.notification}>
             <p className={styles.message}>{message}</p>
-            <button
+            <Button
                 type="button"
+                variant="ghost"
+                size="small"
                 className={styles.closeButton}
                 onClick={onClose}
                 aria-label="Close notification"
             >
                 ×
-            </button>
+            </Button>
         </div>
     )
 }

@@ -15,6 +15,7 @@ import { TaskMetadataGrid } from '@/features/Tasks/components/TaskMetadataGrid'
 import { TaskSpecification } from '@/features/Tasks/components/TaskSpecification'
 import { TaskUploads } from '@/features/Tasks/components/TaskUploads'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/common/Button'
 import styles from '@/features/Tasks/components/TaskDetails.module.css'
 
 export default function TaskPage({ params }: { readonly params: Promise<{ id: string }> }) {
@@ -163,6 +164,41 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
         }
     }, [task, enqueueSnackbar, router])
 
+    // Add useCallback handlers for button clicks
+    const handleShowDeleteConfirm = useCallback(() => {
+        setShowDeleteConfirm(true)
+    }, [])
+
+    const handleTabChangeOverview = useCallback(() => {
+        handleTabChange('overview')
+    }, [handleTabChange])
+
+    const handleTabChangePrp = useCallback(() => {
+        handleTabChange('prp')
+    }, [handleTabChange])
+
+    const handleTabChangeSessions = useCallback(() => {
+        handleTabChange('sessions')
+    }, [handleTabChange])
+
+    const handleTabChangeDecisionTree = useCallback(() => {
+        handleTabChange('decision-tree')
+    }, [handleTabChange])
+
+    const handleTabChangeUploads = useCallback(() => {
+        handleTabChange('uploads')
+    }, [handleTabChange])
+
+    const handleConfirmDelete = useCallback(() => {
+        handleDeleteTask().catch(() => {
+            // Error handled in handleDeleteTask
+        })
+    }, [handleDeleteTask])
+
+    const handleCancelDelete = useCallback(() => {
+        setShowDeleteConfirm(false)
+    }, [])
+
     // Sync URL params with state when navigating with browser back/forward
     useEffect(() => {
         const newTab = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | null
@@ -210,58 +246,53 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                         Task {task.id}: {task.name}
                     </h2>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className={styles.deleteButton}
+                <Button
+                    variant="danger"
+                    size="small"
+                    onClick={handleShowDeleteConfirm}
                     title="Delete task"
                 >
                     <FontAwesomeIcon icon={faTrash} />
-                </button>
+                </Button>
             </div>
 
             <div className={styles.tabs}>
-                <button
-                    type="button"
-                    className={`${styles.tab} ${activeTab === 'overview' ? styles.active : ''}`}
-                    onClick={() => handleTabChange('overview')}
+                <Button
+                    variant={activeTab === 'overview' ? 'primary' : 'ghost'}
+                    onClick={handleTabChangeOverview}
                 >
                     Overview
-                </button>
-                {hasPrp && (
-                    <button
-                        type="button"
-                        className={`${styles.tab} ${activeTab === 'prp' ? styles.active : ''}`}
-                        onClick={() => handleTabChange('prp')}
+                </Button>
+                {!!hasPrp && (
+                    <Button
+                        variant={activeTab === 'prp' ? 'primary' : 'ghost'}
+                        onClick={handleTabChangePrp}
                     >
                         PRP
-                    </button>
+                    </Button>
                 )}
-                {hasSessions && (
-                    <button
-                        type="button"
-                        className={`${styles.tab} ${activeTab === 'sessions' ? styles.active : ''}`}
-                        onClick={() => handleTabChange('sessions')}
+                {!!hasSessions && (
+                    <Button
+                        variant={activeTab === 'sessions' ? 'primary' : 'ghost'}
+                        onClick={handleTabChangeSessions}
                     >
                         Sessions
-                    </button>
+                    </Button>
                 )}
-                {hasDecisionTree && (
-                    <button
-                        type="button"
-                        className={`${styles.tab} ${activeTab === 'decision-tree' ? styles.active : ''}`}
-                        onClick={() => handleTabChange('decision-tree')}
+                {!!hasDecisionTree && (
+                    <Button
+                        variant={activeTab === 'decision-tree' ? 'primary' : 'ghost'}
+                        onClick={handleTabChangeDecisionTree}
                     >
                         Decision Tree
-                    </button>
+                    </Button>
                 )}
-                <button
-                    type="button"
-                    className={`${styles.tab} ${activeTab === 'uploads' ? styles.active : ''}`}
-                    onClick={() => handleTabChange('uploads')}
+                <Button
+                    variant={activeTab === 'uploads' ? 'primary' : 'ghost'}
+                    onClick={handleTabChangeUploads}
                 >
                     Uploads
-                </button>
+                </Button>
             </div>
 
             <div className={styles.content}>
@@ -272,22 +303,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                             canEditHold={canEditHold}
                             onUpdateTask={handleUpdateTask}
                         />
-
-                        {/* Description */}
-                        {task.description ? <div className={styles.descriptionSection}>
-                            <h3>Description</h3>
-                            <CodeEditor
-                                value={task.description}
-                                onChange={() => { /* read-only */ }}
-                                language="markdown"
-                                readOnly
-                                height="auto"
-                                minHeight={200}
-                                maxHeight={100_000}
-                            />
-                        </div> : null}
-
-                        {/* Specification - Editable for pending tasks */}
+                        
                         <TaskSpecification
                             content={taskContent}
                             canEdit={canEdit}
@@ -325,7 +341,6 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                         {prpData ? (
                             <CodeEditor
                                 value={prpData.content}
-                                onChange={() => { /* read-only */ }}
                                 language="markdown"
                                 readOnly
                                 height="auto"
@@ -335,7 +350,6 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                         ) : lastResultData ? (
                             <CodeEditor
                                 value={lastResultData.content}
-                                onChange={() => { /* read-only */ }}
                                 language="markdown"
                                 readOnly
                                 height="auto"
@@ -381,8 +395,8 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                 message={`Are you sure you want to delete task ${task.id}: ${task.name}? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
-                onConfirm={handleDeleteTask}
-                onCancel={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
             />
         </div>
     )

@@ -1,0 +1,8 @@
+.main {
+  height: 100vh;
+  padding-top: 72px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background-color: var(--bg-primary);
+}

@@ -6,6 +6,7 @@
   justify-content: center;
   padding: 2rem;
   background: var(--bg-primary);
+  width: 100%;
 }
 
 .hero {
@@ -14,13 +15,10 @@
 }
 
 .title {
-  font-size: 3rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -35,7 +33,6 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
   width: 100%;
-  max-width: 1200px;
 }
 
 .card {

@@ -7,6 +7,7 @@ import { CodeEditor } from '@/components/common/CodeEditor'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faImage, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { ErrorNotification } from '@/components/common/ErrorNotification'
+import { Button } from '@/components/common/Button'
 import styles from './NewFeatureModal.module.css'
 
 type NewFeatureModalProps = {
@@ -133,13 +134,27 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
         }
     }, [images])
 
+    const createImageRemoveHandler = useCallback((index: number) => () => {
+        handleImageRemove(index)
+    }, [handleImageRemove])
+
+    const handleImageUploadWrapper = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        handleImageUpload(e).catch(() => {
+            // Error handled in handleImageUpload
+        })
+    }, [handleImageUpload])
+
+    const handleCloseError = useCallback(() => {
+        setErrorMessage('')
+    }, [])
+
     
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={handleModalClick}>
                 <div className={styles.header}>
                     <h2>New Feature</h2>
-                    <button type="button" onClick={onClose} className={styles.closeButton}>×</button>
+                    <Button type="button" onClick={onClose} variant="ghost" size="small" className={styles.closeButton}>×</Button>
                 </div>
                 
                 <form onSubmit={handleSubmit} className={styles.form}>
@@ -197,38 +212,31 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                                                     width={150}
                                                     height={150}
                                                     className={styles.imageThumbnail}
-                                                    style={{ objectFit: 'cover' }}
                                                 />
                                             </div>
-                                            <button
+                                            <Button
                                                 type="button"
-                                                onClick={() => {
-                                                    handleImageRemove(index)
-                                                }}
+                                                onClick={createImageRemoveHandler(index)}
+                                                variant="ghost"
+                                                size="small"
                                                 className={styles.removeImageButton}
                                                 title="Remove image"
                                             >
                                                 <FontAwesomeIcon icon={faTimes} />
-                                            </button>
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className={styles.uploadSection}>
                                     <label htmlFor="new-image-upload" className={styles.uploadButton}>
-                                        <>
-                                            <FontAwesomeIcon icon={faImage} />
-                                            {uploading ? 'Uploading...' : 'Add Image'}
-                                        </>
+                                        <FontAwesomeIcon icon={faImage} />
+                                        {uploading ? ' Uploading...' : ' Add Image'}
                                     </label>
                                     <input
                                         id="new-image-upload"
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => {
-                                            handleImageUpload(e).catch(() => {
-                                                // Error handled in handleImageUpload
-                                            })
-                                        }}
+                                        onChange={handleImageUploadWrapper}
                                         disabled={uploading}
                                         className={styles.uploadInput}
                                     />
@@ -238,27 +246,27 @@ export const NewFeatureModal: React.FC<NewFeatureModalProps> = (props:NewFeature
                     </div>
                     
                     <div className={styles.actions}>
-                        <button
+                        <Button
                             type="button"
                             onClick={onClose}
-                            className={styles.cancelButton}
+                            variant="secondary"
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={creating}
-                            className={styles.createButton}
+                            variant="primary"
                         >
                             {creating ? 'Creating...' : 'Create Feature'}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>
-            {errorMessage && (
+            {!!errorMessage && (
                 <ErrorNotification
                     message={errorMessage}
-                    onClose={() => setErrorMessage('')}
+                    onClose={handleCloseError}
                 />
             )}
         </div>

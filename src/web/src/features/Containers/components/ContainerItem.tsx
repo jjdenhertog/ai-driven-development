@@ -4,6 +4,7 @@ import React, { useCallback } from 'react'
 import { Container } from '@/types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
+import { Button } from '@/components/common/Button'
 import styles from './ContainerList.module.css'
 
 type ContainerItemProps = {
@@ -19,7 +20,10 @@ const ContainerItemComponent: React.FC<ContainerItemProps> = ({ container, isSel
     }, [container.name, onClick])
 
     return (
-        <button
+        <Button
+            variant="ghost"
+            size="medium"
+            fullWidth
             className={`${styles.item} ${isSelected ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
             onClick={handleClick}
             disabled={disabled}
@@ -52,7 +56,7 @@ const ContainerItemComponent: React.FC<ContainerItemProps> = ({ container, isSel
                     }
                 </div>
             </div>
-        </button>
+        </Button>
     )
 }
 

@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { TimelineEntry } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
+import { Button } from '@/components/common/Button'
 import styles from './SessionViewer.module.css'
 
 type SessionFilesProps = {
@@ -61,24 +62,32 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
         setExpandedFiles(newExpanded)
     }, [expandedFiles])
 
+    const noop = useCallback(() => { /* read-only */ }, [])
+
     if (files.length === 0) {
         return <div className={styles.empty}>No files were written in this session</div>
     }
 
     return (
         <div className={styles.filesList}>
-            {files.map((file) => (
+            {files.map((file) => {
+                const handleToggle = () => toggleFileExpanded(file.index)
+                
+                return (
                 <div key={file.index} className={styles.fileItem}>
                     <div className={styles.fileHeader}>
-                        <button
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="small"
                             className={styles.expandButton}
-                            onClick={() => toggleFileExpanded(file.index)}
+                            onClick={handleToggle}
                         >
                             <FontAwesomeIcon 
                                 icon={faChevronRight} 
                                 className={`${styles.expandIcon} ${expandedFiles.has(file.index) ? styles.expanded : ''}`}
                             />
-                        </button>
+                        </Button>
                         <span className={styles.fileName}>{file.path}</span>
                         <span className={`${styles.fileAction} ${styles[file.action]}`}>
                             {file.action}
@@ -87,7 +96,7 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
                     {expandedFiles.has(file.index) && file.content ? <div className={styles.fileContent}>
                         <CodeEditor
                             value={file.content}
-                            onChange={() => { /* read-only */ }}
+                            onChange={noop}
                             language="text"
                             readOnly
                             height="auto"
@@ -96,7 +105,8 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
                         />
                     </div> : null}
                 </div>
-            ))}
+                )
+            })}
         </div>
     )
 }

@@ -45,10 +45,23 @@ export const api = {
     getConcepts: () => fetchJson<ConceptFile[]>(`${API_BASE}/concepts`),
     getConcept: (name: string) => 
         fetchJson<{ content: string }>(`${API_BASE}/concepts/${name}`),
+    createConcept: (name: string, content: string) => 
+        import('./api/http/postJson').then(({ postJson }) => 
+            postJson(`${API_BASE}/concepts`, { name, content })
+        ),
     updateConcept: (name: string, content: string) => 
         import('./api/http/putJson').then(({ putJson }) => 
             putJson(`${API_BASE}/concepts/${name}`, { content })
         ),
+    deleteConcept: async (name: string) => {
+        const response = await fetch(`${API_BASE}/concepts/${name}`, {
+            method: 'DELETE'
+        })
+        if (!response.ok) {
+            throw new Error(`Failed to delete concept: ${response.statusText}`)
+        }
+        return response.json()
+    },
   
     // Preferences
     getPreferences: () => fetchJson<Preference[]>(`${API_BASE}/preferences`),

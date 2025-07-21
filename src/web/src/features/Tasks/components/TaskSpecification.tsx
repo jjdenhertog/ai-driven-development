@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { CodeEditor } from '@/components/common/CodeEditor'
+import { Button } from '@/components/common/Button'
 import styles from './TaskDetails.module.css'
 
 type TaskSpecificationProps = {
@@ -51,21 +52,21 @@ export const TaskSpecification: React.FC<TaskSpecificationProps> = ({
                 <h3>Task Specification</h3>
                 <div className={styles.headerActions}>
                     {canEdit && hasChanges ? <>
-                        <button 
-                            onClick={() => { handleSave() }}
+                        <Button 
+                            onClick={handleSave}
                             disabled={saving}
-                            className={styles.saveButton}
-                            type="button"
+                            variant="primary"
+                            size="small"
                         >
                             {saving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                             onClick={handleCancel}
-                            className={styles.cancelButton}
-                            type="button"
+                            variant="ghost"
+                            size="small"
                         >
                             Cancel
-                        </button>
+                        </Button>
                     </> : null}
                 </div>
             </div>
@@ -78,7 +79,7 @@ export const TaskSpecification: React.FC<TaskSpecificationProps> = ({
                         readOnly={!canEdit}
                         height="auto"
                         minHeight={400}
-                        maxHeight={50000}
+                        maxHeight={50_000}
                     />
                 </div>
             </div>

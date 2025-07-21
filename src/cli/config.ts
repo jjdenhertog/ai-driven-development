@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-module */
 import { existsSync, readFileSync } from "fs-extra";
 import { join, resolve } from "node:path";
 
@@ -35,13 +36,6 @@ function loadAidevConfig(): AidevConfig {
     };
 }
 
-const aidevConfig = loadAidevConfig();
-
-/**
- * Get the branch starting point from config or default to 'main'
- */
-export const BRANCH_STARTING_POINT = aidevConfig.branchStartingPoint;
-export const MAIN_BRANCH = aidevConfig.mainBranch;
 
 export const TARGET_ROOT = process.cwd();
 export const STORAGE_PATH = resolve(TARGET_ROOT, STORAGE_FOLDER)
@@ -49,3 +43,10 @@ export const TASKS_DIR = join(STORAGE_PATH, 'tasks');
 export const TASKS_OUTPUT_DIR = join(STORAGE_PATH, 'tasks_output');
 export const CONFIG_PATH = join(STORAGE_PATH, CONFIG_FILE);
 export const TEMPLATES_ROOT = join(__dirname, '..', '..', 'templates');
+
+/**
+ * Get the branch starting point from config or default to 'main'
+ */
+const aidevConfig = loadAidevConfig();
+export const BRANCH_STARTING_POINT = aidevConfig.branchStartingPoint;
+export const MAIN_BRANCH = aidevConfig.mainBranch;

@@ -31,13 +31,17 @@ export async function GET() {
         
                 const content = await fs.readFile(path.join(tasksDir, file))
                 const task = JSON.parse(content.toString()) as Task
-                tasks.push(task)
+                tasks.push({
+                    ...task,
+                    status: task.status || 'pending'
+                })
             }
         }
     
         return createNoCacheResponse(tasks)
-    } catch (error) {
-        console.error('Error loading tasks:', error)
+    } catch (_error) {
+        // Error loading tasks
+
         return NextResponse.json([])
     }
 }

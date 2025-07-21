@@ -18,7 +18,7 @@ const MonacoEditor = dynamic(
 
 type CodeEditorProps = {
   readonly value: string
-  readonly onChange: (value: string) => void
+  readonly onChange?: (value: string) => void
   readonly language?: string
   readonly readOnly?: boolean
   readonly height?: string
@@ -59,10 +59,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             editor.onDidContentSizeChange(updateHeight)
         }
     }, [isAutoGrow, minHeight, maxHeight])
-
-    const handleChange = useCallback((newValue: string | undefined) => {
-        onChange(newValue || '')
-    }, [onChange])
 
     const getLanguage = useCallback((lang: string): string => {
         const ext = lang.split('.').pop()
@@ -116,9 +112,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     const computedLanguage = useMemo(() => getLanguage(language), [language, getLanguage])
     const computedHeight = isAutoGrow ? `${autoHeight}px` : height
 
+    const handleChange = useCallback((newValue: string | undefined) => {
+        onChange?.(newValue || '')
+    }, [onChange])
+
     return (
         <div style={{ height: computedHeight, width: '100%', border: '1px solid var(--border-color)', borderRadius: '0.5rem', overflow: 'hidden' }}>
-            <Suspense fallback={<SimpleEditor value={value} onChange={onChange} language={language} readOnly={readOnly} height={computedHeight} />}>
+            <Suspense fallback={<SimpleEditor value={value} onChange={handleChange} language={language} readOnly={readOnly} height={computedHeight} />}>
                 <MonacoEditor
                     value={value}
                     onChange={handleChange}

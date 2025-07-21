@@ -11,6 +11,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import useSWR from 'swr'
 import { useSnackbar } from 'notistack'
+import { PageLayout } from '@/components/common/PageLayout'
+import { Button } from '@/components/common/Button'
 
 export default function FeaturesPage() {
     const router = useRouter()
@@ -115,26 +117,25 @@ export default function FeaturesPage() {
             return (
                 <div className={styles.empty}>
                     <p>No features yet</p>
-                    <button
-                        type="button"
+                    <Button
                         onClick={handleShowNewFeature}
-                        className={styles.emptyActionButton}
+                        variant="primary"
+                        size="large"
                     >
                         <FontAwesomeIcon icon={faPlus} />
                         Create your first feature
-                    </button>
+                    </Button>
                 </div>
             )
         }
         
         return features.map(feature => (
-            <button
+            <Button
                 key={feature.id}
-                type="button"
                 onClick={createFeatureClickHandler(feature.id)}
-                className={`${styles.featureItem} ${
-                    selectedId === feature.id ? styles.selected : ''
-                } ${styles[`status-${feature.state}`]}`}
+                variant={selectedId === feature.id ? 'primary' : 'ghost'}
+                fullWidth
+                className={`${styles.featureItem} ${styles[`status-${feature.state}`]}`}
             >
                 <div className={styles.featureHeader}>
                     <span className={styles.featureTitle}>{feature.title}</span>
@@ -145,32 +146,32 @@ export default function FeaturesPage() {
                         title={feature.state}
                     />
                 </div>
-            </button>
+            </Button>
         ))
     }
     
     return (
-        <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
-            <div className={styles.container}>
-                <div className={styles.sidebar}>
-                    <div className={styles.sidebarHeader}>
-                        <h3>Features</h3>
-                        <button
-                            type="button"
-                            onClick={handleShowNewFeature}
-                            className={styles.newButton}
-                            title="New Feature"
-                        >
-                            <FontAwesomeIcon icon={faPlus} />
-                        </button>
+        <PageLayout>
+            <Suspense fallback={<div className={styles.loading}>Loading...</div>}>
+                <div className={styles.container}>
+                    <div className={styles.sidebar}>
+                        <div className={styles.sidebarHeader}>
+                            <h3>Features</h3>
+                            <button
+                                type="button"
+                                onClick={handleShowNewFeature}
+                                className={styles.newButton}
+                                title="New Feature"
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </button>
+                        </div>
+                        
+                        <div className={styles.featureList}>
+                            {renderFeatureList()}
+                        </div>
                     </div>
                     
-                    <div className={styles.featureList}>
-                        {renderFeatureList()}
-                    </div>
-                </div>
-                
-                <div className={styles.main}>
                     {selectedId && features ? (
                         <ConceptFeatureEditor
                             feature={features.find(f => f.id === selectedId)}
@@ -181,14 +182,14 @@ export default function FeaturesPage() {
                         <div className={styles.placeholder}>
                             <p>Select a feature to view details</p>
                             {features.length === 0 && (
-                                <button
-                                    type="button"
+                                <Button
                                     onClick={handleShowNewFeature}
-                                    className={styles.emptyActionButton}
+                                    variant="primary"
+                                    size="large"
                                 >
                                     <FontAwesomeIcon icon={faPlus} />
                                     Create your first feature
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}
@@ -198,7 +199,7 @@ export default function FeaturesPage() {
                     onClose={handleCloseNewFeature}
                     onCreate={handleCreateFeature}
                 /> : null}
-            </div>
-        </Suspense>
+            </Suspense>
+        </PageLayout>
     )
 }

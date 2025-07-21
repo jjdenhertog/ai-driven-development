@@ -1,16 +1,17 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback } from 'react'
+import { Button } from './Button'
 import styles from './ConfirmDialog.module.css'
 
 type ConfirmDialogProps = {
-    isOpen: boolean
-    title: string
-    message: string
-    confirmText?: string
-    cancelText?: string
-    onConfirm: () => void
-    onCancel: () => void
+    readonly isOpen: boolean
+    readonly title: string
+    readonly message: string
+    readonly confirmText?: string
+    readonly cancelText?: string
+    readonly onConfirm: () => void
+    readonly onCancel: () => void
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -22,13 +23,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     onConfirm,
     onCancel
 }) => {
-    if (!isOpen) return null
-
-    const handleOverlayClick = (e: React.MouseEvent) => {
+    const handleOverlayClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onCancel()
         }
-    }
+    }, [onCancel])
+    
+    if (!isOpen) return null
 
     return (
         <div className={styles.overlay} onClick={handleOverlayClick}>
@@ -36,20 +37,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <h3 className={styles.title}>{title}</h3>
                 <p className={styles.message}>{message}</p>
                 <div className={styles.actions}>
-                    <button
+                    <Button
                         type="button"
-                        className={`${styles.button} ${styles.cancelButton}`}
+                        variant="secondary"
                         onClick={onCancel}
                     >
                         {cancelText}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
-                        className={`${styles.button} ${styles.confirmButton}`}
+                        variant="danger"
                         onClick={onConfirm}
                     >
                         {confirmText}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

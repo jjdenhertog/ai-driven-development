@@ -1,7 +1,7 @@
-import simpleGit, { CleanSummary, SimpleGit } from 'simple-git';
+import simpleGit, { SimpleGit } from 'simple-git';
 
 // Cache for git instances by path
-const gitInstanceCache = new Map<string, SimpleGit>();
+const gitInstanceCache = new Map<string, { instance: SimpleGit; controller: AbortController }>();
 
 /**
  * Get or create a git instance for a specific directory
@@ -11,17 +11,26 @@ export function getGitInstance(baseDir?: string): SimpleGit {
     const path = baseDir || process.cwd();
 
     // Check if we already have an instance for this path
-    let instance = gitInstanceCache.get(path);
-
-    if (!instance) {
-        // Create new instance and cache it
-        instance = simpleGit({
-            baseDir: path,
-            binary: 'git',
-            maxConcurrentProcesses: 6,
-        });
-        gitInstanceCache.set(path, instance);
+    const cached = gitInstanceCache.get(path);
+    if (cached) {
+        return cached.instance;
     }
+
+    // Create new AbortController for this instance
+    const controller = new AbortController();
+    
+    // Create new instance with abort signal and timeout
+    const instance = simpleGit({
+        baseDir: path,
+        binary: 'git',
+        maxConcurrentProcesses: 6,
+        abort: controller.signal,
+        timeout: {
+            block: 60000, // 60 seconds timeout for blocking operations
+        },
+    });
+    
+    gitInstanceCache.set(path, { instance, controller });
 
     return instance;
 }
@@ -30,13 +39,14 @@ export function getGitInstance(baseDir?: string): SimpleGit {
  * Clean up all git instances to allow process to exit cleanly
  */
 export async function cleanupGitInstances(): Promise<void> {
-    const cleanupPromises: Promise<CleanSummary>[] = [];
-
-    for (const [_path, instance] of gitInstanceCache) {
-        // Call clean to abort any pending tasks
-        cleanupPromises.push(instance.clean('f'));
+    // Abort all pending git operations
+    for (const [path, { controller }] of gitInstanceCache) {
+        controller.abort();
     }
-
-    await Promise.all(cleanupPromises);
+    
+    // Clear the cache
     gitInstanceCache.clear();
+    
+    // Give a small delay to ensure processes are terminated
+    await new Promise(resolve => setTimeout(resolve, 100));
 }

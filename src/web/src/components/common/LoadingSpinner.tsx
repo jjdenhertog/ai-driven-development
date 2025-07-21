@@ -10,11 +10,11 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'medium',
     return (
         <div className={styles.container}>
             <div className={`${styles.spinner} ${styles[size]}`}>
-                <div className={styles.bounce1}></div>
-                <div className={styles.bounce2}></div>
-                <div className={styles.bounce3}></div>
+                <div className={styles.bounce1} />
+                <div className={styles.bounce2} />
+                <div className={styles.bounce3} />
             </div>
-            {text && <p className={styles.text}>{text}</p>}
+            {!!text && <p className={styles.text}>{text}</p>}
         </div>
     )
 }

@@ -9,6 +9,7 @@ import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from '../utils/logger';
 import { addTemplates } from '../utils/claude/addTemplates';
+import { addPrompts } from '../utils/claude/addPrompts';
 
 export async function initCommand(options: InitOptions): Promise<void> {
     const { force } = options;
@@ -63,7 +64,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
             log('Copied preferences folder', 'success');
         }
 
-        // Copy templates folder
+        addPrompts()
         addTemplates()
 
         /////////////////////////////////////////////

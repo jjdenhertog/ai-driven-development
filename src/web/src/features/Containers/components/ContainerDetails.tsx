@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+/* eslint-disable @typescript-eslint/prefer-destructuring */
 /* eslint-disable max-depth */
 /* eslint-disable unicorn/prefer-switch */
 'use client'
@@ -11,11 +13,12 @@ import { parseLogLine, groupLogLines } from '@/lib/utils/parseContainerLogs'
 import type { ParsedLogLine } from '@/lib/utils/parseContainerLogs'
 import { ContainerActionModal } from './ContainerActionModal'
 import { linkifyText } from '@/lib/utils/linkifyText'
+import { Button } from '@/components/common/Button'
 import styles from './ContainerDetails.module.css'
 
 type ContainerDetailsProps = {
-  readonly container: Container
-  readonly onStatusChange: () => void
+    readonly container: Container
+    readonly onStatusChange: () => void
 }
 
 export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, onStatusChange }) => {
@@ -47,24 +50,14 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         scrollToBottom()
     }, [logs, scrollToBottom])
 
-    useEffect(() => {
-    // Clear logs when container changes
-        setLogs([])
-        setIsStreaming(false)
-    
-        // Stop any ongoing log stream
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort()
-            abortControllerRef.current = null
-        }
-    }, [container.name])
+    // Callback handlers to avoid arrow functions in JSX
 
     const handleActionInternal = useCallback(async (action: 'start' | 'stop' | 'restart', options?: { clean?: boolean }) => {
-        
+
         // Reset option displays
         setShowStopOptions(false)
         setShowRestartOptions(false)
-        
+
         // Open modal and reset state
         setModalState({
             isOpen: true,
@@ -72,42 +65,48 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
             logs: [],
             isComplete: false
         })
-        
+
         try {
             const response = await fetch(`/api/containers/${container.name}/action`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action, 
+                body: JSON.stringify({
+                    action,
                     type: container.type,
-                    ...options 
+                    ...options
                 }),
             })
-            
+
             if (!response.ok) {
                 const error = await response.json()
                 throw new Error(error.error || 'Failed to execute action')
             }
-            
+
             const reader = response.body?.getReader()
             const decoder = new TextDecoder()
-            
+
             if (!reader) {
                 throw new Error('No response stream available')
             }
-            
-            while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
-                
+
+            let done = false;
+            while (!done) {
+
+                const result = await reader.read()
+                done = result.done
+                if (done)
+                    break;
+
+                const { value } = result
+
                 const text = decoder.decode(value)
                 const lines = text.split('\n')
-                
+
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
                             const data = JSON.parse(line.slice(6))
-                            
+
                             if (data.type === 'stdout' || data.type === 'stderr' || data.type === 'start') {
                                 setModalState(prev => ({
                                     ...prev,
@@ -119,12 +118,12 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                                     isComplete: true,
                                     logs: [...prev.logs, data.message]
                                 }))
-                                
+
                                 // Refresh container status after completion
                                 setTimeout(() => {
                                     onStatusChange()
                                 }, 500)
-                                
+
                                 // Additional refresh for stop actions
                                 if (action === 'stop') {
                                     setTimeout(() => {
@@ -158,10 +157,10 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         // Special handling for web container
         if (container.name === 'web' && (action === 'stop' || (action === 'restart' && options?.clean))) {
             setShowWebWarning({ action, clean: options?.clean })
-            
+
             return
         }
-        
+
         return handleActionInternal(action, options)
     }, [container.name, handleActionInternal])
 
@@ -177,6 +176,71 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         handleAction('restart', { clean })
     }, [handleAction])
 
+    const handleStopClick = useCallback(() => {
+        if (showStopOptions) {
+            handleStop(false)
+        } else {
+            setShowStopOptions(true)
+        }
+    }, [handleStop, showStopOptions])
+
+    const handleStopRemove = useCallback(() => {
+        handleStop(true)
+    }, [handleStop])
+
+    const handleStopCancel = useCallback(() => {
+        setShowStopOptions(false)
+    }, [])
+
+    const handleRestartRebuild = useCallback(() => {
+        handleRestart(true)
+    }, [handleRestart])
+
+    const handleRestartClick = useCallback(() => {
+        if (showRestartOptions) {
+            handleRestart(false)
+        } else {
+            setShowRestartOptions(true)
+        }
+    }, [showRestartOptions, handleRestart])
+
+
+    const handleRestartCancel = useCallback(() => {
+        setShowRestartOptions(false)
+    }, [])
+
+    const handleWebWarningCancel = useCallback(() => {
+        setShowWebWarning(null)
+    }, [])
+
+    const handleWebWarningConfirm = useCallback(async () => {
+        if (!showWebWarning) return
+
+        const { action, clean } = showWebWarning
+        setShowWebWarning(null)
+
+        // Now proceed with the action directly
+        await handleActionInternal(action, { clean })
+    }, [showWebWarning, handleActionInternal])
+
+    const handleWebWarningContinue = useCallback(() => {
+        handleWebWarningConfirm()
+    }, [handleWebWarningConfirm])
+
+    useEffect(() => {
+        // Clear logs when container changes
+        setLogs([])
+        setIsStreaming(false)
+
+        // Stop any ongoing log stream
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+            abortControllerRef.current = null
+        }
+    }, [container.name])
+
+
+
     const toggleLogs = useCallback(async () => {
         if (isStreaming) {
             // Stop streaming
@@ -190,54 +254,50 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
             // Start streaming
             setIsStreaming(true)
             setLogs([])
-      
+
             const abortController = new AbortController()
             abortControllerRef.current = abortController
-      
+
             try {
                 const response = await api.getContainerLogs(container.name, true, 50)
                 if (!response.body) return
-        
+
                 const reader = response.body.getReader()
                 const decoder = new TextDecoder()
-        
+
                 while (!abortController.signal.aborted) {
                     const { done, value } = await reader.read()
                     if (done) {
                         break
                     }
-          
+
                     // Decode the chunk and handle partial lines
                     const text = decoder.decode(value, { stream: true })
                     const fullText = pendingTextRef.current + text
                     const lines = fullText.split('\n')
-                    
+
                     // Keep the last line if it doesn't end with newline (partial line)
                     if (fullText.endsWith('\n')) {
                         pendingTextRef.current = ''
                     } else {
                         pendingTextRef.current = lines.pop() || ''
                     }
-                    
+
                     // Parse and add new log lines
                     const parsedLines = lines
                         .map(line => parseLogLine(line))
                         .filter((line): line is ParsedLogLine => line !== null)
-                    
+
                     if (parsedLines.length > 0) {
                         setLogs(prev => {
                             const combined = [...prev, ...parsedLines]
-                            
+
                             // Group similar lines to reduce clutter
                             return groupLogLines(combined)
                         })
                     }
                 }
             } catch (_error) {
-                if (_error instanceof Error && _error.name !== 'AbortError') {
-                    // Log non-abort errors if needed
-                    console.error('Error fetching logs:', _error)
-                }
             } finally {
                 setIsStreaming(false)
             }
@@ -247,7 +307,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
     const handleToggleLogs = useCallback(() => {
         toggleLogs()
     }, [toggleLogs])
-    
+
     const handleCloseModal = useCallback(() => {
         setModalState({
             isOpen: false,
@@ -257,15 +317,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
         })
     }, [])
 
-    const handleWebWarningConfirm = useCallback(async () => {
-        if (!showWebWarning) return
-        
-        const { action, clean } = showWebWarning
-        setShowWebWarning(null)
-        
-        // Now proceed with the action directly
-        await handleActionInternal(action, { clean })
-    }, [showWebWarning, handleActionInternal])
+
 
     return (
         <div className={styles.container}>
@@ -273,85 +325,85 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 <div className={styles.info}>
                     <h2 className={styles.name}>{container.name}</h2>
                     <div className={styles.status}>
-            Status: <span className={container.status === 'running' ? styles.running : styles.stopped}>
+                        Status: <span className={container.status === 'running' ? styles.running : styles.stopped}>
                             {container.statusText || container.status}
                         </span>
                     </div>
                 </div>
-        
+
                 <div className={styles.actions}>
                     {container.status === 'running' ? (
                         <>
                             <div className={styles.actionGroup}>
-                                <button
-                                    type="button"
-                                    className={styles.actionButton}
-                                    onClick={() => showStopOptions ? handleStop(false) : setShowStopOptions(true)}
+                                <Button
+                                    variant="secondary"
+                                    size="medium"
+                                    onClick={handleStopClick}
                                 >
                                     <FontAwesomeIcon icon={faStop} />
                                     Stop
-                                </button>
-                                {showStopOptions && (
+                                </Button>
+                                {!!showStopOptions && (
                                     <div className={styles.optionButtons}>
-                                        <button
-                                            type="button"
-                                            className={`${styles.optionButton} ${styles.danger}`}
-                                            onClick={() => handleStop(true)}
+                                        <Button
+                                            variant="danger"
+                                            size="small"
+                                            onClick={handleStopRemove}
                                             title="Stop and remove container"
                                         >
                                             <FontAwesomeIcon icon={faTrash} /> Remove
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={styles.optionButton}
-                                            onClick={() => setShowStopOptions(false)}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="small"
+                                            onClick={handleStopCancel}
                                         >
                                             Cancel
-                                        </button>
+                                        </Button>
                                     </div>
                                 )}
                             </div>
                             {container.name !== 'web' && (
                                 <div className={styles.actionGroup}>
-                                    <button
-                                        type="button"
-                                        className={styles.actionButton}
-                                        onClick={() => showRestartOptions ? handleRestart(false) : setShowRestartOptions(true)}
+                                    <Button
+                                        variant="secondary"
+                                        size="medium"
+                                        onClick={handleRestartClick}
                                     >
                                         <FontAwesomeIcon icon={faRotate} />
                                         Restart
-                                    </button>
-                                    {showRestartOptions && (
+                                    </Button>
+                                    {!!showRestartOptions && (
                                         <div className={styles.optionButtons}>
-                                            <button
-                                                type="button"
-                                                className={`${styles.optionButton} ${styles.warning}`}
-                                                onClick={() => handleRestart(true)}
+                                            <Button
+                                                variant="secondary"
+                                                size="small"
+                                                onClick={handleRestartRebuild}
                                                 title="Stop, remove and rebuild container"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} /> Rebuild
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={styles.optionButton}
-                                                onClick={() => setShowRestartOptions(false)}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="small"
+                                                onClick={handleRestartCancel}
                                             >
                                                 Cancel
-                                            </button>
+                                            </Button>
                                         </div>
                                     )}
                                 </div>
                             )}
                         </>
                     ) : (
-                        <button
-                            type="button"
-                            className={`${styles.actionButton} ${styles.primary}`}
+                        <Button
+                            variant="primary"
+                            size="medium"
                             onClick={handleStart}
                         >
                             <FontAwesomeIcon icon={faPlay} />
                             Start
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -360,7 +412,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 <div className={styles.warning}>
                     <FontAwesomeIcon icon={faExclamationTriangle} />
                     <span>
-                        This is the web interface container. Stopping it will shut down this UI. 
+                        This is the web interface container. Stopping it will shut down this UI.
                         Restart is disabled to prevent losing access. Use &quot;aidev container web start&quot; from the command line to restart.
                     </span>
                 </div>
@@ -371,28 +423,28 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                     <h3 className={styles.logsTitle}>
                         <FontAwesomeIcon icon={faTerminal} /> Container Logs
                     </h3>
-                    <button
-                        type="button"
-                        className={styles.logsToggle}
+                    <Button
+                        variant="secondary"
+                        size="small"
                         onClick={handleToggleLogs}
                         disabled={container.status !== 'running'}
                     >
                         {isStreaming ? 'Stop Streaming' : 'Start Streaming'}
-                    </button>
+                    </Button>
                 </div>
-        
+
                 <div className={styles.logsContent}>
                     {logs.length === 0 ? (
                         <div className={styles.noLogs}>
-                            {container.status === 'running' 
+                            {container.status === 'running'
                                 ? 'Click "Start Streaming" to view logs'
                                 : 'Container is not running'}
                         </div>
                     ) : (
                         <div className={styles.logLines}>
                             {logs.map((log, index) => (
-                                <div 
-                                    key={index} 
+                                <div
+                                    key={index}
                                     className={`${styles.logLine} ${styles[log.type] || ''}`}
                                 >
                                     {log.timestamp ? (
@@ -406,7 +458,7 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                     )}
                 </div>
             </div>
-            
+
             <ContainerActionModal
                 isOpen={modalState.isOpen}
                 action={modalState.action}
@@ -415,8 +467,8 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                 isComplete={modalState.isComplete}
                 onClose={handleCloseModal}
             />
-            
-            {showWebWarning && (
+
+            {!!showWebWarning && (
                 <div className={styles.warningModal}>
                     <div className={styles.warningModalContent}>
                         <h3>
@@ -424,29 +476,25 @@ export const ContainerDetails: React.FC<ContainerDetailsProps> = ({ container, o
                             Warning
                         </h3>
                         <p>
-                            {showWebWarning.action === 'stop' 
+                            {showWebWarning.action === 'stop'
                                 ? 'Stopping the web container will shut down this interface. You can restart it using "aidev container web start" from the command line.'
                                 : 'Restarting the web container with --clean will rebuild and shut down this interface. You can restart it using "aidev container web start" from the command line.'}
                         </p>
                         <div className={styles.warningModalActions}>
-                            <button
-                                type="button"
-                                className={styles.warningModalCancel}
-                                onClick={() => setShowWebWarning(null)}
+                            <Button
+                                variant="ghost"
+                                size="medium"
+                                onClick={handleWebWarningCancel}
                             >
                                 Cancel
-                            </button>
-                            <button
-                                type="button"
-                                className={styles.warningModalConfirm}
-                                onClick={() => {
-                                    handleWebWarningConfirm().catch(() => {
-                                        // Error handled in handleWebWarningConfirm
-                                    })
-                                }}
+                            </Button>
+                            <Button
+                                variant="primary"
+                                size="medium"
+                                onClick={handleWebWarningContinue}
                             >
                                 Continue
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
@@ -9,6 +10,7 @@ import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { SessionHeader } from '@/features/Sessions/components/SessionHeader'
 import { SessionTabs } from '@/features/Sessions/components/SessionTabs'
+import { Button } from '@/components/common/Button'
 import styles from './SessionViewer.module.css'
 
 type SessionViewerProps = {
@@ -147,6 +149,50 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
         router.push(`/tasks/${taskId}?${params.toString()}`)
     }, [searchParams, router, taskId])
 
+    const noop = useCallback(() => { /* read-only */ }, [])
+
+    const togglePreview = useCallback((index: number) => {
+        setExpandedPreviews(prev => {
+            const newExpanded = new Set(prev)
+            if (newExpanded.has(index)) {
+                newExpanded.delete(index)
+            } else {
+                newExpanded.add(index)
+            }
+
+            return newExpanded
+        })
+    }, [])
+
+    const toggleFile = useCallback((index: number) => {
+        setExpandedFiles(prev => {
+            const newExpanded = new Set(prev)
+            if (newExpanded.has(index)) {
+                newExpanded.delete(index)
+            } else {
+                newExpanded.add(index)
+            }
+            
+            return newExpanded
+        })
+    }, [])
+
+    // Wrapper functions to avoid arrow functions in JSX
+    const createToggleFileHandler = useCallback((index: number) => {
+        return () => toggleFile(index)
+    }, [toggleFile])
+
+    const createTogglePreviewHandler = useCallback((index: number) => {
+        return (e: React.MouseEvent) => {
+            e.stopPropagation()
+            togglePreview(index)
+        }
+    }, [togglePreview])
+
+    const createToggleExpandedHandler = useCallback((index: number) => {
+        return () => toggleExpanded(index)
+    }, [toggleExpanded])
+
     const renderMarkdownText = useCallback((text: string) => {
     // Split by lines and process markdown-like syntax
         return text.split('\n').map((line, i) => {
@@ -171,7 +217,7 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
             if (/^\s+- /.test(line)) {
                 const indent = (/^(\s+)/.exec(line))?.[1].length || 0
 
-                return <li key={i} className={styles.mdListItem} style={{ marginLeft: `${indent * 0.5}rem` }}>{line.trim().slice(2)}</li>
+                return <li key={i} className={`${styles.mdListItem} ${styles[`indent${indent}`] || ''}`}>{line.trim().slice(2)}</li>
             }
       
             // Handle empty lines
@@ -312,8 +358,7 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                     <div className={styles.toolEntry}>
                                         <div
                                             className={`${styles.toolHeader} ${hasContent(entry) ? '' : styles.noContent}`}
-                                            onClick={() => hasContent(entry) && toggleExpanded(index)}
-                                            style={{ cursor: hasContent(entry) ? 'pointer' : 'default' }}
+                                            onClick={hasContent(entry) ? createToggleExpandedHandler(index) : undefined}
                                         >
                                             <div className={styles.toolInfo}>
                                                 <span className={styles.toolIcon}>{getToolIcon(entry.name || '')}</span>
@@ -324,9 +369,9 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                                 {entry.summary ? <span className={styles.summary}>{entry.summary}</span> : null}
                                             </div>
                                             {hasContent(entry) && (
-                                                <button className={`${styles.expandButton} ${expandedItems.has(index) ? styles.expanded : ''}`}>
+                                                <Button type="button" variant="ghost" size="small" className={`${styles.expandButton} ${expandedItems.has(index) ? styles.expanded : ''}`}>
                                                     <FontAwesomeIcon icon={faChevronRight} />
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                 
@@ -346,22 +391,15 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                                                 </div> : null}
                                                                 <div className={styles.filePreview}>
                                                                     <pre>{isExpanded ? result.fullContent : result.preview}</pre>
-                                                                    {result.hasMore ? <button 
+                                                                    {result.hasMore ? <Button 
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="small"
                                                                         className={styles.expandPreview}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation()
-                                                                            const newExpanded = new Set(expandedPreviews)
-                                                                            if (isExpanded) {
-                                                                                newExpanded.delete(index)
-                                                                            } else {
-                                                                                newExpanded.add(index)
-                                                                            }
-
-                                                                            setExpandedPreviews(newExpanded)
-                                                                        }}
+                                                                        onClick={createTogglePreviewHandler(index)}
                                                                     >
                                                                         {isExpanded ? 'Show less' : 'Show more'}
-                                                                    </button> : null}
+                                                                    </Button> : null}
                                                                 </div>
                                                             </div>
                                                         )
@@ -389,16 +427,7 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                     <div key={index} className={styles.fileItem}>
                                         <div 
                                             className={styles.fileHeader}
-                                            onClick={() => {
-                                                const newExpanded = new Set(expandedFiles)
-                                                if (isExpanded) {
-                                                    newExpanded.delete(index)
-                                                } else {
-                                                    newExpanded.add(index)
-                                                }
-
-                                                setExpandedFiles(newExpanded)
-                                            }}
+                                            onClick={createToggleFileHandler(index)}
                                         >
                                             <div className={styles.fileIcon}>📄</div>
                                             <div className={styles.fileInfo}>
@@ -406,14 +435,14 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                                                 <div className={styles.filePath}>{entry.file_path}</div>
                                                 {entry.summary ? <div className={styles.fileSummary}>{entry.summary}</div> : null}
                                             </div>
-                                            {entry.full_content ? <button className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}>
+                                            {entry.full_content ? <Button type="button" variant="ghost" size="small" className={`${styles.expandButton} ${isExpanded ? styles.expanded : ''}`}>
                                                 <FontAwesomeIcon icon={faChevronRight} />
-                                            </button> : null}
+                                            </Button> : null}
                                         </div>
                                         {isExpanded && entry.full_content ? <div className={styles.fileContent}>
                                             <CodeEditor
                                                 value={entry.full_content}
-                                                onChange={() => { /* read-only */ }}
+                                                onChange={noop}
                                                 language={getFileLanguage(fileName)}
                                                 readOnly
                                                 height="auto"

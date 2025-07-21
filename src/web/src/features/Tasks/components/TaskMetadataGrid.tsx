@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faToggleOn, faToggleOff, faRedo } from '@fortawesome/free-solid-svg-icons'
 import { Task } from '@/lib/api'
 import { TaskStatusBadge } from './TaskStatusBadge'
+import { Button } from '@/components/common/Button'
 import styles from './TaskDetails.module.css'
 
 type TaskMetadataGridProps = {
@@ -31,16 +32,17 @@ const TaskMetadataGridComponent: React.FC<TaskMetadataGridProps> = ({
             <div className={styles.metadataGrid}>
                 {canEditHold ? <div className={styles.metaItem}>
                     <label>Active</label>
-                    <button
-                        className={`${styles.holdToggle} ${task.hold ? styles.holdActive : ''}`}
+                    <Button
+                        variant={task.hold ? 'secondary' : 'primary'}
+                        size="small"
                         onClick={handleToggleHold}
                     >
                         <FontAwesomeIcon 
                             icon={task.hold ? faToggleOff : faToggleOn} 
-                            className={styles.holdIcon}
+                            style={{ marginRight: '0.5rem' }}
                         />
                         <span>{task.hold ? 'On Hold' : 'Active'}</span>
-                    </button>
+                    </Button>
                 </div> : null}
         
                 <div className={styles.metaItem}>
@@ -48,14 +50,15 @@ const TaskMetadataGridComponent: React.FC<TaskMetadataGridProps> = ({
                     <div className={styles.statusContainer}>
                         <TaskStatusBadge status={task.status} />
                         {task.status === 'failed' && (
-                            <button
-                                className={styles.retryButton}
+                            <Button
+                                variant="secondary"
+                                size="small"
                                 onClick={handleRetry}
                                 title="Retry task"
                             >
-                                <FontAwesomeIcon icon={faRedo} className={styles.retryIcon} />
+                                <FontAwesomeIcon icon={faRedo} style={{ marginRight: '0.5rem' }} />
                                 <span>Retry</span>
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

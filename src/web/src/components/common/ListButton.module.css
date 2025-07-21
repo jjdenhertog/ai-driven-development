@@ -1,0 +1,23 @@
+.listButton {
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  justify-content: flex-start;
+  font-size: 0.875rem;
+  min-height: auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.listButton:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color-light);
+  transform: translateX(2px);
+}
+
+.listButton.selected {
+  background: var(--accent-muted);
+  border-color: var(--accent-color);
+}

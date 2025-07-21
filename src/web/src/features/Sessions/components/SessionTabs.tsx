@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback } from 'react'
+import { Button } from '@/components/common/Button'
 import styles from './SessionViewer.module.css'
 
 type SessionTabsProps = {
@@ -22,24 +23,27 @@ export const SessionTabs: React.FC<SessionTabsProps> = ({
 
     return (
         <div className={styles.tabs}>
-            <button 
-                className={`${styles.tab} ${activeTab === 'timeline' ? styles.active : ''}`}
+            <Button 
+                type="button"
+                variant={activeTab === 'timeline' ? 'primary' : 'ghost'}
                 onClick={handleTimelineClick}
             >
         Timeline
-            </button>
-            {hasWrittenFiles ? <button 
-                className={`${styles.tab} ${activeTab === 'files' ? styles.active : ''}`}
+            </Button>
+            {hasWrittenFiles ? <Button 
+                type="button"
+                variant={activeTab === 'files' ? 'primary' : 'ghost'}
                 onClick={handleFilesClick}
             >
           Files Written
-            </button> : null}
-            {hasLogs ? <button 
-                className={`${styles.tab} ${activeTab === 'logs' ? styles.active : ''}`}
+            </Button> : null}
+            {hasLogs ? <Button 
+                type="button"
+                variant={activeTab === 'logs' ? 'primary' : 'ghost'}
                 onClick={handleLogsClick}
             >
           Logs
-            </button> : null}
+            </Button> : null}
         </div>
     )
 }

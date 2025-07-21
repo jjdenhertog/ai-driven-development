@@ -18,7 +18,7 @@ export async function getTasks(options: Options = {}): Promise<Task[]> {
 
     try {
         // Check if directory exists before reading
-        if (!existsSync(TASKS_DIR)) 
+        if (!existsSync(TASKS_DIR))
             return [];
 
         const files = readdirSync(TASKS_DIR);
@@ -28,10 +28,16 @@ export async function getTasks(options: Options = {}): Promise<Task[]> {
                 continue;
 
             const filePath = join(TASKS_DIR, file);
-            const task = loadTaskFromFile(filePath);
+            let task = loadTaskFromFile(filePath);
+            if (task) {
+                task = {
+                    ...task,
+                    status: task.status || 'pending'
+                }
 
-            if (task && (!status || task.status === status))
-                foundTasks.push(task);
+                if ((!status || task.status === status))
+                    foundTasks.push(task);
+            }
         }
     } catch (error) {
         // Log error for debugging but don't fail

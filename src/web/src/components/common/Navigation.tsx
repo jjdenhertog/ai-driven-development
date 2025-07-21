@@ -17,9 +17,9 @@ export const Navigation: React.FC = () => {
 
     const navItems = useMemo<readonly NavItem[]>(() => [
         { href: '/plan', label: 'Plan' },
-        { href: '/tasks', label: 'Tasks' },
+        { href: '/tasks', label: 'Code' },
         { href: '/containers', label: 'Containers' },
-        { href: '/settings', label: 'Settings' }
+        { href: '/settings', label: 'Your Codebase' }
     ], [])
 
     const isHomePage = pathname === '/'

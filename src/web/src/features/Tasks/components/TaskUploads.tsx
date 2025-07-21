@@ -4,11 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faImage, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Image from 'next/image'
 import { Task, ImageWithDescription } from '@/types'
+import { Button } from '@/components/common/Button'
 import styles from './TaskUploads.module.css'
 
 type TaskUploadsProps = {
-    task: Task
-    onUpdateTask: (updates: Partial<Task>) => Promise<void>
+    readonly task: Task
+    readonly onUpdateTask: (updates: Partial<Task>) => Promise<void>
 }
 
 export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
@@ -129,6 +130,70 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
         }
     }, [showClearConfirm, onUpdateTask, enqueueSnackbar])
 
+    const handleClearAllWrapper = useCallback(() => {
+        handleClearAll().catch(() => {
+            // Error handled in handleClearAll
+        })
+    }, [handleClearAll])
+
+    const handleCancelClearConfirm = useCallback(() => {
+        setShowClearConfirm(false)
+    }, [])
+
+    const handleImageRemoveWrapper = useCallback((index: number) => () => {
+        handleImageRemove(index).catch(() => {
+            // Error handled in handleImageRemove
+        })
+    }, [handleImageRemove])
+
+    const handleEditDescription = useCallback((index: number, description: string) => () => {
+        setEditingImage({index, description})
+    }, [])
+
+    const handleDescriptionChange = useCallback((index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEditingImage({index, description: e.target.value})
+    }, [])
+
+    const handleDescriptionBlur = useCallback((index: number, description: string) => () => {
+        handleDescriptionUpdate(index, description).catch(() => {
+            // Error handled in handleDescriptionUpdate
+        })
+    }, [handleDescriptionUpdate])
+
+    const handleDescriptionKeyDown = useCallback((index: number, description: string) => (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleDescriptionUpdate(index, description).catch(() => {
+                // Error handled in handleDescriptionUpdate
+            })
+        } else if (e.key === 'Escape') {
+            setEditingImage(null)
+        }
+    }, [handleDescriptionUpdate])
+
+    const handleImageUploadWrapper = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        handleImageUpload(e).catch(() => {
+            // Error handled in handleImageUpload
+        })
+    }, [handleImageUpload])
+
+    const handleUploadWithDescriptions = useCallback(() => {
+        const descriptions = new Map<string, string>()
+        pendingFiles.forEach((file, index) => {
+            const input = document.getElementById(`file-desc-${index}`) as HTMLInputElement
+            if (input?.value) {
+                descriptions.set(file.name, input.value)
+            }
+        })
+        uploadImagesWithDescriptions(descriptions).catch(() => {
+            // Error handled in uploadImagesWithDescriptions
+        })
+    }, [pendingFiles, uploadImagesWithDescriptions])
+
+    const handleCancelModal = useCallback(() => {
+        setShowDescriptionModal(false)
+        setPendingFiles([])
+    }, [])
+
 
     return (
         <div className={styles.container}>
@@ -139,41 +204,33 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                         {showClearConfirm ? (
                             <>
                                 <span className={styles.confirmText}>Are you sure?</span>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        handleClearAll().catch(() => {
-                                            // Error handled in handleClearAll
-                                        })
-                                    }}
-                                    className={`${styles.clearButton} ${styles.confirmButton}`}
+                                <Button
+                                    onClick={handleClearAllWrapper}
+                                    variant="danger"
+                                    size="small"
                                     title="Confirm removal"
                                 >
                                     Confirm
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowClearConfirm(false)}
-                                    className={styles.cancelButton}
+                                </Button>
+                                <Button
+                                    onClick={handleCancelClearConfirm}
+                                    variant="ghost"
+                                    size="small"
                                     title="Cancel"
                                 >
                                     Cancel
-                                </button>
+                                </Button>
                             </>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    handleClearAll().catch(() => {
-                                        // Error handled in handleClearAll
-                                    })
-                                }}
-                                className={styles.clearButton}
+                            <Button
+                                onClick={handleClearAllWrapper}
+                                variant="danger"
+                                size="small"
                                 title="Remove all images"
                             >
-                                <FontAwesomeIcon icon={faTrash} />
+                                <FontAwesomeIcon icon={faTrash} style={{ marginRight: '0.5rem' }} />
                                 Clear All
-                            </button>
+                            </Button>
                         )}
                     </div>
                 )}
@@ -192,38 +249,23 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                                     height={150}
                                     style={{ objectFit: 'cover' }}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        handleImageRemove(index).catch(() => {
-                                            // Error handled in handleImageRemove
-                                        })
-                                    }}
+                                <Button
+                                    onClick={handleImageRemoveWrapper(index)}
+                                    variant="danger"
+                                    size="small"
                                     className={styles.removeButton}
                                     title="Remove image"
                                 >
                                     <FontAwesomeIcon icon={faTimes} />
-                                </button>
+                                </Button>
                                 <div className={styles.imageDescription}>
                                     {editingImage?.index === index ? (
                                         <input
                                             type="text"
                                             value={editingImage.description}
-                                            onChange={(e) => setEditingImage({index, description: e.target.value})}
-                                            onBlur={() => {
-                                                handleDescriptionUpdate(index, editingImage.description).catch(() => {
-                                                    // Error handled in handleDescriptionUpdate
-                                                })
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    handleDescriptionUpdate(index, editingImage.description).catch(() => {
-                                                        // Error handled in handleDescriptionUpdate
-                                                    })
-                                                } else if (e.key === 'Escape') {
-                                                    setEditingImage(null)
-                                                }
-                                            }}
+                                            onChange={handleDescriptionChange(index)}
+                                            onBlur={handleDescriptionBlur(index, editingImage.description)}
+                                            onKeyDown={handleDescriptionKeyDown(index, editingImage.description)}
                                             className={styles.descriptionInput}
                                             placeholder="Add description..."
                                             autoFocus
@@ -231,7 +273,7 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                                     ) : (
                                         <div 
                                             className={styles.descriptionText}
-                                            onClick={() => setEditingImage({index, description: image.description || ''})}
+                                            onClick={handleEditDescription(index, image.description || '')}
                                             title="Click to edit description"
                                         >
                                             {image.description || <span className={styles.placeholderText}>Click to add description</span>}
@@ -258,11 +300,7 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                         id="task-image-upload"
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
-                            handleImageUpload(e).catch(() => {
-                                // Error handled in handleImageUpload
-                            })
-                        }}
+                        onChange={handleImageUploadWrapper}
                         disabled={uploading}
                         className={styles.uploadInput}
                     />
@@ -270,7 +308,7 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
             </div>
 
             {/* Description Modal */}
-            {showDescriptionModal && (
+            {showDescriptionModal ? (
                 <div className={styles.modal}>
                     <div className={styles.modalContent}>
                         <h3>Add Image Descriptions</h3>
@@ -291,40 +329,24 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                             ))}
                         </div>
                         <div className={styles.modalActions}>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const descriptions = new Map<string, string>()
-                                    pendingFiles.forEach((file, index) => {
-                                        const input = document.getElementById(`file-desc-${index}`) as HTMLInputElement
-                                        if (input?.value) {
-                                            descriptions.set(file.name, input.value)
-                                        }
-                                    })
-                                    uploadImagesWithDescriptions(descriptions).catch(() => {
-                                        // Error handled in uploadImagesWithDescriptions
-                                    })
-                                }}
-                                className={styles.uploadWithDescriptions}
+                            <Button
+                                onClick={handleUploadWithDescriptions}
+                                variant="primary"
                                 disabled={uploading}
                             >
                                 {uploading ? 'Uploading...' : 'Upload Images'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setShowDescriptionModal(false)
-                                    setPendingFiles([])
-                                }}
-                                className={styles.cancelButton}
+                            </Button>
+                            <Button
+                                onClick={handleCancelModal}
+                                variant="ghost"
                                 disabled={uploading}
                             >
                                 Cancel
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
-            )}
+            ) : null}
         </div>
     )
 }

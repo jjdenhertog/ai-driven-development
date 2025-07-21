@@ -9,6 +9,7 @@ import { ConceptFeature, ImageWithDescription } from '@/types'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ErrorNotification } from '@/components/common/ErrorNotification'
+import { Button } from '@/components/common/Button'
 import styles from './ConceptFeatureEditor.module.css'
 
 type ConceptFeatureEditorProps = {
@@ -57,10 +58,11 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                         method: 'DELETE'
                     })
                     if (!response.ok) {
-                        console.error('Failed to delete image:', filename)
+                        
+                        // Failed to delete image
                     }
-                } catch (error) {
-                    console.error('Error deleting image:', filename, error)
+                } catch (_error) {
+                    // Error deleting image
                 }
             }
             
@@ -309,23 +311,24 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                 {!!hasChanges && <span className={styles.unsaved}>• Unsaved</span>}
                 
                 <div className={styles.headerActions}>
-                    <button
+                    <Button
                         type="button"
                         onClick={handleSaveClick}
                         disabled={saving || !hasChanges}
-                        className={styles.saveButton}
+                        variant="primary"
                     >
                         <FontAwesomeIcon icon={faSave} />
                         <span>{saving ? 'Saving...' : 'Save'}</span>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
                         onClick={handleDeleteClick}
-                        className={styles.deleteButton}
+                        variant="danger"
+                        size="medium"
                         title="Delete feature"
                     >
                         <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -356,17 +359,18 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                                             width={150}
                                             height={150}
                                             className={styles.imageThumbnail}
-                                            style={{ objectFit: 'cover' }}
                                         />
                                     </div>
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={createImageRemoveHandler(index)}
+                                        variant="ghost"
+                                        size="small"
                                         className={styles.removeImageButton}
                                         title="Remove image"
                                     >
                                         <FontAwesomeIcon icon={faTimes} />
-                                    </button>
+                                    </Button>
                                     <div className={styles.imageDescription}>
                                         {editingImage?.index === index ? (
                                             <input
@@ -472,22 +476,22 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                             ))}
                         </div>
                         <div className={styles.modalActions}>
-                            <button
+                            <Button
                                 type="button"
                                 onClick={handleUploadModalSubmit}
-                                className={styles.uploadWithDescriptions}
+                                variant="primary"
                                 disabled={uploading}
                             >
                                 {uploading ? 'Uploading...' : 'Upload Images'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
                                 onClick={handleUploadModalCancel}
-                                className={styles.cancelModalButton}
+                                variant="secondary"
                                 disabled={uploading}
                             >
                                 Cancel
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

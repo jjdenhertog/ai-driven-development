@@ -126,7 +126,8 @@ export async function learningCommand(options: LearningOptions) {
                                         taskName: task.name,
                                         worktreePath,
                                         logsDir,
-                                        exitCode: result.exitCode
+                                        exitCode: result.exitCode,
+                                        fileName:'claude'
                                     });
 
                                     return sessionReport;
