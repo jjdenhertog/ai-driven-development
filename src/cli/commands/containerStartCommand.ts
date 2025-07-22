@@ -95,6 +95,8 @@ export async function containerStartCommand(options: Options): Promise<void> {
         ];
 
         // Handle volume mounting
+        console.log("🚀 ~ containerStartCommand ~ process.env.AIDEV_HOST_WORKSPACE:", process.env.AIDEV_HOST_WORKSPACE)
+        
         if (process.env.AIDEV_HOST_WORKSPACE) {
             // Running in a standardized workstation environment
             const currentPath = process.cwd();
@@ -126,9 +128,15 @@ export async function containerStartCommand(options: Options): Promise<void> {
         runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096');
 
         // Add port mapping and PORT env var for web container
+        let webPort = port; // Default to the port parameter
         if (configType === 'web') {
-            runArgs.push('-p', `${port}:${port}`, '-e', `PORT=${port}`);
-            log(`Web container will run on port ${port}`, 'info');
+            // Use AIDEV_WEB_PORT if available, otherwise use the port parameter
+            webPort = process.env.AIDEV_WEB_PORT ? parseInt(process.env.AIDEV_WEB_PORT) : port;
+            
+            runArgs.push('-p', `${webPort}:${webPort}`);
+            runArgs.push('-e', `AIDEV_WEB_PORT=${webPort}`);
+
+            log(`Web container will run on port ${webPort}`, 'info');
 
             // Add host proxy environment variable for web containers (unless disabled)
             if (!disableProxy) {
@@ -155,7 +163,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
             log(`Container ${containerName} started successfully`, 'success');
 
             if (configType === 'web') {
-                log(`Web interface will be available at http://localhost:${port} once startup is complete`, 'info');
+                log(`Web interface will be available at http://localhost:${webPort} once startup is complete`, 'info');
                 log(`Use "aidev container logs ${name} -f" to monitor startup progress`, 'info');
             } else {
                 log(`Use "aidev container exec ${name} <command>" to run commands in the container`, 'info');
@@ -169,4 +177,5 @@ export async function containerStartCommand(options: Options): Promise<void> {
         log(`Failed to start ${name} container: ${error instanceof Error ? error.message : String(error)}`, 'error');
         throw error;
     }
+        console.log("🚀 ~ containerStartCommand ~ process.env.AIDEV_HOST_WORKSPACE:", process.env.AIDEV_HOST_WORKSPACE)
 }

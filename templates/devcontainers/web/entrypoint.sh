@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set the PORT and HOSTNAME for web server
-PORT=${PORT:-3001}
-export PORT
+AIDEV_WEB_PORT=${AIDEV_WEB_PORT:-3001}
+export AIDEV_WEB_PORT
 HOSTNAME=0.0.0.0
 export HOSTNAME
 

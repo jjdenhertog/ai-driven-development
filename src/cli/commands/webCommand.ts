@@ -69,7 +69,7 @@ export async function webCommand(options: Options) {
         if (dev) {
             log('Starting AIdev web interface (development mode)...', 'info')
 
-            const port = process.env.PORT || '3001';
+            const port = process.env.AIDEV_WEB_PORT || '3001';
             log(`Starting development server on http://localhost:${port}`, 'info')
 
             // Start the Next.js dev server
@@ -94,7 +94,7 @@ export async function webCommand(options: Options) {
             if (!existsSync(standaloneServerPath)) 
                 throw new Error(`Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
 
-            const port = process.env.PORT || '3001';
+            const port = process.env.AIDEV_WEB_PORT || '3001';
             const hostname = process.env.HOSTNAME || '0.0.0.0';
             log(`Starting AIdev web interface on http://localhost:${port}`, 'info')
             log(`Server will bind to: ${hostname}:${port}`, 'info')
