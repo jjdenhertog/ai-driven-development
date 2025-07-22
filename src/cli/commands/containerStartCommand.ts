@@ -107,7 +107,10 @@ export async function containerStartCommand(options: Options): Promise<void> {
                 const relativePath = currentPath.slice(workspaceBase.length);
                 console.log("🚀 ~ containerStartCommand ~ relativePath:", relativePath)
                 const hostPath = process.env.AIDEV_HOST_WORKSPACE + relativePath;
-                runArgs.push('-v', `${process.env.AIDEV_HOST_WORKSPACE}:/workspace/${relativePath}`);
+                console.log("🚀 ~ containerStartCommand ~ hostPath:", hostPath)
+                const workspacePath = `/workspace${relativePath}`;
+                console.log("🚀 ~ containerStartCommand ~ workspacePath:", workspacePath)
+                runArgs.push('-v', `${hostPath}:${workspacePath}`);
                 log(`Using workstation path mapping: ${hostPath}`, 'info');
             } else {
                 log('Current directory is not under /workspace', 'error');
