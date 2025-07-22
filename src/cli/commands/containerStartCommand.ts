@@ -88,12 +88,35 @@ export async function containerStartCommand(options: Options): Promise<void> {
         // Prepare run command
         const runArgs = [
             'run', '-dit', // -d for detached, -i for interactive, -t for tty
-            '--name', containerName,
-            '-v', `${process.cwd()}:/workspace`,
+            '--name', containerName
+        ];
+
+        // Handle volume mounting
+        if (process.env.AIDEV_HOST_WORKSPACE) {
+            // Running in a standardized workstation environment
+            const currentPath = process.cwd();
+            const workspaceBase = '/workspace';
+            
+            if (currentPath.startsWith(workspaceBase)) {
+                // Extract relative path from /workspace
+                const relativePath = currentPath.substring(workspaceBase.length);
+                const hostPath = process.env.AIDEV_HOST_WORKSPACE + relativePath;
+                runArgs.push('-v', `${hostPath}:/workspace`);
+                log(`Using workstation path mapping: ${hostPath}`, 'info');
+            } else {
+                log('Current directory is not under /workspace', 'error');
+                throw new Error('When using AIDEV_HOST_WORKSPACE, you must be in /workspace directory');
+            }
+        } else {
+            // Standard host execution
+            runArgs.push('-v', `${process.cwd()}:/workspace`);
+        }
+
+        runArgs.push(
             '--workdir', '/workspace',
             '--cap-add=NET_ADMIN',
             '--cap-add=NET_RAW'
-        ];
+        );
         
         // Add environment variables
         runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096');

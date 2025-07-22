@@ -3,6 +3,7 @@ import { ensureDirSync, existsSync, rmSync } from 'fs-extra';
 import { join, parse } from 'node:path';
 
 import { executeClaudeCommand } from '../../claude-wrapper';
+import { STORAGE_PATH } from '../config';
 import addHooks from '../utils/claude/addHooks';
 import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
 import removeHooks from '../utils/claude/removeHooks';
@@ -23,7 +24,6 @@ import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
-import { STORAGE_PATH } from '../config';
 
 type Options = {
     taskId: string
@@ -278,8 +278,24 @@ CRITICAL: You are in a git worktree. ALL work must be done within the current di
             cwd: worktreePath
         });
         const pushResult = await pushBranch(branchName, worktreePath);
-        if (!pushResult.success)
+        if (!pushResult.success) {
             log(`Failed to push changes to remote: ${pushResult.error}`, 'error', undefined, logPath);
+            log(`IMPORTANT: Worktree preserved at ${worktreePath}`, 'warn', undefined, logPath);
+            log(`Your completed work is safe. To push manually:`, 'info', undefined, logPath);
+            log(`  cd ${worktreePath}`, 'info', undefined, logPath);
+            log(`  git push origin ${branchName}`, 'info', undefined, logPath);
+            
+            // Clean up hooks but preserve the worktree with all changes
+            removeHooks(worktreePath);
+            
+            // Update task status to indicate push failure but work is complete
+            updateTaskFile(task.path, {
+                status: 'failed-completing',
+                notes: 'Task completed but push failed. Manual push required.'
+            });
+            
+            return; // Exit without removing worktree
+        }
 
         // Create PR
         if (checkGitAuth()) {
@@ -288,7 +304,7 @@ CRITICAL: You are in a git worktree. ALL work must be done within the current di
         }
 
         ///////////////////////////////////////////////////////////
-        // Remove work tree
+        // Remove work tree - only if push was successful
         ///////////////////////////////////////////////////////////
 
         log(`Removing worktree...`, 'info', undefined, logPath);
