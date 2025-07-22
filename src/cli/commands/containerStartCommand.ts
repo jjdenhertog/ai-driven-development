@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-push-push */
 import { existsSync } from 'fs-extra';
 import { exec } from 'node:child_process';
 import { join } from 'node:path';
@@ -99,7 +100,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
             
             if (currentPath.startsWith(workspaceBase)) {
                 // Extract relative path from /workspace
-                const relativePath = currentPath.substring(workspaceBase.length);
+                const relativePath = currentPath.slice(workspaceBase.length);
                 const hostPath = process.env.AIDEV_HOST_WORKSPACE + relativePath;
                 runArgs.push('-v', `${hostPath}:/workspace`);
                 log(`Using workstation path mapping: ${hostPath}`, 'info');
