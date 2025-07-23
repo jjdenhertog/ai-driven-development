@@ -138,7 +138,7 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                     formData.append('description', description)
                 }
 
-                const response = await fetch('/api/concept-features/upload', {
+                const response = await fetch('/api/uploads', {
                     method: 'POST',
                     body: formData
                 })
@@ -168,19 +168,21 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
     }, [pendingFiles, images])
 
     const handleImageRemove = useCallback((index: number) => {
-        const imageItem = images[index]
-        const imagePath = imageItem.path
-        
-        // Extract filename from path
-        const filename = imagePath.split('/').pop()
-        if (!filename) return
+        return () => {
+            const imageItem = images[index]
+            const imagePath = imageItem.path
+            
+            // Extract filename from path
+            const filename = imagePath.split('/').pop()
+            if (!filename) return
 
-        // Add to deletion list (will be deleted on save)
-        setImagesToDelete(prev => [...prev, filename])
-        
-        // Remove from local state
-        setImages(images.filter((_, i) => i !== index))
-        setHasChanges(true)
+            // Add to deletion list (will be deleted on save)
+            setImagesToDelete(prev => [...prev, filename])
+            
+            // Remove from local state
+            setImages(images.filter((_, i) => i !== index))
+            setHasChanges(true)
+        }
     }, [images])
 
     const handleDescriptionUpdate = useCallback((index: number, description: string) => {
@@ -192,76 +194,43 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
         setEditingImage(null)
     }, [images])
 
+    const handleEditingImageChange = useCallback((index: number) => {
+        return (e: React.ChangeEvent<HTMLInputElement>) => {
+            setEditingImage({index, description: e.target.value})
+        }
+    }, [])
 
+    const handleEditingImageBlur = useCallback((index: number) => {
+        return () => {
+            if (editingImage && editingImage.index === index) {
+                handleDescriptionUpdate(index, editingImage.description)
+            }
+        }
+    }, [editingImage, handleDescriptionUpdate])
+
+    const handleEditingImageKeyDown = useCallback((index: number) => {
+        return (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter' && editingImage && editingImage.index === index) {
+                handleDescriptionUpdate(index, editingImage.description)
+            } else if (e.key === 'Escape') {
+                setEditingImage(null)
+            }
+        }
+    }, [editingImage, handleDescriptionUpdate])
+
+    const handleDescriptionClick = useCallback((index: number, description: string) => {
+        return () => {
+            setEditingImage({index, description})
+        }
+    }, [])
 
     const handleImageUploadWrapper = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        handleImageUpload(e).catch(() => {
+        handleImageUpload(e).catch((_error: unknown) => {
             // Error is already handled in handleImageUpload
         })
     }, [handleImageUpload])
 
-    // Handler functions for inline arrow functions
-    const handleImageRemoveClick = useCallback((index: number) => {
-        handleImageRemove(index)
-    }, [handleImageRemove])
 
-    const createImageRemoveHandler = useCallback((index: number) => {
-        return () => handleImageRemoveClick(index)
-    }, [handleImageRemoveClick])
-
-    const handleConfirmDelete = useCallback(() => {
-        handleDelete().catch(() => {
-            // Error is already handled in handleDelete
-        })
-    }, [handleDelete])
-
-    const handleCancelDelete = useCallback(() => {
-        setShowDeleteConfirm(false)
-    }, [])
-
-    const handleCloseError = useCallback(() => {
-        setErrorMessage('')
-    }, [])
-
-    // Wrapper functions for inline handlers to avoid ESLint warnings
-    const handleImageDescriptionChange = useCallback((index: number, value: string) => {
-        setEditingImage({index, description: value})
-    }, [])
-
-    const handleImageDescriptionBlur = useCallback((index: number) => {
-        if (editingImage && editingImage.index === index) {
-            handleDescriptionUpdate(index, editingImage.description)
-        }
-    }, [editingImage, handleDescriptionUpdate])
-
-    const handleImageDescriptionKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && editingImage && editingImage.index === index) {
-            handleDescriptionUpdate(index, editingImage.description)
-        } else if (e.key === 'Escape') {
-            setEditingImage(null)
-        }
-    }, [editingImage, handleDescriptionUpdate])
-
-    const handleImageDescriptionClick = useCallback((index: number, currentDescription: string) => {
-        setEditingImage({index, description: currentDescription || ''})
-    }, [])
-
-    // Event handler creators
-    const createImageDescriptionChangeHandler = useCallback((index: number) => {
-        return (e: React.ChangeEvent<HTMLInputElement>) => handleImageDescriptionChange(index, e.target.value)
-    }, [handleImageDescriptionChange])
-
-    const createImageDescriptionBlurHandler = useCallback((index: number) => {
-        return () => handleImageDescriptionBlur(index)
-    }, [handleImageDescriptionBlur])
-
-    const createImageDescriptionKeyDownHandler = useCallback((index: number) => {
-        return (e: React.KeyboardEvent) => handleImageDescriptionKeyDown(index, e)
-    }, [handleImageDescriptionKeyDown])
-
-    const createImageDescriptionClickHandler = useCallback((index: number, description: string) => {
-        return () => handleImageDescriptionClick(index, description)
-    }, [handleImageDescriptionClick])
 
     const handleUploadModalSubmit = useCallback(() => {
         const descriptions = new Map<string, string>()
@@ -277,6 +246,20 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
     const handleUploadModalCancel = useCallback(() => {
         setShowDescriptionModal(false)
         setPendingFiles([])
+    }, [])
+
+    const handleDeleteConfirm = useCallback(() => {
+        handleDelete().catch((_error: unknown) => {
+            // Error is already handled in handleDelete
+        })
+    }, [handleDelete])
+
+    const handleDeleteCancel = useCallback(() => {
+        setShowDeleteConfirm(false)
+    }, [])
+
+    const handleCloseError = useCallback(() => {
+        setErrorMessage('')
     }, [])
 
     if (!feature) {
@@ -363,7 +346,7 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                                     </div>
                                     <Button
                                         type="button"
-                                        onClick={createImageRemoveHandler(index)}
+                                        onClick={handleImageRemove(index)}
                                         variant="ghost"
                                         size="small"
                                         className={styles.removeImageButton}
@@ -376,9 +359,9 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                                             <input
                                                 type="text"
                                                 value={editingImage.description}
-                                                onChange={createImageDescriptionChangeHandler(index)}
-                                                onBlur={createImageDescriptionBlurHandler(index)}
-                                                onKeyDown={createImageDescriptionKeyDownHandler(index)}
+                                                onChange={handleEditingImageChange(index)}
+                                                onBlur={handleEditingImageBlur(index)}
+                                                onKeyDown={handleEditingImageKeyDown(index)}
                                                 className={styles.descriptionInput}
                                                 placeholder="Add description..."
                                                 autoFocus
@@ -386,7 +369,7 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                                         ) : (
                                             <div 
                                                 className={styles.descriptionText}
-                                                onClick={createImageDescriptionClickHandler(index, image.description || '')}
+                                                onClick={handleDescriptionClick(index, image.description || '')}
                                                 title="Click to edit description"
                                             >
                                                 {image.description || <span className={styles.placeholderText}>Click to add description</span>}
@@ -444,8 +427,8 @@ export const ConceptFeatureEditor: React.FC<ConceptFeatureEditorProps> = (props:
                 message={`Are you sure you want to delete "${feature.title}"? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
-                onConfirm={handleConfirmDelete}
-                onCancel={handleCancelDelete}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
             />
             {errorMessage.length > 0 && (
                 <ErrorNotification

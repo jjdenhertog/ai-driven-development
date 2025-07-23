@@ -1,0 +1,125 @@
+{
+  "test_framework": "generic",
+  "test_files": [
+    {
+      "path": "src/app/__tests__/layout.test.tsx",
+      "type": "unit",
+      "component": "RootLayout",
+      "test_count": 12,
+      "categories": [
+        "children rendering",
+        "HTML structure",
+        "metadata",
+        "error handling",
+        "accessibility",
+        "provider setup",
+        "performance"
+      ]
+    },
+    {
+      "path": "src/app/__tests__/page.test.tsx",
+      "type": "unit",
+      "component": "HomePage",
+      "test_count": 21,
+      "categories": [
+        "rendering",
+        "content display",
+        "branding",
+        "navigation hints",
+        "accessibility",
+        "server component behavior",
+        "layout integration",
+        "responsive design",
+        "error handling",
+        "performance"
+      ]
+    },
+    {
+      "path": "__tests__/integration/smoke.test.ts",
+      "type": "integration",
+      "test_count": 10,
+      "categories": [
+        "dependencies",
+        "development server",
+        "static assets",
+        "API routes",
+        "environment"
+      ]
+    },
+    {
+      "path": "__tests__/integration/build.test.ts",
+      "type": "integration",
+      "test_count": 16,
+      "categories": [
+        "TypeScript compilation",
+        "ESLint",
+        "production build",
+        "static export",
+        "bundle optimization",
+        "performance"
+      ]
+    },
+    {
+      "path": "__tests__/config/validation.test.ts",
+      "type": "configuration",
+      "test_count": 26,
+      "categories": [
+        "package.json",
+        "tsconfig.json",
+        ".eslintrc.json",
+        "next.config.js",
+        ".gitignore",
+        "file structure"
+      ]
+    }
+  ],
+  "test_utilities": [
+    {
+      "path": "src/test-utils/test-helpers.tsx",
+      "purpose": "Common test utilities and helpers",
+      "exports": [
+        "renderWithProviders",
+        "mockData",
+        "a11y",
+        "performance",
+        "viewport",
+        "waitFor",
+        "snapshot",
+        "TestErrorBoundary"
+      ]
+    },
+    {
+      "path": "src/test-utils/mocks/next.ts",
+      "purpose": "Next.js specific mocks",
+      "exports": [
+        "mockRouter",
+        "MockImage",
+        "MockLink",
+        "MockHead",
+        "mockFont",
+        "mockServerComponent",
+        "mockClientComponent",
+        "mockDynamic",
+        "mockNextConfig",
+        "mockEnv"
+      ]
+    }
+  ],
+  "mock_files": [
+    "src/test-utils/mocks/next.ts"
+  ],
+  "total_test_cases": 85,
+  "coverage_target": 80,
+  "test_categories": {
+    "unit": 33,
+    "integration": 26,
+    "configuration": 26
+  },
+  "notes": [
+    "All tests are designed to fail initially (TDD approach)",
+    "Tests cover all specifications from Phase 1",
+    "Includes comprehensive edge case and error handling tests",
+    "Test utilities support both Vitest and Jest frameworks",
+    "Mocks provided for Next.js specific functionality"
+  ]
+}

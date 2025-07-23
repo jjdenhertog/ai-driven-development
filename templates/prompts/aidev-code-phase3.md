@@ -86,23 +86,13 @@ INVENTORY_PATH="$TASK_OUTPUT_FOLDER/phase_outputs/inventory"
 ARCHITECT_PATH="$TASK_OUTPUT_FOLDER/phase_outputs/architect"
 TEST_PATH="$TASK_OUTPUT_FOLDER/phase_outputs/test_design"
 
-# For instruction tasks, test phase might be skipped
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Instruction task - checking required phases"
-  for PHASE_PATH in "$INVENTORY_PATH" "$ARCHITECT_PATH"; do
-    if [ ! -d "$PHASE_PATH" ]; then
-      echo "❌ ERROR: Previous phase outputs missing: $PHASE_PATH"
-      exit 1
-    fi
-  done
-else
-  for PHASE_PATH in "$INVENTORY_PATH" "$ARCHITECT_PATH" "$TEST_PATH"; do
-    if [ ! -d "$PHASE_PATH" ]; then
-      echo "❌ ERROR: Previous phase outputs missing: $PHASE_PATH"
-      exit 1
-    fi
-  done
-fi
+# Check required phases
+for PHASE_PATH in "$INVENTORY_PATH" "$ARCHITECT_PATH" "$TEST_PATH"; do
+  if [ ! -d "$PHASE_PATH" ]; then
+    echo "❌ ERROR: Previous phase outputs missing: $PHASE_PATH"
+    exit 1
+  fi
+done
 
 # Verify required files from Phase 1
 if [ ! -f "$ARCHITECT_PATH/prp.md" ]; then
@@ -162,12 +152,8 @@ if [ ! -f "$ARCHITECT_PATH/component_design.json" ]; then
 fi
 COMPONENT_DESIGN=$(cat "$ARCHITECT_PATH/component_design.json")
 
-# For instruction tasks, test manifest might not exist
-if [ "$TASK_TYPE" = "instruction" ]; then
-  TEST_MANIFEST='{"task_type": "instruction", "skip_reason": "documentation_only"}'
-else
-  TEST_MANIFEST=$(cat "$TEST_PATH/test_manifest.json" 2>/dev/null || echo '{"test_files": []}')
-fi
+# Load test manifest
+TEST_MANIFEST=$(cat "$TEST_PATH/test_manifest.json" 2>/dev/null || echo '{"test_files": []}')
 
 # Load context
 if [ ! -f "$TASK_OUTPUT_FOLDER/context.json" ]; then
@@ -186,10 +172,7 @@ echo "  - Use preference files: $USE_PREFERENCE_FILES"
 echo "  - Use examples: $USE_EXAMPLES"
 
 # Verify previous phases completed
-REQUIRED_PHASES='["inventory", "architect"]'
-if [ "$TASK_TYPE" != "instruction" ]; then
-  REQUIRED_PHASES='["inventory", "architect", "test_design"]'
-fi
+REQUIRED_PHASES='["inventory", "architect", "test_design"]'
 
 for PHASE in $(echo "$REQUIRED_PHASES" | jq -r '.[]'); do
   PHASE_COMPLETED=$(echo "$CONTEXT" | jq -r --arg phase "$PHASE" '.phases_completed | contains([$phase])')
@@ -200,54 +183,18 @@ for PHASE in $(echo "$REQUIRED_PHASES" | jq -r '.[]'); do
   fi
 done
 
-# CRITICAL: Initialize todos using TodoWrite tool for proper tracking
-echo "📝 Initializing todo list for implementation phase..."
+# Initialize implementation tracking
+echo "📝 Setting up implementation tracking..."
 
-# Create initial todo list based on task type
-if [ "$TASK_TYPE" = "instruction" ]; then
-  # Use TodoWrite tool to create documentation todos
-  # TodoWrite tool parameters: todos (array of {content, status, priority, id})
-  echo "Creating documentation task todos..."
-  # The actual TodoWrite tool will be called by the AI agent executing this prompt
-  
-elif [ "$TASK_TYPE" = "pattern" ]; then
-  # Use TodoWrite tool to create pattern implementation todos
-  echo "Creating pattern implementation todos..."
-  # The actual TodoWrite tool will be called by the AI agent executing this prompt
-  
-else
-  # Use TodoWrite tool to create standard implementation todos
-  echo "Creating standard implementation todos..."
-  # The actual TodoWrite tool will be called by the AI agent executing this prompt
-fi
-
-# IMPORTANT: The AI agent executing this prompt MUST:
-# 1. Use the TodoWrite tool (not bash variables) to create the initial todo list
-# 2. Update todo status using TodoWrite tool throughout the phase
-# 3. Ensure ALL todos are marked as completed before phase ends
+# CRITICAL: Create todos using TodoWrite tool at the start of implementation
+# Mark them as completed throughout the phase to ensure success tracking
 ```
 
 ### 2. Task-Specific Implementation Start
 
-#### CRITICAL: Todo Management with TodoWrite Tool
+#### Todo Tracking
 
-**YOU MUST USE THE TodoWrite TOOL FOR ALL TODO OPERATIONS:**
-
-1. **Initial Todo Creation**: Use TodoWrite tool to create the initial todo list based on task type:
-   - For instruction tasks: 5 documentation-related todos
-   - For pattern tasks: 5 pattern implementation todos  
-   - For standard tasks: 5 implementation todos
-
-2. **Status Updates**: Use TodoWrite tool to update status for EVERY change:
-   - When starting a task: mark as "in_progress"
-   - When completing a task: mark as "completed"
-   - NEVER use bash/jq to manipulate todos
-
-3. **Final Completion**: Before phase ends, use TodoWrite tool to ensure ALL todos are marked as completed
-
-Example TodoWrite usage:
-- Create/update todos: `TodoWrite` tool with `todos` parameter containing the full todo array
-- Each todo must have: content, status ("pending"/"in_progress"/"completed"), priority, id
+Use the TodoWrite tool to track your implementation progress. Create appropriate todos for your task and mark them as completed as you work.
 
 ```bash
 echo "🚀 Starting implementation for $TASK_TYPE task..."
@@ -261,35 +208,17 @@ record_decision() {
   echo "{\"timestamp\":\"$TIMESTAMP\",\"phase\":\"implement\",\"decision\":\"$DECISION\",\"reasoning\":\"$REASONING\"}" >> "$TASK_OUTPUT_FOLDER/decision_tree.jsonl"
 }
 
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Implementing documentation task..."
-  
-  # Use TodoWrite tool to mark first todo as in progress
-  # Update todo ID 1 status to "in_progress"
-  
-  # Record decision for documentation approach
-  record_decision "documentation_implementation" "Creating documentation files as specified in PRP"
-  
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 1 status to "completed"
-  
-elif [ "$TASK_TYPE" = "pattern" ]; then
+if [ "$TASK_TYPE" = "pattern" ]; then
   echo "🎯 Implementing pattern task..."
   
-  # Use TodoWrite tool to mark first todo as in progress
-  # Update todo ID 1 status to "in_progress"
   
   # Record decision for pattern approach
-  record_decision "pattern_implementation" "Creating minimal exemplar pattern (50-100 lines)"
+  record_decision "pattern_implementation" "Creating reusable pattern example"
   
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 1 status to "completed"
   
 else
   echo "🧪 Running tests to see current failures..."
   
-  # Use TodoWrite tool to mark first todo as in progress
-  # Update todo ID 1 status to "in_progress"
   
   # Check if tests exist
   if [ -f "package.json" ] && grep -q '"test"' package.json; then
@@ -306,8 +235,6 @@ else
     record_decision "no_tests_available" "Implementing without test guidance - following PRP strictly"
   fi
   
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 1 status to "completed"
 fi
 ```
 
@@ -368,40 +295,96 @@ if [ "$USE_PREFERENCE_FILES" = "true" ] && [ -d ".aidev-storage/preferences" ]; 
 fi
 ```
 
-### 4. Implement Components (TDD Cycle)
+### 4. Implement Components (Progressive Enhancement)
+
+**Follow progressive enhancement principles:**
+1. Start with the simplest solution that passes the tests
+2. Avoid premature optimization (no React.memo, useMemo, useCallback unless proven necessary)
+3. Add complexity only when tests or requirements demand it
+4. Prefer readability over cleverness
+
+#### 4.0 Load and Apply Learned Patterns
+
+```bash
+# Always load learned patterns
+if [ -f ".aidev-storage/planning/learned-patterns.json" ]; then
+  echo "🧠 Loading learned patterns for implementation..."
+  
+  LEARNED_PATTERNS=$(cat ".aidev-storage/planning/learned-patterns.json")
+  HIGH_PRIORITY_PATTERNS=$(echo "$LEARNED_PATTERNS" | jq '
+    .patterns | to_entries | map(
+      select(.value.metadata.source == "user_correction" and .value.metadata.priority >= 0.9) |
+      .value
+    )
+  ')
+  
+  PATTERN_COUNT=$(echo "$HIGH_PRIORITY_PATTERNS" | jq 'length')
+  if [ "$PATTERN_COUNT" -gt 0 ]; then
+    echo "⚠️  CRITICAL: Found $PATTERN_COUNT user-corrected patterns that MUST be followed!"
+    
+    # Apply patterns by category
+    for pattern in $(echo "$HIGH_PRIORITY_PATTERNS" | jq -r '.[] | @base64'); do
+      _jq() {
+        echo ${pattern} | base64 --decode | jq -r ${1}
+      }
+      
+      PATTERN_ID=$(_jq '.id')
+      PATTERN_RULE=$(_jq '.rule')
+      PATTERN_IMPL=$(_jq '.implementation')
+      PATTERN_CAT=$(_jq '.category')
+      
+      echo "📌 MUST APPLY: $PATTERN_RULE"
+      echo "   Category: $PATTERN_CAT"
+      echo "   Implementation: $PATTERN_IMPL"
+      
+      # Record decision to apply pattern
+      record_decision \
+        "applying_pattern_$PATTERN_ID" \
+        "Applying user-corrected pattern: $PATTERN_RULE" \
+        "Critical - user preference must be followed"
+    done
+    
+    # Check for API patterns
+    API_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "api")]')
+    if [ $(echo "$API_PATTERNS" | jq 'length') -gt 0 ]; then
+      echo ""
+      echo "🔴 API PATTERNS TO FOLLOW:"
+      echo "$API_PATTERNS" | jq -r '.[] | "- " + .rule + "\n  Example: " + .example.after'
+    fi
+    
+    # Check for state management patterns
+    STATE_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "state")]')
+    if [ $(echo "$STATE_PATTERNS" | jq 'length') -gt 0 ]; then
+      echo ""
+      echo "🔴 STATE MANAGEMENT PATTERNS TO FOLLOW:"
+      echo "$STATE_PATTERNS" | jq -r '.[] | "- " + .rule + "\n  Example: " + .example.after'
+    fi
+    
+    # Check for error handling patterns
+    ERROR_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "error-handling")]')
+    if [ $(echo "$ERROR_PATTERNS" | jq 'length') -gt 0 ]; then
+      echo ""
+      echo "🔴 ERROR HANDLING PATTERNS TO FOLLOW:"
+      echo "$ERROR_PATTERNS" | jq -r '.[] | "- " + .rule + "\n  Example: " + .example.after'
+    fi
+  fi
+else
+  echo "📝 No learned patterns found yet"
+fi
+```
 
 #### 4.1 Task-Specific Implementation
 ```bash
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Creating documentation..."
-  
-  # Use TodoWrite tool to mark todo as in progress
-  # Update todo ID 2 status to "in_progress"
-  
-  # Documentation implementation will be handled by the actual implementation
-  # This is just the framework
-  echo "Creating documentation structure as specified in PRP..."
-  
-  # The actual MD file creation happens in the implementation phase
-  record_decision "documentation_structure" "Following PRP documentation specifications"
-  
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 2 status to "completed"
-
-elif [ "$TASK_TYPE" = "pattern" ]; then
+if [ "$TASK_TYPE" = "pattern" ]; then
   echo "🎯 Implementing pattern..."
   
-  # Use TodoWrite tool to mark todo as in progress
-  # Update todo ID 2 status to "in_progress"
   
   # Pattern implementation guidance
-  echo "Creating pattern file (must be 50-100 lines)..."
+  echo "Creating pattern file..."
   
   # The actual pattern creation happens in the implementation
-  record_decision "pattern_creation" "Implementing minimal exemplar pattern"
+  record_decision "pattern_creation" "Implementing reusable pattern"
   
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 2 status to "completed"
   
   # Use TodoWrite tool to verify line count todo
   # Update todo ID 4 status to "in_progress"
@@ -411,8 +394,6 @@ elif [ "$TASK_TYPE" = "pattern" ]; then
 else
   echo "💻 Implementing components to pass tests..."
 
-  # Use TodoWrite tool to mark todo as in progress
-  # Update todo ID 2 status to "in_progress"
 
   # For each component in the design
   COMPONENTS=$(echo "$COMPONENT_DESIGN" | jq -r '.components_to_create[].name' 2>/dev/null || echo "")
@@ -450,8 +431,6 @@ else
     done
   fi
 
-  # Use TodoWrite tool to mark todo as completed
-  # Update todo ID 2 status to "completed"
 fi
 ```
 
@@ -459,13 +438,12 @@ fi
 ```bash
 echo "🔄 Implementing state management..."
 
-# Mark todo as in progress
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[2].status = "in_progress"')
-
+# Progressive enhancement: Start simple, add complexity only if needed
 # Example: Implement a hook if tests require it
 if grep -q "useAuth" "$TEST_MANIFEST"; then
   echo "Creating useAuth hook..."
   
+  # Simple implementation - no unnecessary memoization or optimization
   cat > "app/hooks/useAuth.ts" << 'EOF'
 import { useState, useCallback, useEffect } from 'react'
 
@@ -544,16 +522,12 @@ EOF
   echo "✅ useAuth hook tests passing: $HOOK_PASSING"
 fi
 
-# Mark todo as completed
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[2].status = "completed"')
 ```
 
 #### 4.3 API Implementation
 ```bash
 echo "🌐 Implementing API endpoints..."
 
-# Mark todo as in progress
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[3].status = "in_progress"')
 
 # Check if API tests exist
 API_TESTS=$(find . -path "*/api/*" -name "*.test.*" -type f)
@@ -618,8 +592,6 @@ EOF
   echo "✅ API tests passing: $API_PASSING"
 done
 
-# Mark todo as completed
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[3].status = "completed"')
 ```
 
 ### 5. Fix Edge Cases and Refactor
@@ -627,8 +599,6 @@ TODO_LIST=$(echo "$TODO_LIST" | jq '.[3].status = "completed"')
 ```bash
 echo "🔧 Fixing edge cases and refactoring..."
 
-# Mark todo as in progress
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[4].status = "in_progress"')
 
 # Run full test suite to find remaining failures
 npm test > "$TASK_OUTPUT_FOLDER/phase_outputs/implement/midpoint_test_run.txt" 2>&1 || true
@@ -651,8 +621,6 @@ if [ "$REMAINING_FAILURES" -gt 0 ]; then
   fi
 fi
 
-# Mark todo as completed
-TODO_LIST=$(echo "$TODO_LIST" | jq '.[4].status = "completed"')
 ```
 
 ### 6. Integration and Final Test Run
@@ -731,15 +699,11 @@ echo "$UPDATED_CONTEXT" > "$TASK_OUTPUT_FOLDER/context.json"
 
 ### 9. Final Todo Completion
 
-**CRITICAL: Before phase completion, ensure ALL todos are marked as completed using TodoWrite tool**
-
 ```bash
-echo "📝 Finalizing todo status..."
+echo "📝 Finalizing task tracking..."
 
-# IMPORTANT: Use TodoWrite tool to ensure all todos are marked as completed
-# This is REQUIRED for phase success determination
-# If some todos couldn't be completed due to workflow variations (e.g., no tests to run),
-# they should still be marked as completed if the phase objectives were achieved
+# CRITICAL: Ensure all todos are marked as completed using TodoWrite tool
+# This is required for the phase to be marked as successful
 ```
 
 ### 10. Final Validation
@@ -759,7 +723,6 @@ if [ "$FILES_CREATED" -eq 0 ]; then
   exit 1
 fi
 
-# FINAL REMINDER: Ensure all todos are completed using TodoWrite tool
 echo "✅ Phase 3 completed"
 echo "📁 Files implemented: $FILES_CREATED"
 echo "🧪 Test status: $([ $TEST_EXIT_CODE -eq 0 ] && echo "All passing" || echo "$FINAL_FAILURES failing")"
@@ -797,10 +760,9 @@ echo "➡️  Ready for Phase 4: Test Execution and Validation"
 ## Success Criteria
 
 Phase 3 is successful when:
-- All tests are passing
+- All tests are passing (or no tests for simple tasks)
 - Minimal code implemented
 - Maximum code reuse achieved
 - No untested features added
 - Implementation matches PRP design
-- Progress tracked throughout
-- **ALL TODOS MARKED AS COMPLETED using TodoWrite tool**
+- All todos marked as completed

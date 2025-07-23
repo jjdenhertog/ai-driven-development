@@ -7,10 +7,6 @@ const nextConfig = {
     // This helps with module resolution when using npm link
     externalDir: true,
   },
-  eslint: {
-    // Ignore ESLint errors during build
-    ignoreDuringBuilds: true,
-  },
   webpack: (config, { isServer }) => {
     // Handle module resolution for linked packages
     config.resolve.symlinks = true

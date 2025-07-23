@@ -1,0 +1,12 @@
+{
+  "id": "331",
+  "name": "feature-webhook-callback-service",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create webhook callback service for job completion",
+  "dependencies": ["301"],
+  "priority": "low",
+  "estimated_complexity": "medium",
+  "estimated_lines": 100,
+  "created_at": "2025-01-21T12:00:00Z"
+}

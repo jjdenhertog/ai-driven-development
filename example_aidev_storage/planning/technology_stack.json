@@ -1,0 +1,94 @@
+{
+  "decided": {
+    "framework": {
+      "choice": "Next.js 15.x with App Router",
+      "reason": "From preferences, modern React framework with API routes support"
+    },
+    "database": {
+      "choice": "SQLite",
+      "reason": "User chose SQLite for simplicity on single Windows machine",
+      "orm": "Prisma",
+      "file_location": "./prisma/afx-render.db"
+    },
+    "auth": {
+      "provider": "NextAuth.js with Google Provider",
+      "reason": "Specified for company Google accounts with domain restriction",
+      "strategy": "jwt",
+      "domain_restriction": "@meningreen.agency"
+    },
+    "ui": {
+      "library": "Material-UI (MUI)",
+      "reason": "From preferences, comprehensive component library",
+      "theme": "dark mode default"
+    },
+    "realtime": {
+      "solution": "Socket.io or Server-Sent Events",
+      "reason": "Need real-time render progress updates in dashboard",
+      "transport": "WebSocket for bidirectional communication"
+    },
+    "state_management": {
+      "client": "React Context API",
+      "server": "TanStack Query",
+      "reason": "From preferences, no Redux/Zustand"
+    },
+    "file_handling": {
+      "validation": "Node.js fs module",
+      "paths": "Windows path handling with spaces",
+      "reason": "Direct file system access to Dropbox folder"
+    },
+    "process_management": {
+      "render_execution": "@nexrender/core local installation",
+      "monitoring": "Node.js child_process",
+      "reason": "User wants nexrender as project dependency"
+    },
+    "notifications": {
+      "admin": "Slack Webhook",
+      "user": "Slack Bot API",
+      "reason": "User specified both methods for different purposes"
+    },
+    "api_authentication": {
+      "method": "API tokens in headers",
+      "storage": "Environment variables",
+      "reason": "Simple token-based auth for external services"
+    }
+  },
+  "from_preferences": {
+    "package_manager": "npm",
+    "language": "TypeScript",
+    "testing": "Vitest + React Testing Library",
+    "styling": "MUI sx prop + CSS Modules",
+    "linting": "ESLint with custom 4-space indent rules",
+    "validation": "Zod schemas",
+    "error_tracking": "Sentry",
+    "form_handling": "React Hook Form with Zod"
+  },
+  "integration_specific": {
+    "nexrender": {
+      "approach": "Local @nexrender/core with custom job creation",
+      "scripts": "User-provided JSX scripts with placeholders",
+      "job_format": "Custom job specification with nexrender config"
+    },
+    "slack": {
+      "webhook": "Admin channel notifications",
+      "bot_token": "Direct messages to users",
+      "error_handling": "Silent failure, no retries"
+    },
+    "dropbox": {
+      "integration": "Local file system only",
+      "path_handling": "Escape spaces in 'Men in Green Dropbox'",
+      "sync_assumption": "Files already synced by Dropbox client"
+    },
+    "pm2": {
+      "setup": "Manual by user",
+      "name": "afx-render-manager",
+      "integration": "None required in code"
+    }
+  },
+  "environment_specific": {
+    "platform": "Windows 11 LTSC",
+    "node_version": "20.x",
+    "deployment": "Single machine",
+    "port": "3000",
+    "after_effects": "2025 version"
+  }
+}

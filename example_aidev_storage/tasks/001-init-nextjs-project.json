@@ -1,0 +1,13 @@
+{
+    "id": "001",
+    "name": "init-nextjs-project",
+    "type": "feature",
+    "dependencies": [],
+    "estimated_lines": 100,
+    "priority": "critical",
+    "category": "setup",
+    "description": "Initialize Next.js 15.x project with App Router and TypeScript",
+    "branch": "ai/001-init-nextjs-project",
+    "status": "completed",
+    "started_at": "2025-07-22T06:36:56.780Z"
+}

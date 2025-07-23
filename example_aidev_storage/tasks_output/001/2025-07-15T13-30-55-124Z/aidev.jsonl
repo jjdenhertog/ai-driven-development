@@ -1,8 +1,0 @@
-{"type":"success","message":"[aidev] \u001b[38;5;36mPreparing git branch...\u001b[0m","timestamp":"2025-07-15T13:30:55.132Z"}
-{"type":"info","message":"[aidev] Executing Task: 001 - setup-nextjs-project","timestamp":"2025-07-15T13:30:57.965Z"}
-{"type":"info","message":"[aidev] Starting execution of task 001","timestamp":"2025-07-15T13:30:57.966Z"}
-{"type":"success","message":"[aidev] \u001b[38;5;36mStarting Claude with aidev-code-task command...\u001b[0m","timestamp":"2025-07-15T13:30:57.968Z"}
-{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-15T13:51:03.020Z"}
-{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-15T13:51:03.026Z"}
-{"type":"error","message":"[aidev] \u001b[31mClaude command failed\u001b[0m","timestamp":"2025-07-15T13:51:03.050Z"}
-{"type":"info","message":"[aidev] Removing worktree...","timestamp":"2025-07-15T13:51:03.051Z"}

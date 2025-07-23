@@ -20,7 +20,10 @@ export async function executeNextTaskCommand(options: ExecuteNextTaskOptions): P
         throw new Error('This command must be run from the root of the repository.');
 
     // Find all pending tasks (no need to switch branches - tasks are in worktree)
+    log('─'.repeat(50), 'light');
     log('Looking for pending tasks...', 'info');
+    log('─'.repeat(50), 'light');
+
     const pendingTasks = await getTasks({ status: 'pending' });
     if (pendingTasks.length === 0) {
         log('No pending tasks found', 'warn');
@@ -32,11 +35,11 @@ export async function executeNextTaskCommand(options: ExecuteNextTaskOptions): P
 
     // Find the next executable task
     for (const task of pendingTasks) {
-        log(`Checking task ${task.id}: ${task.name}`, 'info');
+        // log(`Checking task ${task.id}: ${task.name}`, 'info');
 
         // Check dependencies
         if (await hasUnresolvedDependencies(task)) {
-            log(`Skipping - has unresolved dependencies`, 'warn');
+            log(`Skipping ${task.id}: ${task.name} - has unresolved dependencies`, 'warn');
             continue;
         }
 

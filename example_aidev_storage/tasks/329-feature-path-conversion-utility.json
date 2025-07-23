@@ -1,0 +1,12 @@
+{
+  "id": "329",
+  "name": "feature-path-conversion-utility",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create utility for macOS to Windows path conversion",
+  "dependencies": ["103"],
+  "priority": "high",
+  "estimated_complexity": "low",
+  "estimated_lines": 50,
+  "created_at": "2025-01-21T12:00:00Z"
+}

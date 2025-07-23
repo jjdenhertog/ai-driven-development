@@ -24,6 +24,7 @@ type CodeEditorProps = {
   readonly height?: string
   readonly minHeight?: number
   readonly maxHeight?: number
+  readonly fontSize?: number
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -34,6 +35,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     height = '100%',
     minHeight = 200,
     maxHeight = 800,
+    fontSize = 14,
 }) => {
     const editorRef = useRef<any>(null)
     const [autoHeight, setAutoHeight] = useState(minHeight)
@@ -60,7 +62,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         }
     }, [isAutoGrow, minHeight, maxHeight])
 
-    const getLanguage = useCallback((lang: string): string => {
+    const getLanguage = (lang: string): string => {
         const ext = lang.split('.').pop()
             ?.toLowerCase()
         switch (ext) {
@@ -85,12 +87,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             default:
                 return language
         }
-    }, [language])
+    }
 
     const monacoOptions = useMemo(() => ({
         readOnly,
         minimap: { enabled: false },
-        fontSize: 14,
+        fontSize,
         lineNumbers: 'on' as const,
         scrollBeyondLastLine: false,
         wordWrap: 'on' as const,
@@ -107,21 +109,21 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             horizontalScrollbarSize: 10,
             alwaysConsumeMouseWheel: false,
         },
-    }), [readOnly, isAutoGrow])
+    }), [readOnly, isAutoGrow, fontSize])
 
-    const computedLanguage = useMemo(() => getLanguage(language), [language, getLanguage])
+    const computedLanguage = getLanguage(language)
     const computedHeight = isAutoGrow ? `${autoHeight}px` : height
 
-    const handleChange = useCallback((newValue: string | undefined) => {
+    const _handleChange = (newValue: string | undefined) => {
         onChange?.(newValue || '')
-    }, [onChange])
+    }
 
     return (
         <div style={{ height: computedHeight, width: '100%', border: '1px solid var(--border-color)', borderRadius: '0.5rem', overflow: 'hidden' }}>
-            <Suspense fallback={<SimpleEditor value={value} onChange={handleChange} language={language} readOnly={readOnly} height={computedHeight} />}>
+            <Suspense fallback={<SimpleEditor value={value} onChange={onChange} language={language} readOnly={readOnly} height={computedHeight} />}>
                 <MonacoEditor
                     value={value}
-                    onChange={handleChange}
+                    onChange={onChange}
                     language={computedLanguage}
                     theme="vs-dark"
                     height={computedHeight}

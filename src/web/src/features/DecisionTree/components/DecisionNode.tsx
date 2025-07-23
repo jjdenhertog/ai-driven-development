@@ -6,10 +6,11 @@ import styles from './DecisionTree.module.css'
 type DecisionNodeData = {
   readonly timestamp: string
   readonly phase: string
-  readonly decision: string
-  readonly context: {
+  readonly decision?: string
+  readonly context?: {
     readonly task_id?: string
     readonly task_type?: string
+    readonly task_name?: string
     readonly status?: string
     readonly component?: string
     readonly file?: string
@@ -17,15 +18,20 @@ type DecisionNodeData = {
     readonly tests_passing?: number
     readonly build_status?: string
   }
-  readonly reasoning: string
-  readonly alternatives_considered: readonly {
+  readonly reasoning?: string
+  readonly alternatives_considered?: readonly {
     readonly option: string
     readonly reason_rejected: string
   }[]
-  readonly confidence: number
+  readonly confidence?: number
   readonly impact?: string
   readonly reversible?: boolean
   readonly tags?: readonly string[]
+  readonly check?: string
+  readonly passed?: boolean
+  readonly details?: any
+  readonly action?: string
+  readonly success?: boolean
 }
 
 type DecisionNodeProps = {
@@ -39,6 +45,31 @@ const DecisionNodeComponent: React.FC<DecisionNodeProps> = ({
     getPhaseColor, 
     getImpactColor 
 }) => {
+    // Determine the main content based on the type of decision entry
+    const getMainContent = () => {
+        if (decision.decision) {
+            return <strong>{decision.decision}</strong>
+        }
+        
+        if (decision.check) {
+            return (
+                <strong>
+                    {decision.check} - {decision.passed ? '✓ Passed' : '✗ Failed'}
+                </strong>
+            )
+        }
+        
+        if (decision.action) {
+            return (
+                <strong>
+                    {decision.action} - {decision.success ? '✓ Success' : '✗ Failed'}
+                </strong>
+            )
+        }
+        
+        return <strong>Phase: {decision.phase}</strong>
+    }
+
     return (
         <div className={styles.node}>
             <div className={styles.nodeHeader}>
@@ -57,14 +88,22 @@ const DecisionNodeComponent: React.FC<DecisionNodeProps> = ({
             </div>
       
             <div className={styles.decision}>
-                <strong>{decision.decision}</strong>
+                {getMainContent()}
             </div>
       
-            <div className={styles.reasoning}>
-                {decision.reasoning}
-            </div>
+            {decision.reasoning ? (
+                <div className={styles.reasoning}>
+                    {decision.reasoning}
+                </div>
+            ) : null}
+
+            {decision.details ? (
+                <div className={styles.details}>
+                    <pre>{JSON.stringify(decision.details, null, 2)}</pre>
+                </div>
+            ) : null}
       
-            {decision.alternatives_considered.length > 0 && (
+            {decision.alternatives_considered && decision.alternatives_considered.length > 0 ? (
                 <div className={styles.alternatives}>
                     <div className={styles.alternativesTitle}>Alternatives considered:</div>
                     {decision.alternatives_considered.map((alt, altIndex) => (
@@ -74,7 +113,7 @@ const DecisionNodeComponent: React.FC<DecisionNodeProps> = ({
                         </div>
                     ))}
                 </div>
-            )}
+            ) : null}
       
             <div className={styles.metadata}>
                 {decision.impact ? <span 
@@ -88,7 +127,7 @@ const DecisionNodeComponent: React.FC<DecisionNodeProps> = ({
                         {decision.reversible ? 'Reversible' : 'Irreversible'}
                     </span>
                 )}
-                {decision.context.file ? <span className={styles.file}>
+                {decision.context?.file ? <span className={styles.file}>
                     {decision.context.file}
                 </span> : null}
             </div>

@@ -3,8 +3,9 @@
 import { useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faArchive, faHourglassHalf, faCircle, faPause, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faPause } from '@fortawesome/free-solid-svg-icons'
 import { Task } from '@/lib/api'
+import { getStatusIcon, getStatusColorClass } from '@/lib/utils/statusIcons'
 import styles from './TaskList.module.css'
 
 type TaskListWithRoutingProps = {
@@ -23,24 +24,6 @@ export const TaskListWithRouting = (props: TaskListWithRoutingProps) => {
         return () => router.push(`/tasks/${taskId}`)
     }, [router])
 
-    const getStatusIcon = (status: Task['status'] | 'draft') => {
-        switch (status) {
-            case 'completed':
-                return <FontAwesomeIcon icon={faCheck} />
-            case 'archived':
-                return <FontAwesomeIcon icon={faArchive} />
-            case 'in_progress':
-                return <FontAwesomeIcon icon={faHourglassHalf} />
-            case 'failed':
-                return <FontAwesomeIcon icon={faTimes} />
-            case 'draft':
-                return <FontAwesomeIcon icon={faCircle} style={{ opacity: 0.5 }} />
-            case 'pending':
-                return <FontAwesomeIcon icon={faCircle} />
-            default:
-                return <FontAwesomeIcon icon={faCircle} />
-        }
-    }
 
     // Categorize tasks
     const categorizedTasks = {
@@ -75,11 +58,11 @@ export const TaskListWithRouting = (props: TaskListWithRoutingProps) => {
                         } ${isDraft ? styles.draft : ''} ${isFailed || task.status === 'failed' ? styles.failed : ''} ${!isDraft && task.hold ? styles.hold : ''}`}
                         onClick={createTaskClickHandler(task.id)}
                     >
-                        <span className={styles.icon}>
+                        <span className={`${styles.icon} ${getStatusColorClass((task.status as any) === 'draft' ? 'draft' : task.status)}`}>
                             {task.hold && !isDraft ? (
                                 <FontAwesomeIcon icon={faPause} />
                             ) : (
-                                getStatusIcon((task.status as any) === 'draft' ? 'draft' : task.status)
+                                <FontAwesomeIcon icon={getStatusIcon((task.status as any) === 'draft' ? 'draft' : task.status)} />
                             )}
                         </span>
                         <div className={styles.taskInfo}>

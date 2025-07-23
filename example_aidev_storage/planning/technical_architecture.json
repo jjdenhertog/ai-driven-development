@@ -1,0 +1,218 @@
+{
+  "architecture": {
+    "frontend": {
+      "framework": "Next.js 15.x with App Router",
+      "ui_library": "Material-UI (MUI) v5",
+      "state_management": {
+        "client": "React Context API",
+        "server": "TanStack Query v5"
+      },
+      "styling": "MUI sx prop + CSS Modules",
+      "realtime": "Socket.io-client for live updates",
+      "routing": "App Router with route groups",
+      "forms": "React Hook Form + Zod validation"
+    },
+    "backend": {
+      "api_pattern": "Next.js Route Handlers (/app/api/)",
+      "database": {
+        "type": "SQLite with Prisma ORM",
+        "location": "./prisma/afx-render.db",
+        "migrations": "Prisma Migrate"
+      },
+      "authentication": {
+        "provider": "NextAuth.js v5",
+        "strategy": "JWT tokens",
+        "oauth": "Google Provider with @meningreen.agency restriction"
+      },
+      "job_processing": {
+        "queue": "In-memory priority queue with DB persistence",
+        "execution": "@nexrender/core local installation",
+        "monitoring": "child_process with stdout parsing"
+      },
+      "file_validation": {
+        "method": "Node.js fs module",
+        "path_handling": "Windows paths with space escaping"
+      },
+      "realtime": "Socket.io server for WebSocket communication"
+    },
+    "testing": {
+      "unit": "Vitest + React Testing Library",
+      "integration": "Vitest with test database",
+      "e2e": "Playwright (optional)",
+      "coverage": "80% target"
+    },
+    "patterns": {
+      "error_handling": {
+        "api": "Centralized handleError with Sentry",
+        "client": "Error boundaries + toast notifications"
+      },
+      "validation": "Zod schemas in /src/schemas/",
+      "data_fetching": "TanStack Query with optimistic updates",
+      "component_structure": "B-prefixed custom components extending MUI",
+      "api_authentication": "Bearer token in Authorization header"
+    },
+    "integrations": {
+      "nexrender": {
+        "installation": "Local npm dependency",
+        "job_format": "Custom specification with placeholders",
+        "error_handling": "Retry with exponential backoff"
+      },
+      "slack": {
+        "admin_notifications": "Webhook to admin channel",
+        "user_notifications": "Bot API for direct messages",
+        "error_handling": "Silent failure, log only"
+      },
+      "dropbox": {
+        "access": "Local file system only",
+        "path": "C:\\Users\\jjdenhertog\\Men in Green Dropbox\\",
+        "validation": "Size stability + age checks"
+      }
+    },
+    "deployment": {
+      "environment": "Windows 11 LTSC",
+      "process_manager": "PM2 (manual setup)",
+      "port": 3000,
+      "node_version": "20.x LTS"
+    }
+  },
+  "project_structure": {
+    "src/": {
+      "app/": "Next.js App Router pages and API routes",
+      "components/": {
+        "ui/": "B-prefixed MUI components",
+        "layout/": "Layout components",
+        "features/": "Feature-specific components"
+      },
+      "features/": {
+        "auth/": "Authentication logic",
+        "jobs/": "Job management",
+        "admin/": "Admin dashboard",
+        "render/": "Render execution"
+      },
+      "hooks/": "Custom React hooks",
+      "lib/": {
+        "prisma.ts": "Database client singleton",
+        "auth.ts": "NextAuth configuration",
+        "socket.ts": "Socket.io setup"
+      },
+      "schemas/": "Zod validation schemas",
+      "types/": "TypeScript type definitions",
+      "utils/": "Utility functions"
+    },
+    "prisma/": "Database schema and migrations",
+    "public/": "Static assets",
+    "scripts/": "Setup and utility scripts"
+  },
+  "code_conventions": {
+    "indentation": "4 spaces with SwitchCase: 1",
+    "comma_dangle": {
+      "arrays": "never",
+      "objects": "only-multiline",
+      "imports": "never",
+      "exports": "never",
+      "functions": "never"
+    },
+    "exports": "Named exports preferred",
+    "components": "Functional components only with TypeScript",
+    "async": "async/await with try/catch",
+    "imports": "Absolute imports from @/",
+    "file_naming": "kebab-case for files, PascalCase for components",
+    "react_conventions": {
+      "hooks": "Strict rules-of-hooks and exhaustive-deps",
+      "jsx_files": "Only .jsx and .tsx extensions",
+      "fragments": "Use React.Fragment shorthand",
+      "event_handlers": "Follow naming convention (onClick, onChange)",
+      "boolean_props": "Proper naming convention enforced",
+      "destructuring": "Always destructure props and state",
+      "jsx_depth": "Maximum 10 levels of nesting",
+      "no_bind": "No .bind() in JSX, use arrow functions",
+      "no_array_index": "Avoid array index as key",
+      "stateless_preferred": "Prefer stateless functional components"
+    },
+    "typescript_conventions": {
+      "unused_vars": "Prefix with underscore to ignore",
+      "void_returns": "Careful handling of promises in event handlers",
+      "strict_types": "No implicit any, proper type definitions"
+    }
+  },
+  "eslint_config": {
+    "base_rules": {
+      "indent": ["error", 4, { "SwitchCase": 1 }],
+      "comma-dangle": ["error", {
+        "arrays": "never",
+        "objects": "only-multiline",
+        "imports": "never",
+        "exports": "never",
+        "functions": "never"
+      }],
+      "no-void": "off"
+    },
+    "react_rules": {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
+      "react/jsx-pascal-case": ["error", {
+        "allowAllCaps": true,
+        "allowLeadingUnderscore": true,
+        "allowNamespace": true
+      }],
+      "react/jsx-max-depth": ["error", { "max": 10 }],
+      "react/boolean-prop-naming": "error",
+      "react/button-has-type": "error",
+      "react/destructuring-assignment": "error",
+      "react/jsx-boolean-value": "error",
+      "react/jsx-curly-brace-presence": "error",
+      "react/jsx-filename-extension": ["error", { "extensions": [".jsx", ".tsx"] }],
+      "react/jsx-fragments": "error",
+      "react/jsx-handler-names": "error",
+      "react/jsx-key": "error",
+      "react/jsx-no-bind": "error",
+      "react/jsx-no-comment-textnodes": "error",
+      "react/jsx-no-constructed-context-values": "error",
+      "react/jsx-no-duplicate-props": "error",
+      "react/jsx-no-leaked-render": "error",
+      "react/jsx-no-script-url": "error",
+      "react/jsx-no-target-blank": "error",
+      "react/jsx-no-undef": "error",
+      "react/jsx-no-useless-fragment": ["warn", { "allowExpressions": true }],
+      "react/jsx-props-no-spread-multi": "error",
+      "react/jsx-uses-react": "error",
+      "react/jsx-uses-vars": "error",
+      "react/no-access-state-in-setstate": "error",
+      "react/no-array-index-key": "off",
+      "react/no-children-prop": "error",
+      "react/no-danger-with-children": "error",
+      "react/no-deprecated": "error",
+      "react/no-direct-mutation-state": "error",
+      "react/no-find-dom-node": "error",
+      "react/no-is-mounted": "error",
+      "react/no-render-return-value": "error",
+      "react/no-string-refs": "error",
+      "react/no-unescaped-entities": "error",
+      "react/no-unknown-property": ["error", { "ignore": ["class"] }],
+      "react/no-unsafe": "error",
+      "react/no-unstable-nested-components": "error",
+      "react/prefer-es6-class": "error",
+      "react/prefer-read-only-props": "error",
+      "react/prefer-stateless-function": "error",
+      "react/self-closing-comp": "error",
+      "react/style-prop-object": "error",
+      "react/void-dom-elements-no-children": "error"
+    },
+    "typescript_rules": {
+      "@typescript-eslint/no-misused-promises": ["error", {
+        "checksVoidReturn": {
+          "attributes": false
+        }
+      }],
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }]
+    }
+  }
+}

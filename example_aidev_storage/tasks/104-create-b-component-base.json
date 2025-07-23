@@ -1,0 +1,10 @@
+{
+  "id": "104",
+  "name": "create-b-component-base",
+  "type": "pattern",
+  "dependencies": ["004"],
+  "estimated_lines": 100,
+  "priority": "high",
+  "category": "patterns",
+  "description": "Base pattern for B-prefixed MUI components"
+}

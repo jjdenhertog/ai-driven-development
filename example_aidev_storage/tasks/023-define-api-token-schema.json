@@ -1,0 +1,10 @@
+{
+  "id": "023",
+  "name": "define-api-token-schema",
+  "type": "feature",
+  "dependencies": ["021"],
+  "estimated_lines": 80,
+  "priority": "high",
+  "category": "database",
+  "description": "Create ApiToken model for external API authentication"
+}

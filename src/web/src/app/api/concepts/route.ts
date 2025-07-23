@@ -23,6 +23,7 @@ export async function GET() {
                 .map(async file => {
                     const filePath = path.join(conceptsDir, file)
                     const stats = await fs.stat(filePath)
+                    
                     return {
                         name: file,
                         size: stats.size,
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
         // Check if file already exists
         try {
             await fs.access(filePath)
+            
             return NextResponse.json(
                 { error: 'Concept already exists' },
                 { status: 409 }
@@ -86,15 +88,15 @@ export async function POST(request: Request) {
         }
 
         // Create the concept file
-        await fs.writeFile(filePath, content, 'utf-8')
+        await fs.writeFile(filePath, content, 'utf8')
         
         return NextResponse.json({ 
             name,
             content,
             message: 'Concept created successfully'
         })
-    } catch (error) {
-        console.error('Error creating concept:', error)
+    } catch (_error) {
+        // Error creating concept
         return NextResponse.json(
             { error: 'Failed to create concept' },
             { status: 500 }

@@ -1,0 +1,12 @@
+{
+  "id": "312",
+  "name": "feature-job-list-view",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create job list view with infinite scroll and filtering",
+  "dependencies": ["311", "300"],
+  "priority": "critical",
+  "estimated_complexity": "high",
+  "estimated_lines": 300,
+  "created_at": "2025-01-21T12:00:00Z"
+}

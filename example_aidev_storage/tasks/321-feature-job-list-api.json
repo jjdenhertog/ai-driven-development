@@ -1,0 +1,12 @@
+{
+  "id": "321",
+  "name": "feature-job-list-api",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create GET /api/jobs endpoint for job listing",
+  "dependencies": ["300", "200"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 120,
+  "created_at": "2025-01-21T12:00:00Z"
+}

@@ -12,7 +12,6 @@ export default function ContainersPage() {
     const [containers, setContainers] = useState<Container[]>([])
     const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
-    const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [capabilities, setCapabilities] = useState<{
         runningInContainer: boolean
@@ -32,10 +31,7 @@ export default function ContainersPage() {
         }
     }, [])
 
-    const fetchContainers = useCallback(async (isRefresh = false) => {
-        if (isRefresh) {
-            setRefreshing(true)
-        }
+    const fetchContainers = useCallback(async () => {
 
         try {
             const data = await api.getContainers()
@@ -62,15 +58,12 @@ export default function ContainersPage() {
             }
         } finally {
             setLoading(false)
-            setRefreshing(false)
         }
     }, [selectedContainer, fetchCapabilities])
 
     // Wrapper function to avoid arrow function in JSX
     const handleStatusChange = useCallback(() => {
-        fetchContainers(true).catch(() => {
-            // Error handling is already done in fetchContainers
-        })
+        fetchContainers()
     }, [fetchContainers])
 
     useEffect(() => {
@@ -89,7 +82,7 @@ export default function ContainersPage() {
         // Only poll if container management is available
         if (capabilities?.canManageContainers) {
             const interval = setInterval(() => {
-                fetchContainers(true)
+                fetchContainers()
             }, 5000)
 
             return () => clearInterval(interval)
@@ -98,25 +91,17 @@ export default function ContainersPage() {
 
     const selected = containers.find(c => c.name === selectedContainer)
 
-    const sidebarHeader = (
-        <>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Containers</h3>
-        </>
-    )
-
     return (
         <PageLayout
             title="Container Management"
             subtitle="Here comes a description"
             variant="sidebar"
-            sidebarHeader={sidebarHeader}
             sidebarContent={
                 <ContainerList
                     containers={containers}
                     selectedContainer={selectedContainer}
                     onSelectContainer={setSelectedContainer}
                     loading={loading}
-                    refreshing={refreshing}
                     error={capabilities?.canManageContainers ? undefined : (capabilities?.message || error || 'Container management unavailable')}
                     disabled={!capabilities?.canManageContainers}
                 />

@@ -1,0 +1,10 @@
+{
+  "id": "002",
+  "name": "configure-typescript",
+  "type": "feature",
+  "dependencies": ["001"],
+  "estimated_lines": 50,
+  "priority": "critical",
+  "category": "setup",
+  "description": "Configure TypeScript with strict settings and path aliases"
+}

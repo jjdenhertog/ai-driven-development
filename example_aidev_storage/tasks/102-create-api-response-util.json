@@ -1,0 +1,10 @@
+{
+  "id": "102",
+  "name": "create-api-response-util",
+  "type": "pattern",
+  "dependencies": ["001"],
+  "estimated_lines": 80,
+  "priority": "high",
+  "category": "patterns",
+  "description": "Consistent API response formatting utility"
+}

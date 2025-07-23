@@ -1,0 +1,173 @@
+
+> afx-render-manager@0.1.0 test
+> vitest --run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/workspace/afx-render-manager/.aidev-001-init-nextjs-project[39m
+
+[90mstderr[2m | src/app/layout.test.tsx[2m > [22m[2mRootLayout[2m > [22m[2mRendering[2m > [22m[2mshould render children correctly
+[22m[39mIn HTML, <html> cannot be a child of <div>.
+This will cause a hydration error.
+
+ [31m❯[39m src/app/layout.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 292[2mms[22m[39m
+[31m   [31m×[31m RootLayout[2m > [22mHTML Structure[2m > [22mshould have proper HTML structure[90m 33[2mms[22m[31m[39m
+[31m     → [2mexpect([22m[31mreceived[31m[2m).toHaveAttribute()[22m
+
+[31mreceived[31m value must be an HTMLElement or an SVGElement.
+[39m
+[31m   [31m×[31m RootLayout[2m > [22mHTML Structure[2m > [22mshould apply font classes to body[90m 9[2mms[22m[31m[39m
+[31m     → the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string[39m
+ [31m❯[39m src/__tests__/config/typescript.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 39[2mms[22m[39m
+[31m   [31m×[31m TypeScript Configuration Tests[2m > [22mTypeScript type checking[2m > [22mshould have type definition files[90m 11[2mms[22m[31m[39m
+[31m     → tsconfigExists is not defined[39m
+ [31m❯[39m src/__tests__/config/eslint.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5541[2mms[22m[39m
+   [33m[2m✓[22m[39m ESLint Configuration Tests[2m > [22mLinting[2m > [22mshould pass linting without errors [33m5504[2mms[22m[39m
+[31m   [31m×[31m ESLint Configuration Tests[2m > [22mCode quality rules[2m > [22mshould enforce Next.js best practices[90m 11[2mms[22m[31m[39m
+[31m     → config.extends.some is not a function[39m
+[90mstderr[2m | src/app/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mRendering[2m > [22m[2mshould render the home page without errors
+[22m[39mReceived `true` for a non-boolean attribute `priority`.
+
+If you want to write it to the DOM, pass a string instead: priority="true" or priority={value.toString()}.
+
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 308[2mms[22m[39m
+ [31m❯[39m src/__tests__/integration/build.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 28559[2mms[22m[39m
+[31m   [31m×[31m Build Process Integration Tests[2m > [22mBuild Command[2m > [22mshould build project without errors[33m 23893[2mms[22m[31m[39m
+[31m     → Build failed: Command failed: npm run build
+[31mFailed to compile.
+[31m
+[36m./src/test-utils/test-setup.ts[31m:[33m13[31m:[33m10[31m
+[31m[1mType error[22m[31m: Cannot find name 'vi'.
+
+[0m [90m 11 |[31m [33mObject[31m[33m.[31mdefineProperty(window[33m,[31m [32m'matchMedia'[31m[33m,[31m {
+ [90m 12 |[31m   writable[33m:[31m [36mtrue[31m[33m,[31m
+[31m[1m>[22m[31m[90m 13 |[31m   value[33m:[31m vi[33m.[31mfn()[33m.[31mmockImplementation(query [33m=>[31m ({
+ [90m    |[31m          [31m[1m^[22m[31m
+ [90m 14 |[31m     matches[33m:[31m [36mfalse[31m[33m,[31m
+ [90m 15 |[31m     media[33m:[31m query[33m,[31m
+ [90m 16 |[31m     onchange[33m:[31m [36mnull[31m[33m,[31m[0m
+Next.js build worker exited with code: 1 and signal: null
+[39m
+[31m   [31m×[31m Build Process Integration Tests[2m > [22mBuild Command[2m > [22mshould not have TypeScript errors[33m 4637[2mms[22m[31m[39m
+[31m     → TypeScript errors found: Command failed: npx tsc --noEmit
+[39m
+[31m   [31m×[31m Build Process Integration Tests[2m > [22mProduction Build[2m > [22mshould generate valid production bundle[90m 1[2mms[22m[31m[39m
+[31m     → buildDirExists is not defined[39m
+ [31m❯[39m src/__tests__/integration/dev-server.test.ts [2m([22m[2m7 tests[22m[2m | [22m[33m7 skipped[39m[2m)[22m[33m 45071[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/integration/dev-server.test.ts[2m > [22mDevelopment Server Integration Tests
+[31m[1mError[22m: Hook timed out in 40000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 7 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/layout.test.tsx[2m > [22mRootLayout[2m > [22mHTML Structure[2m > [22mshould have proper HTML structure
+[31m[1mError[22m: [2mexpect([22m[31mreceived[31m[2m).toHaveAttribute()[22m
+
+[31mreceived[31m value must be an HTMLElement or an SVGElement.
+[39m
+[36m [2m❯[22m src/app/layout.test.tsx:[2m63:27[22m[39m
+    [90m 61| [39m      [90m// Check for html element with lang attribute[39m
+    [90m 62| [39m      [35mconst[39m htmlElement [33m=[39m container[33m.[39m[34mquerySelector[39m([32m'html'[39m)
+    [90m 63| [39m      [34mexpect[39m(htmlElement)[33m.[39m[34mtoHaveAttribute[39m([32m'lang'[39m[33m,[39m [32m'en'[39m)
+    [90m   | [39m                          [31m^[39m
+    [90m 64| [39m      
+    [90m 65| [39m      [90m// Check for body element[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/layout.test.tsx[2m > [22mRootLayout[2m > [22mHTML Structure[2m > [22mshould apply font classes to body
+[31m[1mAssertionError[22m: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string[39m
+[36m [2m❯[22m src/app/layout.test.tsx:[2m78:38[22m[39m
+    [90m 76| [39m      
+    [90m 77| [39m      [35mconst[39m bodyElement [33m=[39m container[33m.[39m[34mquerySelector[39m([32m'body'[39m)
+    [90m 78| [39m      [34mexpect[39m(bodyElement[33m?.[39mclassName)[33m.[39m[34mtoContain[39m([32m'inter-font'[39m)
+    [90m   | [39m                                     [31m^[39m
+    [90m 79| [39m    })
+    [90m 80| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/config/eslint.test.ts[2m > [22mESLint Configuration Tests[2m > [22mCode quality rules[2m > [22mshould enforce Next.js best practices
+[31m[1mTypeError[22m: config.extends.some is not a function[39m
+[36m [2m❯[22m src/__tests__/config/eslint.test.ts:[2m109:46[22m[39m
+    [90m107| [39m
+    [90m108| [39m        [90m// Should use Next.js recommended rules[39m
+    [90m109| [39m        [35mconst[39m hasNextConfig [33m=[39m config[33m.[39m[35mextends[39m[33m.[39m[34msome[39m((ext[33m:[39m string) [33m=>[39m 
+    [90m   | [39m                                             [31m^[39m
+    [90m110| [39m          ext[33m.[39m[34mincludes[39m([32m'next'[39m)
+    [90m111| [39m        )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/config/typescript.test.ts[2m > [22mTypeScript Configuration Tests[2m > [22mTypeScript type checking[2m > [22mshould have type definition files
+[31m[1mReferenceError[22m: tsconfigExists is not defined[39m
+[36m [2m❯[22m src/__tests__/config/typescript.test.ts:[2m108:16[22m[39m
+    [90m106| [39m        [90m// Type files might be generated during build[39m
+    [90m107| [39m        [90m// So we just check that TypeScript is configured[39m
+    [90m108| [39m        [34mexpect[39m(tsconfigExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   | [39m               [31m^[39m
+    [90m109| [39m      }
+    [90m110| [39m    })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/integration/build.test.ts[2m > [22mBuild Process Integration Tests[2m > [22mBuild Command[2m > [22mshould build project without errors
+[31m[1mError[22m: Build failed: Command failed: npm run build
+[31mFailed to compile.
+[31m
+[36m./src/test-utils/test-setup.ts[31m:[33m13[31m:[33m10[31m
+[31m[1mType error[22m[31m: Cannot find name 'vi'.
+
+[0m [90m 11 |[31m [33mObject[31m[33m.[31mdefineProperty(window[33m,[31m [32m'matchMedia'[31m[33m,[31m {
+ [90m 12 |[31m   writable[33m:[31m [36mtrue[31m[33m,[31m
+[31m[1m>[22m[31m[90m 13 |[31m   value[33m:[31m vi[33m.[31mfn()[33m.[31mmockImplementation(query [33m=>[31m ({
+ [90m    |[31m          [31m[1m^[22m[31m
+ [90m 14 |[31m     matches[33m:[31m [36mfalse[31m[33m,[31m
+ [90m 15 |[31m     media[33m:[31m query[33m,[31m
+ [90m 16 |[31m     onchange[33m:[31m [36mnull[31m[33m,[31m[0m
+Next.js build worker exited with code: 1 and signal: null
+[39m
+[36m [2m❯[22m src/__tests__/integration/build.test.ts:[2m44:15[22m[39m
+    [90m 42| [39m      } [35mcatch[39m (error[33m:[39m any) {
+    [90m 43| [39m        [90m// If build fails, fail the test with the error message[39m
+    [90m 44| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`Build failed: [39m[36m${[39merror[33m.[39mmessage[36m}[39m[32m`[39m)
+    [90m   | [39m              [31m^[39m
+    [90m 45| [39m      }
+    [90m 46| [39m    }[33m,[39m [34m30000[39m) [90m// 30 second timeout for build[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/integration/build.test.ts[2m > [22mBuild Process Integration Tests[2m > [22mBuild Command[2m > [22mshould not have TypeScript errors
+[31m[1mError[22m: TypeScript errors found: Command failed: npx tsc --noEmit
+[39m
+[36m [2m❯[22m src/__tests__/integration/build.test.ts:[2m84:17[22m[39m
+    [90m 82| [39m        [90m// If TypeScript check fails, check if it's just because of mi[39m…
+    [90m 83| [39m        [35mif[39m ([33m![39merror[33m.[39mmessage[33m.[39m[34mincludes[39m([32m'Cannot find module'[39m)) {
+    [90m 84| [39m          [35mthrow[39m [35mnew[39m [33mError[39m([32m`TypeScript errors found: [39m[36m${[39merror[33m.[39mmessage[36m}[39m[32m`[39m)
+    [90m   | [39m                [31m^[39m
+    [90m 85| [39m        }
+    [90m 86| [39m      }
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/__tests__/integration/build.test.ts[2m > [22mBuild Process Integration Tests[2m > [22mProduction Build[2m > [22mshould generate valid production bundle
+[31m[1mReferenceError[22m: buildDirExists is not defined[39m
+[36m [2m❯[22m src/__tests__/integration/build.test.ts:[2m101:14[22m[39m
+    [90m 99| [39m      [90m// Note: standalone might not exist in default config[39m
+    [90m100| [39m      [90m// This is just checking the build completed successfully[39m
+    [90m101| [39m      [34mexpect[39m(buildDirExists)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   | [39m             [31m^[39m
+    [90m102| [39m    })
+    [90m103| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m23 passed[39m[22m[2m | [22m[33m7 skipped[39m[90m (37)[39m
+[2m   Start at [22m 21:59:17
+[2m   Duration [22m 47.32s[2m (transform 492ms, setup 2.84s, collect 596ms, tests 79.81s, environment 6.26s, prepare 1.01s)[22m
+

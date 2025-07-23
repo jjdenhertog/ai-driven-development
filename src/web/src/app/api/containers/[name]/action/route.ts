@@ -1,7 +1,6 @@
+/* eslint-disable max-depth */
 import { NextRequest, NextResponse } from 'next/server'
-import { spawn } from 'node:child_process'
-import { isRunningInContainer } from '@/lib/utils/isRunningInContainer'
-import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
+import { executeAidevCommandRaw } from '@/lib/utils/executeAidevCommandRaw'
 
 type Params = {
     params: Promise<{
@@ -9,99 +8,75 @@ type Params = {
     }>
 }
 
-// POST /api/containers/[name]/action - Stream container action output
+// POST /api/containers/[name]/action - Execute container action (non-streaming)
 export async function POST(request: NextRequest, { params }: Params) {
     try {
         const { name } = await params
-        // Check if we're running in a container
-        if (isRunningInContainer()) {
-            return NextResponse.json(
-                { error: 'Container management is not available when running inside a container' },
-                { status: 503 }
-            )
-        }
-        
-        // Check if aidev CLI is available
-        const aidevCheck = await checkAidevCLI()
-        if (!aidevCheck.available) {
-            return NextResponse.json(
-                { error: 'The aidev CLI is not available. Please ensure it is installed and in your PATH.' },
-                { status: 503 }
-            )
-        }
-        
         const body = await request.json()
-        const { action, clean = false, port = 1212 } = body
+        const { action } = body
         const containerName = name
         const type = body.type || name
 
         // Build the aidev CLI command
-        const args = ['container', action, containerName]
-        
-        if (action === 'start') {
-            if (type && type !== containerName) {
-                args.push('--type', type)
-            }
-            
-            if (type === 'web' && port) {
-                args.push('--port', String(port))
-            }
-        } else if ((action === 'stop' || action === 'restart') && clean) {
-            args.push('--clean')
-        }
+        const args = [action, containerName]
+
+        if (action == 'start')
+            args.push('--type', type)
+
 
         // Create a readable stream for the response
         const stream = new ReadableStream({
-            start(controller) {
+            async start(controller) {
                 const encoder = new TextEncoder()
-                
-                // Spawn the aidev process
-                const childProcess = spawn('aidev', args, {
-                    shell: true,
-                    env: process.env
-                })
 
                 // Send initial message
-                controller.enqueue(encoder.encode(`data: {"type":"start","message":"Executing: aidev ${args.join(' ')}"}\n\n`))
+                controller.enqueue(encoder.encode(`data: {"type":"start","message":"Executing: aidev container ${args.join(' ')}"}\n\n`))
 
-                // Handle stdout
-                
-                childProcess.stdout.on('data', (data) => {
-                    const lines = data.toString().split('\n')
-                        .filter((line: string) => line.trim())
-                    
-                    for (const line of lines) {
-                        controller.enqueue(encoder.encode(`data: {"type":"stdout","message":${JSON.stringify(line)}}\n\n`))
-                    }
-                })
+                try {
+                    // Execute command through proxy
+                    const proxyResponse = await executeAidevCommandRaw('container', args)
+                    const result = await proxyResponse.json()
 
-                // Handle stderr
-                
-                childProcess.stderr.on('data', (data) => {
-                    const lines = data.toString().split('\n')
-                        .filter((line: string) => line.trim())
-                    
-                    for (const line of lines) {
-                        controller.enqueue(encoder.encode(`data: {"type":"stderr","message":${JSON.stringify(line)}}\n\n`))
-                    }
-                })
+                    // Send response based on proxy result
+                    if (proxyResponse.ok) {
+                        // Parse JSON output from stdout
+                        if (result.stdout) {
+                            const lines = result.stdout.split('\n').filter((line: string) => line.trim())
 
-                // Handle process completion
-                childProcess.on('close', (code) => {
-                    if (code === 0) {
+                            for (const line of lines) {
+                                try {
+                                    // Try to parse as JSON
+                                    const jsonMsg = JSON.parse(line)
+                                    const messageType = jsonMsg.type === 'error' ? 'stderr' : 'stdout'
+                                    controller.enqueue(encoder.encode(`data: {"type":"${messageType}","message":${JSON.stringify(jsonMsg.message)}}\n\n`))
+                                } catch {
+                                    // Fallback for non-JSON lines
+                                    controller.enqueue(encoder.encode(`data: {"type":"stdout","message":${JSON.stringify(line)}}\n\n`))
+                                }
+                            }
+                        }
+
+                        // Send stderr lines (if any non-JSON stderr)
+                        if (result.stderr) {
+                            const lines = result.stderr.split('\n').filter((line: string) => line.trim())
+
+                            for (const line of lines) {
+                                controller.enqueue(encoder.encode(`data: {"type":"stderr","message":${JSON.stringify(line)}}\n\n`))
+                            }
+                        }
+
+                        // Send completion message
                         controller.enqueue(encoder.encode(`data: {"type":"complete","code":0,"message":"Command completed successfully"}\n\n`))
                     } else {
-                        controller.enqueue(encoder.encode(`data: {"type":"complete","code":${code},"message":"Command failed with exit code ${code}"}\n\n`))
+                        // Error from proxy
+                        controller.enqueue(encoder.encode(`data: {"type":"error","message":${JSON.stringify(result.error || 'Command failed')}}\n\n`))
                     }
-                    
+                } catch (error) {
+                    // Handle errors
+                    controller.enqueue(encoder.encode(`data: {"type":"error","message":${JSON.stringify(error instanceof Error ? error.message : String(error))}}\n\n`))
+                } finally {
                     controller.close()
-                })
-
-                // Handle errors
-                childProcess.on('error', (error) => {
-                    controller.enqueue(encoder.encode(`data: {"type":"error","message":${JSON.stringify(error.message)}}\n\n`))
-                    controller.close()
-                })
+                }
             }
         })
 

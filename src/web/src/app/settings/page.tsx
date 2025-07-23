@@ -10,34 +10,118 @@ import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { PageLayout } from '@/components/common/PageLayout'
 import { Button } from '@/components/common/Button'
+import { SettingsForm } from '@/features/Settings/components/SettingsForm'
 import styles from '@/features/Settings/components/SettingsSection.module.css'
 import { useSnackbar } from 'notistack'
+import { Settings } from '@/types'
 
-type SettingsTab = 'preferences' | 'examples' | 'templates'
+type SettingsTab = 'plan' | 'code' | 'learn' | 'index' | 'settings'
+
+// File metadata dictionary for better UI display
+const FILE_METADATA: Record<string, { title: string; description: string }> = {
+    // Plan phase prompts
+    'aidev-plan-phase0-analyze.md': {
+        title: 'Phase 0: Analyze',
+        description: 'Analyze project requirements and existing codebase'
+    },
+    'aidev-plan-phase1-architect.md': {
+        title: 'Phase 1: Architect',
+        description: 'Design technical architecture and patterns'
+    },
+    'aidev-plan-phase2-generate.md': {
+        title: 'Phase 2: Generate',
+        description: 'Generate task specifications from architecture'
+    },
+    'aidev-plan-phase3-validate.md': {
+        title: 'Phase 3: Validate',
+        description: 'Validate and refine task specifications'
+    },
+    // Code phase prompts
+    'aidev-code-phase0.md': {
+        title: 'Phase 0: Inventory',
+        description: 'Identify reusable components and patterns'
+    },
+    'aidev-code-phase1.md': {
+        title: 'Phase 1: Architect',
+        description: 'Design implementation approach and structure'
+    },
+    'aidev-code-phase2.md': {
+        title: 'Phase 2: Test designer',
+        description: 'Design comprehensive test coverage'
+    },
+    'aidev-code-phase3.md': {
+        title: 'Phase 3: Programmer',
+        description: 'Write code following the architecture'
+    },
+    'aidev-code-phase4a.md': {
+        title: 'Phase 4A: Test executer',
+        description: 'Execute tests and fix failures'
+    },
+    'aidev-code-phase4b.md': {
+        title: 'Phase 4B: Test fixer',
+        description: 'Fix failing tests and resolve issues'
+    },
+    'aidev-code-phase5.md': {
+        title: 'Phase 5: Reviewer',
+        description: 'Review code and ensure quality'
+    },
+    'aidev-instruction-task.md': {
+        title: 'Instruction Task',
+        description: 'Execute specific coding instructions'
+    },
+
+    // Learn prompts
+    'aidev-learn.md': {
+        title: 'Learn',
+        description: 'Extract patterns and learnings from codebase'
+    },
+
+    // Index prompts
+    'aidev-index.md': {
+        title: 'Index',
+        description: 'Create initial codebase index'
+    },
+    'aidev-update-index.md': {
+        title: 'Update Index',
+        description: 'Update existing codebase index with changes'
+    },
+
+    // Templates
+    'task-specification-template.md': {
+        title: 'Task Specification Template',
+        description: 'Template for creating detailed task specifications'
+    },
+    'task-creation.md': {
+        title: 'Task Creation Guide',
+        description: 'Guidelines for creating effective tasks'
+    },
+    'automated-prp-template.md': {
+        title: 'Automated PRP Template',
+        description: 'Problem-Resolution-Plan template for structured implementation'
+    }
+}
 
 function SettingsPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const activeTab = (searchParams.get('tab') as SettingsTab) || 'preferences'
+    const activeTab = (searchParams.get('tab') as SettingsTab) || 'plan'
     const selectedFile = searchParams.get('file')
     const { enqueueSnackbar } = useSnackbar()
-  
+
     const [content, setContent] = useState('')
     const [saving, setSaving] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
 
-    const { data: preferences } = useSWR('preferences', api.getPreferences)
-    const { data: examples } = useSWR('examples', api.getExamples)
+    const { data: prompts } = useSWR('prompts', api.getPrompts)
     const { data: templates } = useSWR('templates', api.getTemplates)
+    const { data: settingsData, error: settingsError, mutate: mutateSettings } = useSWR<Settings>('settings', api.getSettings)
 
     const loadFileContent = useCallback(async (file: string, type: SettingsTab) => {
         try {
             setContent('') // Clear content while loading
             let response
-            if (type === 'preferences') {
-                response = await api.getPreference(file)
-            } else if (type === 'examples') {
-                response = await api.getExample(file)
+            if (type === 'plan' || type === 'code' || type === 'learn' || type === 'index') {
+                response = await api.getPrompt(file)
             } else {
                 response = await api.getTemplate(file)
             }
@@ -50,7 +134,7 @@ function SettingsPageContent() {
     }, [])
 
     useEffect(() => {
-        if (selectedFile && activeTab) {
+        if (selectedFile && activeTab && activeTab !== 'settings') {
             loadFileContent(selectedFile, activeTab)
         }
     }, [selectedFile, activeTab, loadFileContent])
@@ -70,38 +154,54 @@ function SettingsPageContent() {
 
     const handleSave = useCallback(async () => {
         if (!selectedFile) return
-    
+
         setSaving(true)
         try {
-            if (activeTab === 'preferences') {
-                await api.updatePreference(selectedFile, content)
-            } else if (activeTab === 'examples') {
-                await api.updateExample(selectedFile, content)
+            if (activeTab === 'plan' || activeTab === 'code' || activeTab === 'learn' || activeTab === 'index') {
+                await api.updatePrompt(selectedFile, content)
             } else {
                 await api.updateTemplate(selectedFile, content)
             }
 
             setHasChanges(false)
-            enqueueSnackbar(`${activeTab.slice(0, -1).charAt(0)
-                .toUpperCase() + activeTab.slice(1, -1)} saved successfully`, { variant: 'success' })
+            enqueueSnackbar(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} saved successfully`, { variant: 'success' })
         } catch (_error) {
-            enqueueSnackbar(`Failed to save ${activeTab.slice(0, -1)}`, { variant: 'error' })
+            enqueueSnackbar(`Failed to save ${activeTab}`, { variant: 'error' })
         } finally {
             setSaving(false)
         }
     }, [selectedFile, activeTab, content, enqueueSnackbar])
 
+    const handleSaveSettings = useCallback(async (newSettings: Settings) => {
+        try {
+            await api.updateSettings(newSettings)
+            await mutateSettings(newSettings, false)
+            enqueueSnackbar('Settings saved successfully', { variant: 'success' })
+        } catch (error) {
+            enqueueSnackbar('Failed to save settings', { variant: 'error' })
+            throw error
+        }
+    }, [mutateSettings, enqueueSnackbar])
+
     // Tab change handlers to avoid arrow functions in JSX
-    const handleTabChangePreferences = useCallback(() => {
-        handleTabChange('preferences')
+    const handleTabChangePlan = useCallback(() => {
+        handleTabChange('plan')
     }, [handleTabChange])
 
-    const handleTabChangeExamples = useCallback(() => {
-        handleTabChange('examples')
+    const handleTabChangeCode = useCallback(() => {
+        handleTabChange('code')
     }, [handleTabChange])
 
-    const handleTabChangeTemplates = useCallback(() => {
-        handleTabChange('templates')
+    const handleTabChangeLearn = useCallback(() => {
+        handleTabChange('learn')
+    }, [handleTabChange])
+
+    const handleTabChangeIndex = useCallback(() => {
+        handleTabChange('index')
+    }, [handleTabChange])
+
+    const handleTabChangeSettings = useCallback(() => {
+        handleTabChange('settings')
     }, [handleTabChange])
 
     // File select handler factory
@@ -116,12 +216,54 @@ function SettingsPageContent() {
         })
     }, [handleSave])
 
+    // Helper function to enhance files with metadata
+    const enhanceFileWithMetadata = (file: { name: string; content: string; description?: string }) => {
+        const metadata = FILE_METADATA[file.name]
+
+        return {
+            ...file,
+            title: metadata?.title || file.name,
+            description: metadata?.description || file.description || ''
+        }
+    }
+
     const getFileList = () => {
-        if (activeTab === 'preferences') return preferences || []
+        if (activeTab === 'plan') {
+            const planPrompts = prompts?.filter(p => p.name.startsWith('aidev-plan-phase')) || []
+            const planTemplates = templates?.filter(t =>
+                t.name === 'task-specification-template.md' ||
+                t.name === 'task-creation.md'
+            ) || []
 
-        if (activeTab === 'examples') return examples || []
+            return [...planPrompts, ...planTemplates].map(enhanceFileWithMetadata)
+        }
 
-        if (activeTab === 'templates') return templates?.map(t => ({ file: t.name, name: t.name, description: t.description })) || []
+        if (activeTab === 'code') {
+            const codePrompts = prompts?.filter(p =>
+                p.name.startsWith('aidev-code-phase') ||
+                p.name === 'aidev-instruction-task.md'
+            ) || []
+            const codeTemplates = templates?.filter(t =>
+                t.name === 'automated-prp-template.md'
+            ) || []
+
+            return [...codePrompts, ...codeTemplates].map(enhanceFileWithMetadata)
+        }
+
+        if (activeTab === 'learn') {
+            const learnPrompts = prompts?.filter(p => p.name === 'aidev-learn.md') || []
+
+            return learnPrompts.map(enhanceFileWithMetadata)
+        }
+
+        if (activeTab === 'index') {
+            const indexPrompts = prompts?.filter(p =>
+                p.name === 'aidev-index.md' ||
+                p.name === 'aidev-update-index.md'
+            ) || []
+
+            return indexPrompts.map(enhanceFileWithMetadata)
+        }
 
         return []
     }
@@ -131,66 +273,98 @@ function SettingsPageContent() {
     const sidebarHeader = (
         <div className={styles.tabs}>
             <Button
-                onClick={handleTabChangePreferences}
-                variant={activeTab === 'preferences' ? 'primary' : 'ghost'}
+                onClick={handleTabChangePlan}
+                variant={activeTab === 'plan' ? 'primary' : 'ghost'}
                 size="small"
             >
-                Preferences
+                Plan
             </Button>
             <Button
-                onClick={handleTabChangeExamples}
-                variant={activeTab === 'examples' ? 'primary' : 'ghost'}
+                onClick={handleTabChangeCode}
+                variant={activeTab === 'code' ? 'primary' : 'ghost'}
                 size="small"
             >
-                Examples
+                Code
             </Button>
             <Button
-                onClick={handleTabChangeTemplates}
-                variant={activeTab === 'templates' ? 'primary' : 'ghost'}
+                onClick={handleTabChangeLearn}
+                variant={activeTab === 'learn' ? 'primary' : 'ghost'}
                 size="small"
             >
-                Templates
+                Learn
+            </Button>
+            <Button
+                onClick={handleTabChangeIndex}
+                variant={activeTab === 'index' ? 'primary' : 'ghost'}
+                size="small"
+            >
+                Index
+            </Button>
+            <Button
+                onClick={handleTabChangeSettings}
+                variant={activeTab === 'settings' ? 'primary' : 'ghost'}
+                size="small"
+            >
+                Settings
             </Button>
         </div>
     )
 
     const sidebarContent = (
         <>
-            <div className={styles.fileList}>
-                {fileList.map((item) => {
-                    const fileName = typeof item === 'string' ? item : item.file
-                    const displayName = typeof item === 'string' ? item : (item.name || item.file)
-                    const description = typeof item === 'object' ? item.description : undefined
-
-                    return (
+            {activeTab === 'settings' ? (
+                <div className={styles.placeholder}>
+                    <p>Application Settings</p>
+                </div>
+            ) : (
+                <div className={styles.fileList}>
+                    {fileList.map((item) => (
                         <Button
-                            key={fileName}
-                            onClick={createFileSelectHandler(fileName)}
-                            variant={selectedFile === fileName ? 'primary' : 'ghost'}
+                            key={item.name}
+                            onClick={createFileSelectHandler(item.name)}
+                            variant={selectedFile === item.name ? 'primary' : 'ghost'}
                             fullWidth
                             className={styles.fileItem}
                         >
                             <FontAwesomeIcon icon={faFile} className={styles.fileIcon} />
                             <div className={styles.fileInfo}>
-                                <span className={styles.fileName}>{displayName}</span>
-                                {description ? <span className={styles.fileDescription}>{description}</span> : null}
+                                <span className={styles.fileName}>{item.title}</span>
+                                {item.description ? <span className={styles.fileDescription}>{item.description}</span> : null}
                             </div>
                         </Button>
-                    )
-                })}
-            </div>
+                    ))}
+                </div>
+            )}
         </>
     )
 
     return (
         <PageLayout
-            title="Your Codebase"
-            subtitle="Manage preferences, examples, and templates for AI-driven development"
+            title="Settings"
+            subtitle="You can find all the settings used by AI Driven Development here. This allows you to customize how Claude Code is used or tweak the prompts so it matches your needs."
             variant="sidebar"
             sidebarHeader={sidebarHeader}
             sidebarContent={sidebarContent}
         >
-            {selectedFile ? (
+            {activeTab === 'settings' ? (
+                <>
+                    {settingsError ? (
+                        <div className={styles.placeholder}>
+                            <p>Failed to load settings. Please ensure settings.json exists in .aidev-storage</p>
+                        </div>
+                    ) : settingsData ? (
+                        <SettingsForm
+                            settings={settingsData}
+                            onSave={handleSaveSettings}
+                            saving={saving}
+                        />
+                    ) : (
+                        <div className={styles.placeholder}>
+                            <p>Loading settings...</p>
+                        </div>
+                    )}
+                </>
+            ) : selectedFile ? (
                 <>
                     <div className={styles.header}>
                         <div className={styles.headerInfo}>

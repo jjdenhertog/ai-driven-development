@@ -1,0 +1,11 @@
+{"type":"success","message":"[aidev] \u001b[38;5;36mPreparing git branch...\u001b[0m","timestamp":"2025-07-21T19:51:50.428Z"}
+{"type":"info","message":"[aidev] Executing Task: 001 - init-nextjs-project","timestamp":"2025-07-21T19:51:53.526Z"}
+{"type":"info","message":"[aidev] Starting execution of task 001","timestamp":"2025-07-21T19:51:53.526Z"}
+{"type":"success","message":"[aidev] \u001b[38;5;36mStarting Claude with aidev-code-task command...\u001b[0m","timestamp":"2025-07-21T19:51:53.527Z"}
+{"type":"warn","message":"[aidev] \u001b[38;5;214mDangerously skipping permission checks of Claude Code\u001b[0m","timestamp":"2025-07-21T19:51:53.527Z"}
+{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-21T19:54:28.891Z"}
+{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-21T19:54:28.892Z"}
+{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-21T19:59:22.248Z"}
+{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-21T19:59:22.248Z"}
+{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-21T20:07:54.684Z"}
+{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-21T20:07:54.684Z"}

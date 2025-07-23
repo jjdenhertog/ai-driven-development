@@ -1,86 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { spawn } from 'node:child_process'
-import { isRunningInContainer } from '@/lib/utils/isRunningInContainer'
-import { checkAidevCLI } from '@/lib/utils/checkAidevCLI'
+import { executeAidevCommandRaw } from '@/lib/utils/executeAidevCommandRaw'
 
 type Params = {
-  params: Promise<{
-    name: string
-  }>
+    params: Promise<{
+        name: string
+    }>
 }
 
-// GET /api/containers/[name]/logs - Stream container logs
+// GET /api/containers/[name]/logs - Get container logs
 export async function GET(request: NextRequest, { params }: Params) {
     const { name } = await params
-    // Check if we're running in a container
-    if (isRunningInContainer()) {
-        return NextResponse.json(
-            { error: 'Container management is not available when running inside a container' },
-            { status: 503 }
-        )
-    }
-    
-    // Check if aidev CLI is available
-    const aidevCheck = await checkAidevCLI()
-    if (!aidevCheck.available) {
-        return NextResponse.json(
-            { error: 'The aidev CLI is not available' },
-            { status: 503 }
-        )
-    }
-    
     const containerName = name
-  
+
     // Get query parameters
-    const {searchParams} = request.nextUrl
-    const follow = searchParams.get('stream') === 'true'
+    const { searchParams } = request.nextUrl
     const tail = searchParams.get('tail') || '100'
+    const since = searchParams.get('since') // Optional timestamp for incremental fetching
 
-    // Create a readable stream
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-        start(controller) {
-            const args = ['container', 'logs', containerName, '-n', tail]
-            if (follow) {
-                args.push('-f')
-            }
-      
-            const proc = spawn('aidev', args)
-      
-            proc.stdout.on('data', (data) => {
-                controller.enqueue(encoder.encode(data.toString()))
-            })
-      
-            proc.stderr.on('data', (data) => {
-                controller.enqueue(encoder.encode(data.toString()))
-            })
-      
-            proc.on('error', (error) => {
-                controller.enqueue(encoder.encode(`Error: ${error.message}\n`))
-                controller.close()
-            })
-      
-            proc.on('close', (code) => {
-                if (code !== 0 && code !== null) {
-                    controller.enqueue(encoder.encode(`Process exited with code ${code}\n`))
+    try {
+        const args = ['logs', containerName, '-n', tail]
+
+        // If since is provided, add timestamp filtering
+        if (since)
+            args.push('--since', since)
+
+        // Execute command through proxy and return raw response
+        const proxyResponse = await executeAidevCommandRaw('container', args)
+
+        const result = await proxyResponse.json()
+
+        // Parse JSON output and extract messages
+        if (proxyResponse.ok && result.stdout) {
+            const lines = result.stdout.split('\n').filter((line: string) => line.trim())
+
+            // Return messages as plain text output for the log parser
+            return NextResponse.json({
+                stdout: lines.map((item: string) => JSON.parse(item)),
+                stderr: result.stderr || ''
+            }, {
+                status: proxyResponse.status,
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 }
-
-                controller.close()
-            })
-      
-            // Handle client disconnect
-            request.signal.addEventListener('abort', () => {
-                proc.kill()
-                controller.close()
             })
         }
-    })
 
-    return new NextResponse(stream, {
-        headers: {
-            'Content-Type': 'text/plain; charset=utf8',
-            'Cache-Control': 'no-cache',
-            'X-Content-Type-Options': 'nosniff',
-        },
-    })
+        // Return original result if not successful or no stdout
+        return NextResponse.json(result, {
+            status: proxyResponse.status,
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        })
+
+    } catch (error) {
+        return NextResponse.json(
+            { error: `Failed to get logs: ${error instanceof Error ? error.message : String(error)}` },
+            {
+                status: 500,
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                }
+            }
+        )
+    }
 }

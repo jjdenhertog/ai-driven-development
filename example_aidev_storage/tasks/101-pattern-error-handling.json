@@ -1,9 +1,0 @@
-{
-    "id": "101",
-    "name": "pattern-error-handling",
-    "type": "pattern",
-    "dependencies": ["001", "003"],
-    "estimated_lines": 250,
-    "priority": "high",
-    "status": "pending"
-}

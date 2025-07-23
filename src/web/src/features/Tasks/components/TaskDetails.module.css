@@ -528,6 +528,33 @@
   flex-direction: column;
 }
 
+/* Phases Tab - mirroring sessions structure */
+.phases {
+  display: flex;
+  height: 100%;
+}
+
+.phaseList {
+  width: 300px;
+  border-right: 1px solid var(--border-color);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.phaseList h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.phaseContent {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Output Tabs */
 .output {
   height: 100%;

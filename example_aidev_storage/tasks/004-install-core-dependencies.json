@@ -1,0 +1,10 @@
+{
+  "id": "004",
+  "name": "install-core-dependencies",
+  "type": "feature",
+  "dependencies": ["003"],
+  "estimated_lines": 50,
+  "priority": "critical",
+  "category": "setup",
+  "description": "Install all core dependencies including MUI, Prisma, NextAuth"
+}

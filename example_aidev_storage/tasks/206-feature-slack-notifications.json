@@ -1,9 +1,0 @@
-{
-    "id": "206",
-    "name": "feature-slack-notifications",
-    "type": "feature",
-    "dependencies": ["002", "004", "202"],
-    "estimated_lines": 200,
-    "priority": "medium",
-    "status": "pending"
-}

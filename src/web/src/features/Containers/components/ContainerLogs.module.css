@@ -1,0 +1,140 @@
+.logsSection {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 300px); /* Adjust based on header/container info height */
+}
+
+.logsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.logsTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logsContentWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.logsContent {
+  background: var(--background-subtle);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  min-height: 0; /* Important for flex containers */
+}
+
+.noLogs {
+  color: var(--foreground-muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+.logLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.logLine {
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.logText {
+  display: block;
+}
+
+/* Log type colors */
+.error {
+  color: var(--color-error);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.info {
+  color: var(--color-info);
+}
+
+.system {
+  color: var(--foreground-muted);
+  font-style: italic;
+}
+
+.normal {
+  color: var(--foreground);
+}
+
+/* ANSI Color Classes */
+.ansi-black { color: #000000; }
+.ansi-red { color: #cd3131; }
+.ansi-green { color: #0dbc79; }
+.ansi-yellow { color: #e5e510; }
+.ansi-blue { color: #2472c8; }
+.ansi-magenta { color: #bc3fbc; }
+.ansi-cyan { color: #11a8cd; }
+.ansi-white { color: #e5e5e5; }
+
+.ansi-bright-black { color: #666666; }
+.ansi-bright-red { color: #f14c4c; }
+.ansi-bright-green { color: #23d18b; }
+.ansi-bright-yellow { color: #f5f543; }
+.ansi-bright-blue { color: #3b8eea; }
+.ansi-bright-magenta { color: #d670d6; }
+.ansi-bright-cyan { color: #29b8db; }
+.ansi-bright-white { color: #ffffff; }
+
+.ansi-orange { color: #ffaf00; }
+
+/* Scroll controls */
+.scrollCheckbox {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.scrollCheckbox:hover {
+  background: var(--background-subtle);
+  border-color: var(--border-hover);
+}
+
+.scrollCheckbox input[type="checkbox"] {
+  cursor: pointer;
+}

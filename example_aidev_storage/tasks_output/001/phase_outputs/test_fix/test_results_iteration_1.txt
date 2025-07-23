@@ -1,0 +1,127 @@
+
+> afx-render-manager@0.1.0 test
+> vitest
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/afx-render-manager/.aidev-001-init-nextjs-project[39m
+
+ [32m✓[39m __tests__/config/validation.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 46[2mms[22m[39m
+[90mstderr[2m | src/app/__tests__/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mlayout integration[2m > [22m[2mshould work correctly within RootLayout
+[22m[39mWarning: validateDOMNesting(...): <html> cannot appear as a child of <div>.
+    at html
+    at MockLayout (/workspace/afx-render-manager/.aidev-001-init-nextjs-project/src/app/__tests__/page.test.tsx:157:29)
+
+ [32m✓[39m src/app/__tests__/page.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 386[2mms[22m[39m
+(node:973) [DEP0147] DeprecationWarning: In future versions of Node.js, fs.rmdir(path, { recursive: true }) will be removed. Use fs.rm(path, { recursive: true }) instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstderr[2m | src/app/__tests__/layout.test.tsx[2m > [22m[2mRootLayout[2m > [22m[2mchildren rendering[2m > [22m[2mshould render children content correctly
+[22m[39mWarning: validateDOMNesting(...): <html> cannot appear as a child of <div>.
+    at html
+    at RootLayout (/workspace/afx-render-manager/.aidev-001-init-nextjs-project/src/app/layout.tsx:20:3)
+
+ [31m❯[39m src/app/__tests__/layout.test.tsx [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 225[2mms[22m[39m
+[31m   [31m×[31m RootLayout[2m > [22mperformance[2m > [22mshould not re-render unnecessarily[90m 41[2mms[22m[31m[39m
+[31m     → expected "spy" to be called 1 times, but got 2 times[39m
+ [31m❯[39m __tests__/integration/build.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 37546[2mms[22m[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mTypeScript compilation[2m > [22mshould compile without type errors[33m 7734[2mms[22m[31m[39m
+[31m     → Command failed: npx tsc --noEmit
+[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mESLint[2m > [22mshould pass linting without errors[33m 5763[2mms[22m[31m[39m
+[31m     → Command failed: npm run lint
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m47[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mproduction build[2m > [22mshould build without errors[33m 23907[2mms[22m[31m[39m
+[31m     → Command failed: npm run build
+[31m
+Failed to compile.[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m47[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+ [31m❯[39m __tests__/integration/smoke.test.ts [2m([22m[2m11 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 76649[2mms[22m[39m
+   [33m[2m✓[22m[39m Application Smoke Tests[2m > [22mdependencies[2m > [22mshould install all dependencies without errors [33m5538[2mms[22m[39m
+   [33m[2m✓[22m[39m Application Smoke Tests[2m > [22mdependencies[2m > [22mshould have all required dependencies [33m1021[2mms[22m[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould start on port 3000[33m 10041[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould serve the home page[33m 10007[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould have no console errors on page load[33m 10011[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mstatic assets[2m > [22mshould serve favicon[33m 10006[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mstatic assets[2m > [22mshould handle 404 for missing assets[33m 10006[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mAPI routes[2m > [22mshould handle API health check endpoint[33m 10005[2mms[22m[31m[39m
+[31m     → Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 10 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mTypeScript compilation[2m > [22mshould compile without type errors
+[31m[1mError[22m: Command failed: npx tsc --noEmit
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mESLint[2m > [22mshould pass linting without errors
+[31m[1mError[22m: Command failed: npm run lint
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m47[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mproduction build[2m > [22mshould build without errors
+[31m[1mError[22m: Command failed: npm run build
+[31m
+Failed to compile.[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m47[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould start on port 3000
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould serve the home page
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould have no console errors on page load
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mstatic assets[2m > [22mshould serve favicon
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mstatic assets[2m > [22mshould handle 404 for missing assets
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mAPI routes[2m > [22mshould handle API health check endpoint
+[31m[1mError[22m: Test timed out in 10000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/__tests__/layout.test.tsx[2m > [22mRootLayout[2m > [22mperformance[2m > [22mshould not re-render unnecessarily
+[31m[1mAssertionError[22m: expected "spy" to be called 1 times, but got 2 times[39m
+[36m [2m❯[22m src/app/__tests__/layout.test.tsx:[2m179:25[22m[39m
+    [90m177| [39m      
+    [90m178| [39m      [90m// Should not cause additional renders[39m
+    [90m179| [39m      [34mexpect[39m(renderSpy)[33m.[39m[34mtoHaveBeenCalledTimes[39m([34m1[39m)
+    [90m   | [39m                        [31m^[39m
+    [90m180| [39m    })
+    [90m181| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[2m | [22m[1m[32m75 passed[39m[22m[90m (85)[39m
+[2m   Start at [22m 07:32:52
+[2m   Duration [22m 83.68s[2m (transform 371ms, setup 1.25s, collect 1.08s, tests 114.85s, environment 5.59s, prepare 784ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

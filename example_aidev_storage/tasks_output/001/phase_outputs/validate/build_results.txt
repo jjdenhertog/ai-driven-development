@@ -1,0 +1,27 @@
+
+> afx-render-manager@0.1.0 build
+> next build
+
+[35m[1mAttention[22m[39m: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[36mhttps://nextjs.org/telemetry[39m
+
+   [1m[38;2;173;127;168m▲ Next.js 15.0.3[39m[22m
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully
+ [37m[1m [22m[39m Linting and checking validity of types ...
+[31m
+Failed to compile.[39m
+
+[36m./src/app/__tests__/layout.test.tsx[39m
+[33m142[39m:[33m15[39m  [31m[1mError[22m[39m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[39m
+
+[36m./src/app/__tests__/page.test.tsx[39m
+[33m6[39m:[33m26[39m  [31m[1mError[22m[39m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[39m
+
+[36m./src/test-utils/mocks/next.ts[39m
+[33m46[39m:[33m6[39m  [31m[1mError[22m[39m: Parsing error: '>' expected.
+
+[36minfo[39m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules

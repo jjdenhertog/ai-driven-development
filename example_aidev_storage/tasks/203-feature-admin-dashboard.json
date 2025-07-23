@@ -1,9 +1,0 @@
-{
-    "id": "203",
-    "name": "feature-admin-dashboard",
-    "type": "feature",
-    "dependencies": ["200", "100", "102"],
-    "estimated_lines": 800,
-    "priority": "high",
-    "status": "pending"
-}

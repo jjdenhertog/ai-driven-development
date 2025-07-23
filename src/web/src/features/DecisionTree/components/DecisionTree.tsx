@@ -7,10 +7,11 @@ import styles from './DecisionTree.module.css'
 type DecisionNode = {
   readonly timestamp: string
   readonly phase: string
-  readonly decision: string
-  readonly context: {
+  readonly decision?: string
+  readonly context?: {
     readonly task_id?: string
     readonly task_type?: string
+    readonly task_name?: string
     readonly status?: string
     readonly component?: string
     readonly file?: string
@@ -18,15 +19,20 @@ type DecisionNode = {
     readonly tests_passing?: number
     readonly build_status?: string
   }
-  readonly reasoning: string
-  readonly alternatives_considered: readonly {
+  readonly reasoning?: string
+  readonly alternatives_considered?: readonly {
     readonly option: string
     readonly reason_rejected: string
   }[]
-  readonly confidence: number
+  readonly confidence?: number
   readonly impact?: string
   readonly reversible?: boolean
   readonly tags?: readonly string[]
+  readonly check?: string
+  readonly passed?: boolean
+  readonly details?: any
+  readonly action?: string
+  readonly success?: boolean
 }
 
 type DecisionTreeProps = {

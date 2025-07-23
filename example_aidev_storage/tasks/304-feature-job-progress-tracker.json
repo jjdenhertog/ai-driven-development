@@ -1,0 +1,12 @@
+{
+  "id": "304",
+  "name": "feature-job-progress-tracker",
+  "type": "feature",
+  "category": "feature",
+  "description": "Track and report job progress during rendering",
+  "dependencies": ["301", "303"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 150,
+  "created_at": "2025-01-21T12:00:00Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "301",
+  "name": "feature-job-queue-service",
+  "type": "feature",
+  "category": "feature",
+  "description": "Implement job queue management service with priority handling",
+  "dependencies": ["300"],
+  "priority": "critical",
+  "estimated_complexity": "high",
+  "estimated_lines": 300,
+  "created_at": "2025-01-21T12:00:00Z"
+}

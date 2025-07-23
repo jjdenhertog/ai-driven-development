@@ -1,0 +1,142 @@
+{
+  "task_id": "001",
+  "task_name": "init-nextjs-project",
+  "components_to_create": [
+    {
+      "name": "RootLayout",
+      "type": "Server Component",
+      "path": "src/app/layout.tsx",
+      "responsibilities": [
+        "Define HTML structure",
+        "Set metadata for SEO",
+        "Provide global providers wrapper",
+        "Apply base styles"
+      ],
+      "tests_required": [
+        "Renders children correctly",
+        "Sets proper metadata",
+        "HTML structure validation"
+      ],
+      "implementation_notes": "Must follow Next.js 15 metadata API"
+    },
+    {
+      "name": "HomePage",
+      "type": "Server Component",
+      "path": "src/app/page.tsx",
+      "responsibilities": [
+        "Display welcome message",
+        "Show AFX Render Manager branding",
+        "Provide navigation hints"
+      ],
+      "tests_required": [
+        "Renders without errors",
+        "Displays correct content",
+        "Accessibility compliance"
+      ],
+      "implementation_notes": "Clean, minimal design for initial setup"
+    }
+  ],
+  "components_to_reuse": [],
+  "modified_components": [],
+  "directory_structure": {
+    "src/": {
+      "description": "Application source code",
+      "subdirectories": {
+        "app/": {
+          "description": "Next.js App Router pages and layouts",
+          "files": ["layout.tsx", "page.tsx", "globals.css"]
+        },
+        "components/": {
+          "description": "Shared UI components",
+          "subdirectories": {
+            "ui/": "Custom UI library components (future)"
+          }
+        },
+        "features/": {
+          "description": "Feature modules (future)",
+          "note": "Will contain feature-specific components, hooks, utils"
+        },
+        "lib/": {
+          "description": "Shared utilities and configurations",
+          "files": ["utils.ts (future)"]
+        },
+        "hooks/": {
+          "description": "Shared React hooks (future)"
+        },
+        "types/": {
+          "description": "TypeScript type definitions",
+          "files": ["index.ts (future)"]
+        }
+      }
+    },
+    "public/": {
+      "description": "Static assets",
+      "files": ["favicon.ico", "images/"]
+    }
+  },
+  "configuration_files": [
+    {
+      "name": "package.json",
+      "purpose": "Project dependencies and scripts",
+      "key_contents": {
+        "name": "afx-render-manager",
+        "version": "0.1.0",
+        "scripts": {
+          "dev": "next dev",
+          "build": "next build",
+          "start": "next start",
+          "lint": "next lint"
+        }
+      }
+    },
+    {
+      "name": "tsconfig.json",
+      "purpose": "TypeScript configuration",
+      "key_contents": {
+        "compilerOptions": {
+          "strict": true,
+          "target": "ES2022",
+          "paths": {
+            "@/*": ["./src/*"]
+          }
+        }
+      }
+    },
+    {
+      "name": "next.config.js",
+      "purpose": "Next.js configuration",
+      "key_contents": {
+        "reactStrictMode": true,
+        "typescript": {
+          "ignoreBuildErrors": false
+        }
+      }
+    },
+    {
+      "name": ".eslintrc.json",
+      "purpose": "ESLint configuration",
+      "key_contents": {
+        "extends": "next/core-web-vitals"
+      }
+    },
+    {
+      "name": ".gitignore",
+      "purpose": "Git ignore patterns",
+      "key_patterns": [
+        "node_modules/",
+        ".next/",
+        "out/",
+        ".env*.local",
+        "*.log"
+      ]
+    }
+  ],
+  "integration_points": [],
+  "api_endpoints": [],
+  "future_considerations": [
+    "MUI theme integration point in layout.tsx",
+    "Authentication provider wrapper location",
+    "Global state management setup",
+    "API route structure for backend"
+  ]
+}

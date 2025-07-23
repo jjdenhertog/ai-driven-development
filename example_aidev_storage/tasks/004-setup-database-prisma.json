@@ -1,9 +1,0 @@
-{
-    "id": "004",
-    "name": "setup-database-prisma",
-    "type": "feature",
-    "dependencies": ["001", "002"],
-    "estimated_lines": 250,
-    "priority": "high",
-    "status": "pending"
-}

@@ -1,16 +1,14 @@
-import { readFileSync } from 'fs-extra';
-
 import { executeClaudeCommand } from '../../claude-wrapper';
 import { MAIN_BRANCH } from '../config';
 import { LearningOptions } from '../types/commands/LearningOptions';
-import { Task } from '../types/tasks/Task';
 import addHooks from '../utils/claude/addHooks';
 /* eslint-disable max-depth */
 import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
 import removeHooks from '../utils/claude/removeHooks';
 import { checkBranchMerged } from '../utils/git/checkBranchMerged';
-import { checkGitAuth } from '../utils/git/checkGitAuth';
+import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { getCommits } from '../utils/git/getCommits';
+import { isInWorktree } from '../utils/git/isInWorktree';
 import { log } from '../utils/logger';
 import { sleep } from '../utils/sleep';
 import { createSession } from '../utils/storage/createSession';
@@ -23,10 +21,12 @@ export async function learningCommand(options: LearningOptions) {
     const { dangerouslySkipPermission } = options;
 
     // Ensure git auth
-    if (!checkGitAuth()) {
-        log('Git authentication required. Run: gh auth login', 'error');
-        throw new Error('Git authentication required');
-    }
+    if (!await checkGitInitialized())
+        throw new Error('Git is not initialized. Please run `git init` in the root of the repository.');
+
+    // Check if we are in a worktree
+    if (await isInWorktree())
+        throw new Error('This command must be run from the root of the repository.');
 
     // Switch to main branch
     log('Learning command started. Monitoring for completed tasks...', 'success');
@@ -37,8 +37,6 @@ export async function learningCommand(options: LearningOptions) {
     const allTasks = await getTasks();
     let tasks = allTasks.filter(task => task.status != 'archived');
 
-    const iterationAfterFullReload = 30;
-    let iteration = 0;
 
     const mainBranch = MAIN_BRANCH;
 
@@ -47,22 +45,11 @@ export async function learningCommand(options: LearningOptions) {
         while (true) {
 
             // Reload the tasks
-            if (iteration && iteration == iterationAfterFullReload) {
-                iteration = 0;
-                const refreshedTasks = await getTasks();
-                tasks = refreshedTasks.filter(task => task.status != 'archived');
-            }
+            const refreshedTasks = await getTasks();
+            tasks = refreshedTasks.filter(task => task.status != 'archived');
 
             // Check for completed tasks
-            const taskDatas: Task[] = []
-
-            // Reload the JSON
-            for (const task of tasks) {
-                const taskData: Task = JSON.parse(readFileSync(task.path, 'utf8'));
-                taskDatas.push(taskData);
-            }
-
-            const completedTasks = taskDatas.filter(task => task.status === 'completed');
+            const completedTasks = tasks.filter(task => task.status === 'completed');
             if (completedTasks.length > 0) {
                 log(`Found ${completedTasks.length} completed tasks to process`, 'info');
 
@@ -96,7 +83,11 @@ export async function learningCommand(options: LearningOptions) {
 
                         log(`Found ${commits.length} commits (${userCommits.length} user, ${aiCommits.length} AI) for task ${task.id}`, 'info');
 
+
+
                         if (userCommits.length > 0) {
+
+                            saveUserChanges(task.id, userCommits);
 
                             const worktreePath = process.cwd();
 
@@ -108,8 +99,6 @@ export async function learningCommand(options: LearningOptions) {
 
                             try {
 
-                                saveUserChanges(task.id, userCommits);
-
                                 const claudeCommand = async () => {
                                     const args = [];
                                     if (dangerouslySkipPermission)
@@ -117,7 +106,12 @@ export async function learningCommand(options: LearningOptions) {
 
                                     const result = await executeClaudeCommand({
                                         cwd: worktreePath,
-                                        command: `/aidev-learn ${task.id}-${task.name}`,
+                                        command: `Please complete the following steps IN ORDER:
+1. First, use the Read tool to read the entire contents of the file: .aidev-storage/prompts/aidev-learn.md
+2. After reading the file, list the key constraints and outputs for this phase.
+3. Then execute the instructions from that file with these parameters: {"task_filename": "${task.id}-${task.name}" }
+4. Show me progress as you work through the phase.
+                                        `,
                                         args,
                                     });
 
@@ -127,7 +121,7 @@ export async function learningCommand(options: LearningOptions) {
                                         worktreePath,
                                         logsDir,
                                         exitCode: result.exitCode,
-                                        fileName:'claude'
+                                        fileName: 'aidev-learn'
                                     });
 
                                     return sessionReport;
@@ -158,7 +152,6 @@ export async function learningCommand(options: LearningOptions) {
 
             log("Sleeping for 300 seconds, waiting for next iteration", 'info');
 
-            iteration++;
             await sleep(300_000);
         }
     } catch (error) {

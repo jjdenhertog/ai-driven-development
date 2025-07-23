@@ -112,9 +112,9 @@ if [ ! -d "$TASK_OUTPUT_FOLDER/phase_outputs/architect" ]; then
   exit 1
 fi
 
-# For non-instruction tasks, verify test design phase
-if [ "$TASK_TYPE" != "instruction" ] && [ ! -d "$TASK_OUTPUT_FOLDER/phase_outputs/test_design" ]; then
-  echo "❌ ERROR: Test design phase outputs missing for non-instruction task"
+# Verify test design phase
+if [ ! -d "$TASK_OUTPUT_FOLDER/phase_outputs/test_design" ]; then
+  echo "❌ ERROR: Test design phase outputs missing"
   exit 1
 fi
 
@@ -144,23 +144,13 @@ fi
 TASK_TYPE=$(echo "$TASK_JSON" | jq -r '.type // "feature"')
 
 # Initialize validation checklist based on task type
-if [ "$TASK_TYPE" = "instruction" ]; then
-  TODO_LIST='[
-    {"content": "Validate documentation files", "status": "pending", "priority": "high", "id": "1"},
-    {"content": "Check markdown syntax", "status": "pending", "priority": "high", "id": "2"},
-    {"content": "Verify content completeness", "status": "pending", "priority": "high", "id": "3"},
-    {"content": "Check for broken links", "status": "pending", "priority": "medium", "id": "4"},
-    {"content": "Validate examples", "status": "pending", "priority": "medium", "id": "5"},
-    {"content": "Generate quality report", "status": "pending", "priority": "low", "id": "6"}
-  ]'
-elif [ "$TASK_TYPE" = "pattern" ]; then
+if [ "$TASK_TYPE" = "pattern" ]; then
   TODO_LIST='[
     {"content": "Validate pattern implementation", "status": "pending", "priority": "high", "id": "1"},
-    {"content": "Check line count (50-100)", "status": "pending", "priority": "high", "id": "2"},
-    {"content": "Verify usage examples", "status": "pending", "priority": "high", "id": "3"},
-    {"content": "Run type checking", "status": "pending", "priority": "high", "id": "4"},
-    {"content": "Check code style", "status": "pending", "priority": "medium", "id": "5"},
-    {"content": "Generate quality report", "status": "pending", "priority": "low", "id": "6"}
+    {"content": "Verify usage examples", "status": "pending", "priority": "high", "id": "2"},
+    {"content": "Run type checking", "status": "pending", "priority": "high", "id": "3"},
+    {"content": "Check code style", "status": "pending", "priority": "medium", "id": "4"},
+    {"content": "Generate quality report", "status": "pending", "priority": "low", "id": "5"}
   ]'
 else
   TODO_LIST='[
@@ -193,42 +183,8 @@ echo "🧪 Running comprehensive test suite..."
 # Get task type
 TASK_TYPE=$(echo "$TASK_JSON" | jq -r '.type // "feature"')
 
-# Skip test execution for instruction tasks
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Instruction task - validating documentation instead of tests"
-  
-  # Find documentation files created
-  DOC_FILES=$(find . -name "*.md" -newer "$TASK_OUTPUT_FOLDER/phase_outputs/.phase3_start_marker" | grep -v ".aidev-storage" | head -10)
-  DOC_COUNT=$(echo "$DOC_FILES" | grep -c . || echo "0")
-  
-  if [ "$DOC_COUNT" -gt 0 ]; then
-    echo "✅ Found $DOC_COUNT documentation files"
-    TEST_EXIT_CODE=0
-    TOTAL_TESTS="N/A"
-    PASSING_TESTS="N/A"
-    FAILING_TESTS="N/A"
-    COVERAGE="N/A"
-    
-    # Validate markdown syntax
-    for DOC in $DOC_FILES; do
-      echo "Checking: $DOC"
-      # Basic validation - check if file has content
-      if [ -s "$DOC" ]; then
-        echo "  ✅ Has content"
-      else
-        echo "  ❌ Empty file"
-        TEST_EXIT_CODE=1
-      fi
-    done
-  else
-    echo "❌ No documentation files found"
-    TEST_EXIT_CODE=1
-    TOTAL_TESTS="0"
-    PASSING_TESTS="0"
-    FAILING_TESTS="0"
-  fi
-  
-elif [ "$TASK_TYPE" = "pattern" ]; then
+# Handle different task types
+if [ "$TASK_TYPE" = "pattern" ]; then
   echo "🎯 Pattern task - validating pattern implementation"
   
   # Find pattern files
@@ -237,16 +193,15 @@ elif [ "$TASK_TYPE" = "pattern" ]; then
   if [ ! -z "$PATTERN_FILES" ]; then
     echo "✅ Found pattern implementation"
     
-    # Check line count
+    # Validate pattern files
     for FILE in $PATTERN_FILES; do
-      LINE_COUNT=$(wc -l < "$FILE")
-      echo "Pattern file: $FILE ($LINE_COUNT lines)"
+      echo "Pattern file: $FILE"
       
-      if [ $LINE_COUNT -ge 50 ] && [ $LINE_COUNT -le 100 ]; then
-        echo "  ✅ Size within 50-100 lines"
+      if [ -s "$FILE" ]; then
+        echo "  ✅ Pattern file has content"
         TEST_EXIT_CODE=0
       else
-        echo "  ❌ Size outside 50-100 lines"
+        echo "  ❌ Pattern file is empty"
         TEST_EXIT_CODE=1
       fi
       

@@ -4,6 +4,7 @@ import React, { useCallback, useMemo } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { Button } from '@/components/common/Button'
+import { formatDuration } from '@/lib/utils/formatDuration'
 import styles from './TaskDetails.module.css'
 
 type EnhancedSessionListProps = {
@@ -23,17 +24,17 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
     const { data: sessionMetadata } = useSWR(
         sessions.length > 0 ? `tasks/${taskId}/sessions-metadata` : null,
         async () => {
-            const metadata: Record<string, { claude?: any; aidev?: string; type?: 'code' | 'learn' }> = {}
+            const metadata: Record<string, { session?: any; aidev?: string; type?: 'code' | 'learn' }> = {}
       
             await Promise.all(
                 sessions.map(async (sessionId) => {
-                    const [claudeData, aidevData] = await Promise.all([
+                    const [sessionData, aidevData] = await Promise.all([
                         api.getTaskSession(taskId, sessionId).catch(() => null),
                         api.getTaskOutput(taskId, `${sessionId}/aidev.jsonl`).catch(() => null)
                     ])
           
                     metadata[sessionId] = {
-                        claude: claudeData,
+                        session: sessionData,
                         aidev: aidevData?.content,
                         type: aidevData?.content?.includes('for learning') ? 'learn' : 'code'
                     }
@@ -44,17 +45,6 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
         }
     )
 
-    const formatDuration = useCallback((ms: number) => {
-        const seconds = Math.floor(ms / 1000)
-        const minutes = Math.floor(seconds / 60)
-        const hours = Math.floor(minutes / 60)
-    
-        if (hours > 0) {
-            return `${hours}h${minutes % 60}m`
-        }
-
-        return `${minutes}m${seconds % 60}s`
-    }, [])
 
     const createSessionClickHandler = useCallback((sessionId: string) => () => {
         onSelectSession(sessionId)
@@ -86,8 +76,8 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
                             <div className={styles.sessionDate}>
                                 {isValidDate ? date.toLocaleString() : sessionId}
                             </div>
-                            {sessionMetadata?.[sessionId]?.claude ? <div className={styles.sessionStatus}>
-                                {sessionMetadata[sessionId].claude.success ? (
+                            {sessionMetadata?.[sessionId]?.session ? <div className={styles.sessionStatus}>
+                                {sessionMetadata[sessionId].session.success ? (
                                     <span className={styles.successBadge}>✓ Completed</span>
                                 ) : (
                                     <span className={styles.failedBadge}>✗ Failed</span>
@@ -96,8 +86,8 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
                         </div>
                         <div className={styles.sessionMeta}>
                             <span className={styles.sessionId}>{sessionId}</span>
-                            {sessionMetadata?.[sessionId]?.claude?.total_duration_ms ? <span className={styles.sessionDuration}>
-                                {formatDuration(sessionMetadata[sessionId].claude.total_duration_ms)}
+                            {sessionMetadata?.[sessionId]?.session?.total_duration_ms ? <span className={styles.sessionDuration}>
+                                {formatDuration(sessionMetadata[sessionId].session.total_duration_ms)}
                             </span> : null}
                         </div>
                     </div>
@@ -116,7 +106,7 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
                 </Button>
             );
         }
-    }, [selectedSession, sessionMetadata, formatDuration, createSessionClickHandler])
+    }, [selectedSession, sessionMetadata, createSessionClickHandler])
 
     // Group sessions by type
     const { codeSessions, learnSessions } = useMemo(() => {

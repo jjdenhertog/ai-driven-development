@@ -1,0 +1,184 @@
+{
+  "patterns": [
+    {
+      "name": "api-error-handler",
+      "type": "utility",
+      "purpose": "Consistent API error responses with Sentry logging",
+      "location": "/src/utils/api-errors.ts",
+      "exports": ["handleApiError", "ApiError"],
+      "test_requirements": [
+        "Handle 400 bad request with custom message",
+        "Handle 401 unauthorized",
+        "Handle 403 forbidden",
+        "Handle 404 not found",
+        "Handle 500 server error with Sentry reporting",
+        "Return consistent error format"
+      ],
+      "example_usage": "try { ... } catch (error) { return handleApiError(error); }",
+      "dependencies": ["@sentry/nextjs"]
+    },
+    {
+      "name": "auth-middleware",
+      "type": "middleware",
+      "purpose": "Protect API routes with authentication checks",
+      "location": "/src/middleware/auth.ts",
+      "exports": ["withAuth", "withApiAuth"],
+      "test_requirements": [
+        "Block unauthenticated requests",
+        "Validate JWT tokens",
+        "Check user roles for admin routes",
+        "Handle expired tokens",
+        "Pass user context to handler"
+      ],
+      "example_usage": "export const GET = withAuth(async (req, { user }) => { ... })",
+      "dependencies": ["next-auth", "jsonwebtoken"]
+    },
+    {
+      "name": "database-client",
+      "type": "singleton",
+      "purpose": "Prisma client singleton for database access",
+      "location": "/src/lib/prisma.ts",
+      "exports": ["prisma"],
+      "test_requirements": [
+        "Single instance in development",
+        "Single instance in production",
+        "Handle connection errors",
+        "Support transactions"
+      ],
+      "example_usage": "import { prisma } from '@/lib/prisma';",
+      "dependencies": ["@prisma/client"]
+    },
+    {
+      "name": "job-queue",
+      "type": "service",
+      "purpose": "Priority queue for managing render jobs",
+      "location": "/src/services/job-queue.ts",
+      "exports": ["JobQueue", "jobQueue"],
+      "test_requirements": [
+        "Add jobs with priority",
+        "Process jobs sequentially",
+        "Handle job cancellation",
+        "Auto-cancel old pending jobs",
+        "Persist queue state to database",
+        "Emit events for status changes"
+      ],
+      "example_usage": "await jobQueue.addJob(jobData, priority);",
+      "dependencies": ["eventemitter3"]
+    },
+    {
+      "name": "file-validator",
+      "type": "utility",
+      "purpose": "Validate Dropbox files exist with stability checks",
+      "location": "/src/utils/file-validator.ts",
+      "exports": ["validateFile", "FileValidationError"],
+      "test_requirements": [
+        "Check file exists",
+        "Verify file size stability",
+        "Check file age requirements",
+        "Handle paths with spaces",
+        "Convert macOS paths to Windows",
+        "Retry on temporary failures"
+      ],
+      "example_usage": "const isValid = await validateFile(filePath, { minAge: 60 });",
+      "dependencies": ["fs/promises", "path"]
+    },
+    {
+      "name": "nexrender-wrapper",
+      "type": "service",
+      "purpose": "Wrapper around nexrender for job execution",
+      "location": "/src/services/nexrender.ts",
+      "exports": ["NexrenderService", "nexrenderService"],
+      "test_requirements": [
+        "Create nexrender job config",
+        "Spawn nexrender process",
+        "Parse progress from stdout",
+        "Handle render errors",
+        "Support job cancellation",
+        "Clean up on completion"
+      ],
+      "example_usage": "const result = await nexrenderService.render(jobConfig);",
+      "dependencies": ["@nexrender/core", "child_process"]
+    },
+    {
+      "name": "socket-manager",
+      "type": "service",
+      "purpose": "WebSocket management for real-time updates",
+      "location": "/src/services/socket.ts",
+      "exports": ["SocketManager", "socketManager"],
+      "test_requirements": [
+        "Handle client connections",
+        "Broadcast job updates",
+        "Room-based messaging",
+        "Authentication verification",
+        "Graceful disconnection"
+      ],
+      "example_usage": "socketManager.emitJobUpdate(jobId, status);",
+      "dependencies": ["socket.io"]
+    },
+    {
+      "name": "slack-notifier",
+      "type": "service",
+      "purpose": "Send notifications via Slack webhook and bot",
+      "location": "/src/services/slack.ts",
+      "exports": ["SlackService", "slackService"],
+      "test_requirements": [
+        "Send webhook to admin channel",
+        "Send DM via bot API",
+        "Format job completion messages",
+        "Handle Slack API errors silently",
+        "Support rich message formatting"
+      ],
+      "example_usage": "await slackService.notifyJobComplete(job, user);",
+      "dependencies": ["@slack/web-api", "node-fetch"]
+    },
+    {
+      "name": "b-component-base",
+      "type": "component",
+      "purpose": "Base pattern for B-prefixed MUI components",
+      "location": "/src/components/ui/BButton.tsx",
+      "exports": ["BButton"],
+      "test_requirements": [
+        "Extend MUI component props",
+        "Apply custom theme styles",
+        "Support all MUI variants",
+        "TypeScript prop validation"
+      ],
+      "example_usage": "<BButton variant=\"primary\" loading>Submit</BButton>",
+      "dependencies": ["@mui/material"]
+    },
+    {
+      "name": "api-response",
+      "type": "utility",
+      "purpose": "Consistent API response formatting",
+      "location": "/src/utils/api-response.ts",
+      "exports": ["apiResponse", "ApiResponse"],
+      "test_requirements": [
+        "Format success responses",
+        "Include pagination metadata",
+        "Handle empty responses",
+        "TypeScript generic support"
+      ],
+      "example_usage": "return apiResponse({ data: jobs, meta: { total: 100 } });",
+      "dependencies": []
+    }
+  ],
+  "pattern_categories": {
+    "utilities": ["api-error-handler", "file-validator", "api-response"],
+    "services": ["job-queue", "nexrender-wrapper", "socket-manager", "slack-notifier"],
+    "middleware": ["auth-middleware"],
+    "components": ["b-component-base"],
+    "singletons": ["database-client"]
+  },
+  "implementation_order": [
+    "database-client",
+    "api-error-handler",
+    "api-response",
+    "auth-middleware",
+    "b-component-base",
+    "file-validator",
+    "job-queue",
+    "nexrender-wrapper",
+    "socket-manager",
+    "slack-notifier"
+  ]
+}

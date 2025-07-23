@@ -1,0 +1,12 @@
+{
+  "id": "300",
+  "name": "feature-job-repository",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create job repository layer with database operations",
+  "dependencies": ["022", "100"],
+  "priority": "critical",
+  "estimated_complexity": "medium",
+  "estimated_lines": 200,
+  "created_at": "2025-01-21T12:00:00Z"
+}

@@ -1,0 +1,99 @@
+{
+  "task_id": "001",
+  "task_name": "init-nextjs-project",
+  "decisions": [
+    {
+      "id": "001-framework",
+      "title": "Next.js 15.x with App Router",
+      "decision": "Use Next.js 15.x with App Router architecture",
+      "rationale": "Latest stable version with modern React Server Components support, better performance, and simplified routing",
+      "alternatives_considered": ["Next.js with Pages Router", "Remix", "Vite + React"],
+      "consequences": "Requires understanding of RSC patterns, but provides better DX and performance"
+    },
+    {
+      "id": "002-typescript",
+      "title": "TypeScript Configuration",
+      "decision": "Use TypeScript with strict mode enabled",
+      "rationale": "Type safety prevents runtime errors and improves developer experience with better IDE support",
+      "alternatives_considered": ["JavaScript with JSDoc", "TypeScript with loose settings"],
+      "consequences": "Slightly longer initial setup but significantly reduced bugs in production"
+    },
+    {
+      "id": "003-structure",
+      "title": "Feature-First Directory Structure",
+      "decision": "Adopt feature-first organization with src directory",
+      "rationale": "Based on preferences/folder-structure.md - promotes modularity and scalability",
+      "alternatives_considered": ["Flat structure", "Type-based organization"],
+      "consequences": "Clear separation of concerns, easier to scale and maintain"
+    },
+    {
+      "id": "004-styling",
+      "title": "No Tailwind CSS Initially",
+      "decision": "Skip Tailwind CSS during setup as MUI will be used",
+      "rationale": "Task specifies MUI for styling, avoiding conflicting styling systems",
+      "alternatives_considered": ["Tailwind + MUI", "CSS Modules only"],
+      "consequences": "Consistent Material Design system, but need separate MUI setup task"
+    },
+    {
+      "id": "005-testing",
+      "title": "Testing Infrastructure Deferred",
+      "decision": "Basic smoke tests only for initial setup, comprehensive testing added later",
+      "rationale": "Focus on getting base project running first, testing framework is a separate concern",
+      "alternatives_considered": ["Include Jest + React Testing Library immediately"],
+      "consequences": "Faster initial setup, but testing must be added before feature development"
+    },
+    {
+      "id": "006-imports",
+      "title": "Path Aliases Configuration",
+      "decision": "Configure @/* import alias for src directory",
+      "rationale": "Cleaner imports, avoid relative path hell, standard Next.js practice",
+      "alternatives_considered": ["Relative imports only", "Multiple aliases"],
+      "consequences": "Cleaner code, but team must understand alias configuration"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "c001",
+      "description": "Must use Node.js 20.x or later",
+      "type": "technical",
+      "impact": "Ensures compatibility with latest Next.js features"
+    },
+    {
+      "id": "c002",
+      "description": "Must follow AI-Dev guidelines from CLAUDE.md",
+      "type": "process",
+      "impact": "Consistent development workflow across tasks"
+    },
+    {
+      "id": "c003",
+      "description": "Must use npm as package manager",
+      "type": "technical",
+      "impact": "Consistent with technology-stack.md preferences"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "a001",
+      "description": "Developer has Node.js 20.x installed",
+      "risk": "low",
+      "mitigation": "Document requirement clearly in README"
+    },
+    {
+      "id": "a002",
+      "description": "Project will eventually need authentication and database",
+      "risk": "low",
+      "mitigation": "Structure supports future additions"
+    },
+    {
+      "id": "a003",
+      "description": "Windows and Unix environments will be supported",
+      "risk": "medium",
+      "mitigation": "Use cross-platform scripts and paths"
+    }
+  ],
+  "references": [
+    ".aidev-storage/preferences/technology-stack.md",
+    ".aidev-storage/preferences/folder-structure.md",
+    "Next.js App Router Documentation"
+  ]
+}

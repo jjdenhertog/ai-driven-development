@@ -1,0 +1,12 @@
+{
+  "id": "310",
+  "name": "setup-material-ui",
+  "type": "setup",
+  "category": "setup",
+  "description": "Install and configure Material-UI for the dashboard",
+  "dependencies": ["001", "004"],
+  "priority": "high",
+  "estimated_complexity": "low",
+  "estimated_lines": 50,
+  "created_at": "2025-01-21T12:00:00Z"
+}

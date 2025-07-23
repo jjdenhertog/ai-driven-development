@@ -23,11 +23,13 @@ export const NewConceptModal: React.FC<NewConceptModalProps> = (props: NewConcep
         
         if (!name.trim()) {
             setErrorMessage('Please provide a filename')
+            
             return
         }
 
         if (!content.trim()) {
             setErrorMessage('Please provide content for the concept')
+            
             return
         }
 

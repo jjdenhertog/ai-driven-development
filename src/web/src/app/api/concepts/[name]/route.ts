@@ -69,8 +69,8 @@ export async function DELETE(
             success: true,
             message: 'Concept deleted successfully'
         })
-    } catch (error) {
-        console.error('Error deleting concept:', error)
+    } catch (_error) {
+        // Error deleting concept
         return NextResponse.json(
             { error: 'Failed to delete concept' },
             { status: 500 }

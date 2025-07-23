@@ -1,0 +1,12 @@
+{
+  "id": "314",
+  "name": "feature-admin-panel",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create admin control panel for system management",
+  "dependencies": ["311", "301"],
+  "priority": "high",
+  "estimated_complexity": "high",
+  "estimated_lines": 300,
+  "created_at": "2025-01-21T12:00:00Z"
+}

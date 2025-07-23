@@ -1,0 +1,49 @@
+{
+  "ui_patterns": {
+    "component_structure": "B-prefixed custom components extending MUI",
+    "component_location": "/src/components/ui/",
+    "state_updates": "React Context API for client state",
+    "data_fetching": "TanStack Query with proper loading states"
+  },
+  "api_patterns": {
+    "routing": "App Router /app/api/ structure",
+    "error_handling": "Centralized handleError function with Sentry",
+    "validation": "Zod schemas with .parse() before processing",
+    "response_format": "Direct JSON without success wrappers",
+    "authentication": "withAuth middleware wrapper",
+    "file_structure": "route.ts files with named exports (GET, POST, etc.)"
+  },
+  "project_structure": {
+    "folder_layout": "Feature-first organization under /src/features/",
+    "shared_code": "/src/components, /src/hooks, /src/utils",
+    "api_routes": "/app/api/ directory",
+    "pages": "/app/ directory with route groups",
+    "types": "/src/types/ organized by domain",
+    "schemas": "/src/schemas/ for Zod validation"
+  },
+  "code_style": {
+    "indentation": "4 spaces (custom ESLint rule)",
+    "comma_dangle": "only-multiline for objects",
+    "react_components": "Functional components with TypeScript",
+    "exports": "Named exports preferred",
+    "async_handling": "async/await with try/catch"
+  },
+  "database_patterns": {
+    "orm": "Prisma with singleton pattern",
+    "client_location": "/src/lib/prisma.ts",
+    "migrations": "Prisma migrate",
+    "seeding": "Optional Prisma seed script"
+  },
+  "testing_patterns": {
+    "framework": "Vitest",
+    "component_tests": "React Testing Library",
+    "file_naming": "*.test.tsx co-located with components",
+    "mocking": "Vitest built-in mocking"
+  },
+  "deployment_patterns": {
+    "build": "Next.js build output",
+    "environment": "Environment variables for configuration",
+    "process_manager": "PM2 (manual setup)",
+    "logging": "Console logs captured by PM2"
+  }
+}

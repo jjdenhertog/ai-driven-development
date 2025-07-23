@@ -1,0 +1,46 @@
+{
+  "responses": {
+    "project_name": "afx-render-manager",
+    "database": "SQLite",
+    "auth_setup": "need_to_create_google_credentials",
+    "company_domain": "@meningreen.agency",
+    "dropbox_path": "C:\\Users\\jjdenhertog\\Men in Green Dropbox\\",
+    "aerender_path": "C:\\Program Files\\Adobe\\Adobe After Effects 2025\\Support Files\\aerender.exe",
+    "nexrender_scripts": "already_have_scripts",
+    "nexrender_installation": "local_to_project",
+    "slack_integration": "both_webhook_and_bot",
+    "git_repository": "setup_later",
+    "port": "3000",
+    "pm2_name": "afx-render-manager",
+    "pm2_setup": "manual_by_user",
+    "eslint_config": "custom_4_space_indent"
+  },
+  "context": {
+    "concept_type": "render_queue_manager",
+    "why_asked": {
+      "project_name": "Needed for package.json, database naming, and system identification",
+      "database": "SQLite vs PostgreSQL affects connection setup, migrations, and deployment",
+      "auth_setup": "Determines if we need setup instructions or can proceed with implementation",
+      "company_domain": "Required for Google OAuth domain restriction",
+      "dropbox_path": "Critical for file validation and path conversion from macOS",
+      "aerender_path": "Required for nexrender to execute After Effects renders",
+      "nexrender_scripts": "Determines if we create script stubs or use placeholders",
+      "nexrender_installation": "Affects how we configure and call nexrender",
+      "slack_integration": "Both methods needed - webhook for admin, bot for user DMs",
+      "git_repository": "Needed for update system but can be configured later",
+      "port": "Application access configuration",
+      "pm2_name": "Service identification",
+      "eslint_config": "Code style consistency across the project"
+    },
+    "implications": {
+      "database": "SQLite simplifies deployment, perfect for single-machine setup",
+      "auth_setup": "Will need setup guide for Google Cloud Console configuration",
+      "dropbox_path": "Path has space in 'Men in Green', requires careful handling",
+      "nexrender_scripts": "Can use placeholder paths, focus on integration logic",
+      "nexrender_installation": "Will use @nexrender/core and @nexrender/types packages",
+      "slack_integration": "Need both SLACK_WEBHOOK_URL and SLACK_BOT_TOKEN env vars",
+      "eslint_config": "4-space indentation, specific React rules, affects all code generation"
+    }
+  },
+  "timestamp": "2025-01-21T15:45:00Z"
+}

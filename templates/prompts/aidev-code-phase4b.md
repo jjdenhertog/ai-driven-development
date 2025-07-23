@@ -81,10 +81,10 @@ TASK_TYPE=$(echo "$TASK_JSON" | jq -r '.type // "feature"')
 
 echo "📋 Task: $TASK_ID - $TASK_NAME"
 
-# Only proceed if this is a feature task (not instruction or pattern)
-if [ "$TASK_TYPE" != "feature" ]; then
-  echo "✅ Task type is '$TASK_TYPE' - test fixing not applicable"
-  echo "Skipping Phase 4B for non-feature tasks"
+# Only proceed if this is a feature task (not pattern)
+if [ "$TASK_TYPE" = "pattern" ]; then
+  echo "✅ Pattern task - test fixing not applicable"
+  echo "Skipping Phase 4B for pattern tasks"
   exit 0
 fi
 

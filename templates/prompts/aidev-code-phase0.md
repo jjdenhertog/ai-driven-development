@@ -106,11 +106,25 @@ TASK_TYPE=$(echo "$TASK_JSON" | jq -r '.type // "feature"')
 
 echo "📋 Task: $TASK_ID - $TASK_NAME (Type: $TASK_TYPE)"
 
+# Detect simple tasks that could skip phases
+TASK_COMPLEXITY="normal"
+TASK_DESCRIPTION=$(echo "$TASK_JSON" | jq -r '.description // ""')
+
+# Check for simple task indicators
+if echo "$TASK_NAME $TASK_DESCRIPTION" | grep -qiE "fix.*typo|update.*comment|rename.*variable|change.*string|update.*readme|fix.*lint|format.*code"; then
+  TASK_COMPLEXITY="simple"
+  echo "🎯 Detected simple task - will streamline execution"
+elif echo "$TASK_NAME $TASK_DESCRIPTION" | grep -qiE "refactor|new feature|api|integration|migrate|redesign"; then
+  TASK_COMPLEXITY="complex"
+  echo "🔧 Detected complex task - full pipeline recommended"
+fi
+
 # Parse additional parameters
 USE_PREFERENCE_FILES=$(echo "$PARAMETERS_JSON" | jq -r '.use_preference_files // false')
 USE_EXAMPLES=$(echo "$PARAMETERS_JSON" | jq -r '.use_examples // false')
 
 echo "📚 Configuration:"
+echo "  - Task complexity: $TASK_COMPLEXITY"
 echo "  - Use preference files: $USE_PREFERENCE_FILES"
 echo "  - Use examples: $USE_EXAMPLES"
 
@@ -256,6 +270,58 @@ if [ "$USE_EXAMPLES" = "true" ]; then
     echo "✅ Found examples: $EXAMPLE_COMPONENTS components, $EXAMPLE_HOOKS hooks, $EXAMPLE_API API routes"
   fi
 fi
+
+# Always check for learned patterns
+LEARNED_PATTERNS_INFO='{}'
+HIGH_PRIORITY_PATTERNS='[]'
+echo "🧠 Checking for learned patterns from user corrections..."
+
+if [ -f ".aidev-storage/planning/learned-patterns.json" ]; then
+    LEARNED_PATTERNS=$(cat .aidev-storage/planning/learned-patterns.json)
+    PATTERN_COUNT=$(echo "$LEARNED_PATTERNS" | jq '.patterns | length')
+    
+    # Extract high-priority patterns (user corrections)
+    HIGH_PRIORITY_PATTERNS=$(echo "$LEARNED_PATTERNS" | jq '
+      .patterns | to_entries | map(
+        select(.value.metadata.source == "user_correction" and .value.metadata.priority >= 0.9) |
+        {
+          id: .key,
+          rule: .value.rule,
+          category: .value.category,
+          implementation: .value.implementation,
+          priority: .value.metadata.priority,
+          confidence: .value.confidence
+        }
+      )
+    ')
+    
+    LEARNED_PATTERNS_INFO=$(jq -n \
+      --arg total "$PATTERN_COUNT" \
+      --argjson high_priority "$HIGH_PRIORITY_PATTERNS" \
+      '{
+        total_patterns: ($total | tonumber),
+        user_correction_patterns: ($high_priority | length),
+        patterns: $high_priority
+      }')
+    
+    echo "✅ Found $PATTERN_COUNT learned patterns ($(echo "$HIGH_PRIORITY_PATTERNS" | jq 'length') from user corrections)"
+    
+    # Add warnings for critical patterns
+    for pattern in $(echo "$HIGH_PRIORITY_PATTERNS" | jq -r '.[] | @base64'); do
+      _jq() {
+        echo ${pattern} | base64 --decode | jq -r ${1}
+      }
+      PATTERN_RULE=$(_jq '.rule')
+      PATTERN_CAT=$(_jq '.category')
+      
+      # Add pattern-specific warnings to reusable components
+      if [ "$PATTERN_CAT" = "api" ] || [ "$PATTERN_CAT" = "architecture" ]; then
+        echo "⚠️  CRITICAL USER PATTERN: $PATTERN_RULE"
+      fi
+    done
+else
+  echo "📝 No learned patterns found yet"
+fi
 ```
 
 ### 2. Create Catalogs and Identify Reusable Components
@@ -269,6 +335,7 @@ CATALOG=$(jq -n \
   --argjson api_routes "$MATCHED_API_ROUTES" \
   --argjson preferences "${PREFERENCES_INFO:-{}}" \
   --argjson examples "${EXAMPLES_INFO:-{}}" \
+  --argjson learned_patterns "${LEARNED_PATTERNS_INFO:-{}}" \
   --arg use_preferences "$USE_PREFERENCE_FILES" \
   --arg use_examples "$USE_EXAMPLES" \
   '{
@@ -280,7 +347,8 @@ CATALOG=$(jq -n \
       use_preference_files: ($use_preferences == "true"),
       use_examples: ($use_examples == "true"),
       preferences_info: $preferences,
-      examples_info: $examples
+      examples_info: $examples,
+      learned_patterns_info: $learned_patterns
     }
   }')
 
@@ -294,6 +362,7 @@ REUSABLE='{
   "patterns": [],
   "layouts": [],
   "styles": [],
+  "learned_patterns": [],
   "warnings": []
 }'
 
@@ -312,6 +381,23 @@ fi
 [ "$HOOK_COUNT" -gt 0 ] && REUSABLE=$(echo "$REUSABLE" | jq --argjson hooks "$MATCHED_HOOKS" '.hooks = $hooks')
 [ "$UTIL_COUNT" -gt 0 ] && REUSABLE=$(echo "$REUSABLE" | jq --argjson utils "$MATCHED_UTILITIES" '.utilities = $utils')
 [ "$PATTERN_COUNT" -gt 0 ] && REUSABLE=$(echo "$REUSABLE" | jq --argjson patterns "$RELEVANT_PATTERNS" '.patterns = $patterns')
+
+# Add learned patterns with HIGH priority
+if [ $(echo "$HIGH_PRIORITY_PATTERNS" | jq 'length') -gt 0 ]; then
+  REUSABLE=$(echo "$REUSABLE" | jq --argjson learned "$HIGH_PRIORITY_PATTERNS" '.learned_patterns = $learned')
+  
+  # Add critical warning for user patterns
+  REUSABLE=$(echo "$REUSABLE" | jq '.warnings += ["🔴 CRITICAL: User-corrected patterns detected! These MUST be followed with highest priority"]')
+  
+  # Add specific warnings for each high-priority pattern
+  for pattern in $(echo "$HIGH_PRIORITY_PATTERNS" | jq -r '.[] | @base64'); do
+    _jq() {
+      echo ${pattern} | base64 --decode | jq -r ${1}
+    }
+    PATTERN_RULE=$(_jq '.rule')
+    REUSABLE=$(echo "$REUSABLE" | jq --arg rule "$PATTERN_RULE" '.warnings += ["USER PATTERN: " + $rule]')
+  done
+fi
 
 # Task-specific duplication warnings
 if echo "$TASK_NAME" | grep -qi "auth\|login"; then
@@ -389,6 +475,17 @@ $(if [ "$USE_EXAMPLES" = "true" ] && [ ! -z "$EXAMPLES_INFO" ]; then
   echo "- Hooks: $(echo "$EXAMPLES_INFO" | jq -r '.hooks // 0')"
   echo "- API Routes: $(echo "$EXAMPLES_INFO" | jq -r '.api // 0')"
 fi)
+
+$(if [ ! -z "$LEARNED_PATTERNS_INFO" ] && [ $(echo "$LEARNED_PATTERNS_INFO" | jq -r '.total_patterns // 0') -gt 0 ]; then
+  echo "### 🧠 Learned Patterns (User Corrections)"
+  echo "- Total Patterns: $(echo "$LEARNED_PATTERNS_INFO" | jq -r '.total_patterns // 0')"
+  echo "- User Correction Patterns: $(echo "$LEARNED_PATTERNS_INFO" | jq -r '.user_correction_patterns // 0')"
+  echo ""
+  if [ $(echo "$HIGH_PRIORITY_PATTERNS" | jq 'length') -gt 0 ]; then
+    echo "#### High-Priority Patterns:"
+    echo "$HIGH_PRIORITY_PATTERNS" | jq -r '.[] | "- **\(.rule)** (Category: \(.category), Priority: \(.priority))"'
+  fi
+fi)
 EOF
 
 # Initialize context
@@ -413,6 +510,7 @@ CONTEXT=$(jq -n \
     critical_context: {
       task_type: $task_type,
       task_name: $task_name,
+      task_complexity: "'$TASK_COMPLEXITY'",
       reuse_opportunities: [],
       use_preference_files: ('$USE_PREFERENCE_FILES' == "true"),
       use_examples: ('$USE_EXAMPLES' == "true")

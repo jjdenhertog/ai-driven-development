@@ -19,7 +19,8 @@ export const Navigation: React.FC = () => {
         { href: '/plan', label: 'Plan' },
         { href: '/tasks', label: 'Code' },
         { href: '/containers', label: 'Containers' },
-        { href: '/settings', label: 'Your Codebase' }
+        { href: '/preferences', label: 'Your Preferences' },
+        { href: '/settings', label: 'Settings' }
     ], [])
 
     const isHomePage = pathname === '/'

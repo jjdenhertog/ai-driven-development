@@ -202,6 +202,74 @@ if [ "$USE_PREFERENCE_FILES" = "true" ] && [ -d ".aidev-storage/preferences" ]; 
   fi
 fi
 
+# Always load learned patterns
+LEARNED_PATTERNS_CONTEXT=""
+if [ -f ".aidev-storage/planning/learned-patterns.json" ]; then
+  echo "🧠 Loading learned patterns from user corrections..."
+  
+  LEARNED_PATTERNS=$(cat ".aidev-storage/planning/learned-patterns.json")
+  HIGH_PRIORITY_PATTERNS=$(echo "$LEARNED_PATTERNS" | jq '
+    .patterns | to_entries | map(
+      select(.value.metadata.source == "user_correction" and .value.metadata.priority >= 0.9) |
+      .value
+    )
+  ')
+  
+  PATTERN_COUNT=$(echo "$HIGH_PRIORITY_PATTERNS" | jq 'length')
+  if [ "$PATTERN_COUNT" -gt 0 ]; then
+    echo "  - Found $PATTERN_COUNT high-priority user patterns"
+    
+    # Build context for each pattern category
+    API_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "api")]')
+    ARCH_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "architecture")]')
+    STATE_PATTERNS=$(echo "$HIGH_PRIORITY_PATTERNS" | jq '[.[] | select(.category == "state")]')
+    
+    if [ $(echo "$API_PATTERNS" | jq 'length') -gt 0 ]; then
+      LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n### 🔴 CRITICAL: User-Corrected API Patterns\n"
+      for pattern in $(echo "$API_PATTERNS" | jq -r '.[] | @base64'); do
+        _jq() {
+          echo ${pattern} | base64 --decode | jq -r ${1}
+        }
+        RULE=$(_jq '.rule')
+        IMPL=$(_jq '.implementation')
+        LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n- MUST: $RULE\n  Implementation: $IMPL\n"
+      done
+    fi
+    
+    if [ $(echo "$ARCH_PATTERNS" | jq 'length') -gt 0 ]; then
+      LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n### 🔴 CRITICAL: User-Corrected Architecture Patterns\n"
+      for pattern in $(echo "$ARCH_PATTERNS" | jq -r '.[] | @base64'); do
+        _jq() {
+          echo ${pattern} | base64 --decode | jq -r ${1}
+        }
+        RULE=$(_jq '.rule')
+        IMPL=$(_jq '.implementation')
+        LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n- MUST: $RULE\n  Implementation: $IMPL\n"
+      done
+    fi
+    
+    if [ $(echo "$STATE_PATTERNS" | jq 'length') -gt 0 ]; then
+      LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n### 🔴 CRITICAL: User-Corrected State Management Patterns\n"
+      for pattern in $(echo "$STATE_PATTERNS" | jq -r '.[] | @base64'); do
+        _jq() {
+          echo ${pattern} | base64 --decode | jq -r ${1}
+        }
+        RULE=$(_jq '.rule')
+        IMPL=$(_jq '.implementation')
+        LEARNED_PATTERNS_CONTEXT="$LEARNED_PATTERNS_CONTEXT\n- MUST: $RULE\n  Implementation: $IMPL\n"
+      done
+    fi
+    
+    # Add warnings to decision recording
+    record_decision \
+      "applying_user_patterns" \
+      "Found $PATTERN_COUNT user-corrected patterns that MUST be followed" \
+      "Critical - these patterns override all other conventions"
+  fi
+else
+  echo "📝 No learned patterns found yet"
+fi
+
 # Based on task type and inventory, design components
 COMPONENT_DESIGN='{
   "new_components": [],
@@ -249,28 +317,7 @@ else
 fi
 
 # Adjust test specs based on task type
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Documentation task - minimal test specifications"
-  TEST_SPECS='{
-    "task_type": "instruction",
-    "testing_required": false,
-    "documentation_validation": [
-      {
-        "check": "File exists at specified path",
-        "type": "existence"
-      },
-      {
-        "check": "Markdown is valid",
-        "type": "syntax"
-      },
-      {
-        "check": "All sections present",
-        "type": "completeness"
-      }
-    ],
-    "coverage_target": null
-  }'
-elif [ "$TASK_TYPE" = "pattern" ]; then
+if [ "$TASK_TYPE" = "pattern" ]; then
   echo "🎯 Pattern task - example test specifications"
   TEST_SPECS='{
     "task_type": "pattern",
@@ -361,7 +408,7 @@ if [ ! -f ".aidev-storage/templates/automated-prp-template.md" ]; then
 fi
 
 # Create PRP with all enhancements
-cat > ".aidev-storage/tasks_output/$TASK_ID/phase_outputs/architect/prp.md" << 'EOF'
+cat > ".aidev-storage/tasks_output/$TASK_ID/phase_outputs/architect/prp.md" << EOF
 ---
 name: "Enhanced PRP for $TASK_NAME"
 task_id: "$TASK_ID"
@@ -489,6 +536,12 @@ $PATTERNS_TO_USE
 
 ### Anti-Patterns to Avoid
 $ANTI_PATTERNS
+
+## 📚 User Preferences and Learned Patterns
+
+$PREFERENCES_CONTEXT
+
+$LEARNED_PATTERNS_CONTEXT
 
 ## 🎯 Success Metrics
 

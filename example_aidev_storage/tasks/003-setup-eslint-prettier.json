@@ -1,0 +1,10 @@
+{
+  "id": "003",
+  "name": "setup-eslint-prettier",
+  "type": "feature",
+  "dependencies": ["002"],
+  "estimated_lines": 150,
+  "priority": "critical",
+  "category": "setup",
+  "description": "Configure ESLint and Prettier with project-specific rules"
+}

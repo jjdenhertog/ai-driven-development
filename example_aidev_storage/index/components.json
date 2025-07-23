@@ -1,0 +1,35 @@
+{
+  "components": [
+    {
+      "name": "RootLayout",
+      "path": "./src/app/layout.tsx",
+      "type": "layout",
+      "props": [
+        "children"
+      ],
+      "imports": [
+        " next",
+        " next/font/google",
+        " react",
+        "import ./globals.css"
+      ],
+      "usage_count": 1,
+      "complexity": "low",
+      "last_modified": "2025-07-22T07:56:27Z",
+      "line_count": 31
+    },
+    {
+      "name": "Home",
+      "path": "./src/app/page.tsx",
+      "type": "page",
+      "props": [],
+      "imports": [
+        "react"
+      ],
+      "usage_count": 1,
+      "complexity": "low",
+      "last_modified": "2025-07-22T07:56:27Z",
+      "line_count": 11
+    }
+  ]
+}

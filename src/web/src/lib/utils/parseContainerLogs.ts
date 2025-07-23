@@ -2,18 +2,12 @@
  * Parses and cleans container log output
  */
 
+import { stripAnsiCodes } from './stripAnsiCodes'
+
 export type ParsedLogLine = {
     text: string
     type: 'info' | 'success' | 'error' | 'warning' | 'system' | 'normal'
-    timestamp?: string
-}
-
-/**
- * Remove ANSI escape codes from text
- */
-function removeAnsiCodes(text: string): string {
-    // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1B\[[\d;]*[A-Za-z]/g, '')
+    colorClass?: string
 }
 
 /**
@@ -30,32 +24,32 @@ function removeProgressIndicators(text: string): string {
  */
 function detectLogType(text: string): ParsedLogLine['type'] {
     const lowerText = text.toLowerCase()
-    
+
     // Error patterns
     if (lowerText.includes('error') || lowerText.includes('failed') || text.startsWith('✗')) {
         return 'error'
     }
-    
+
     // Warning patterns
     if (lowerText.includes('warning') || lowerText.includes('warn')) {
         return 'warning'
     }
-    
+
     // Success patterns
     if (text.startsWith('✓') || lowerText.includes('success') || lowerText.includes('ready')) {
         return 'success'
     }
-    
+
     // System/aidev patterns
     if (text.startsWith('[aidev]') || text.startsWith('===')) {
         return 'system'
     }
-    
+
     // Info patterns
     if (text.startsWith('▲') || text.startsWith('  -') || lowerText.includes('starting')) {
         return 'info'
     }
-    
+
     return 'normal'
 }
 
@@ -64,36 +58,26 @@ function detectLogType(text: string): ParsedLogLine['type'] {
  */
 export function parseLogLine(rawLine: string): ParsedLogLine | null {
     // Clean the line
-    let text = removeAnsiCodes(rawLine)
+    let text = stripAnsiCodes(rawLine)
     text = removeProgressIndicators(text)
-    
+
     // Skip empty lines or lines with only whitespace
-    if (!text.trim()) {
+    if (!text.trim())
         return null
-    }
-    
+
     // Skip duplicate progress output (npm install progress, etc)
-    if (/^\d+\s+packages?/.test(text) || /^run\s+`npm/.test(text)) {
+    if (/^\d+\s+packages?/.test(text) || /^run\s+`npm/.test(text))
         return null
-    }
-    
-    // Extract timestamp if present (format: [HH:MM:SS])
-    const timestampMatch = /^\[(\d{2}:\d{2}:\d{2})]\s*(.*)/.exec(text)
-    let timestamp: string | undefined
-    if (timestampMatch) {
-        [, timestamp, text] = timestampMatch
-    }
-    
+
     // Clean up aidev prefix
     text = text.replace(/^\[aidev]\s*/, '')
-    
+
     // Detect log type
     const type = detectLogType(text)
-    
+
     return {
         text,
-        type,
-        timestamp
+        type
     }
 }
 
@@ -104,7 +88,7 @@ export function groupLogLines(lines: ParsedLogLine[]): ParsedLogLine[] {
     const grouped: ParsedLogLine[] = []
     let lastLine: ParsedLogLine | null = null
     let duplicateCount = 0
-    
+
     for (const line of lines) {
         if (lastLine && lastLine.text === line.text && lastLine.type === line.type) {
             duplicateCount++
@@ -117,12 +101,12 @@ export function groupLogLines(lines: ParsedLogLine[]): ParsedLogLine[] {
             } else if (lastLine) {
                 grouped.push(lastLine)
             }
-            
+
             lastLine = line
             duplicateCount = 0
         }
     }
-    
+
     // Don't forget the last line
     if (lastLine) {
         if (duplicateCount > 0) {
@@ -134,6 +118,6 @@ export function groupLogLines(lines: ParsedLogLine[]): ParsedLogLine[] {
             grouped.push(lastLine)
         }
     }
-    
+
     return grouped
 }

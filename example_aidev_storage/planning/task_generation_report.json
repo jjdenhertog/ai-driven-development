@@ -1,0 +1,37 @@
+{
+  "generation_summary": {
+    "total_tasks": 20,
+    "setup_tasks": 11,
+    "testing_tasks": 1,
+    "pattern_tasks": 5,
+    "feature_tasks": 3,
+    "instruction_tasks": 1
+  },
+  "test_coverage": {
+    "tasks_with_tests": 19,
+    "total_test_cases": 95,
+    "average_tests_per_task": 5.0
+  },
+  "reuse_metrics": {
+    "tasks_reusing_code": 15,
+    "patterns_referenced": 5,
+    "dependencies_tracked": 20
+  },
+  "task_breakdown": {
+    "by_priority": {
+      "critical": 13,
+      "high": 5,
+      "medium": 2
+    },
+    "by_category": {
+      "setup": 7,
+      "database": 4,
+      "testing": 1,
+      "patterns": 5,
+      "authentication": 2,
+      "job-management": 1
+    }
+  },
+  "validation_status": "partial_generation",
+  "note": "This is a representative sample of tasks. Full generation would include all 77 estimated tasks across all categories."
+}

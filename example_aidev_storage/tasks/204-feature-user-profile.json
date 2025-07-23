@@ -1,9 +1,0 @@
-{
-    "id": "204",
-    "name": "feature-user-profile",
-    "type": "feature",
-    "dependencies": ["200", "004"],
-    "estimated_lines": 300,
-    "priority": "medium",
-    "status": "pending"
-}

@@ -10,7 +10,6 @@ import { checkDockerAvailable } from '../utils/docker/checkDockerAvailable';
 import { getContainerName } from '../utils/docker/getContainerName';
 import { getContainerStatus } from '../utils/docker/getContainerStatus';
 import { isContainerRunning } from '../utils/docker/isContainerRunning';
-import { startProxyServer } from '../utils/docker/startProxyServer';
 import { log } from '../utils/logger';
 
 const execAsync = promisify(exec);
@@ -18,13 +17,12 @@ const execAsync = promisify(exec);
 type Options = {
     name: string;
     type?: ContainerType;
-    port?: number;
-    disableProxy?: boolean;
+    path?: string;
 };
 
 export async function containerStartCommand(options: Options): Promise<void> {
-
-    const { name, type, port = 1212, disableProxy } = options;
+    
+    const { name, type, path = process.cwd() } = options;
 
     try {
 
@@ -36,9 +34,11 @@ export async function containerStartCommand(options: Options): Promise<void> {
         }
 
         // Check if .aidev-containers exists
-        const devcontainerPath = join(process.cwd(), '.aidev-containers');
+        const devcontainerPath = join(path, '.aidev-containers');
         if (!existsSync(devcontainerPath)) {
             log('No .aidev-containers directory found. Run "aidev init" first.', 'error');
+            log(path, 'info');
+            
             throw new Error('.aidev-containers directory not found');
         }
 
@@ -67,7 +67,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
         const status = await getContainerStatus(containerName);
         if (status && status.state !== 'running') {
             log(`Starting existing container ${containerName}...`, 'info');
-            await execAsync(`docker start ${containerName}`);
+            await execAsync(`docker start ${containerName}`, { cwd: path });
             log(`Container ${containerName} started successfully`, 'success');
 
             return;
@@ -80,7 +80,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
         try {
             await execAsync(
                 `docker build -f "${dockerfilePath}" -t ${containerName} "${devcontainerPath}"`,
-                { maxBuffer: 1024 * 1024 * 10 } // 10MB buffer for build output
+                { maxBuffer: 1024 * 1024 * 10, cwd: path } // 10MB buffer for build output
             );
             log(`Docker image built successfully`, 'success');
         } catch (error) {
@@ -94,22 +94,16 @@ export async function containerStartCommand(options: Options): Promise<void> {
             '--name', containerName
         ];
 
-        // Handle volume mounting
-        console.log("🚀 ~ containerStartCommand ~ process.env.AIDEV_HOST_WORKSPACE:", process.env.AIDEV_HOST_WORKSPACE)
 
         if (process.env.AIDEV_HOST_WORKSPACE) {
             // Running in a standardized workstation environment
-            const currentPath = process.cwd();
+            const currentPath = path;
             const workspaceBase = '/workspace';
 
             if (currentPath.startsWith(workspaceBase)) {
                 // Extract relative path from /workspace
                 const relativePath = currentPath.slice(workspaceBase.length);
-                console.log("🚀 ~ containerStartCommand ~ relativePath:", relativePath)
                 const hostPath = process.env.AIDEV_HOST_WORKSPACE + relativePath;
-                console.log("🚀 ~ containerStartCommand ~ hostPath:", hostPath)
-                const workspacePath = `/workspace`;
-                console.log("🚀 ~ containerStartCommand ~ workspacePath:", workspacePath)
                 runArgs.push('-v', `${hostPath}:/workspace`);
                 log(`Using workstation path mapping: ${hostPath}`, 'info');
             } else {
@@ -118,7 +112,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
             }
         } else {
             // Standard host execution
-            runArgs.push('-v', `${process.cwd()}:/workspace`);
+            runArgs.push('-v', `${path}:/workspace`);
         }
 
         runArgs.push(
@@ -129,30 +123,24 @@ export async function containerStartCommand(options: Options): Promise<void> {
 
         // Add environment variables
         runArgs.push('-e', 'NODE_OPTIONS=--max-old-space-size=4096');
-
-        // Add port mapping and PORT env var for web container
-        let webPort = port; // Default to the port parameter
+        const webPort = process.env.AIDEV_WEB_PORT ? parseInt(process.env.AIDEV_WEB_PORT) : 3001;
+        
         if (configType === 'web') {
             // Use AIDEV_WEB_PORT if available, otherwise use the port parameter
-            webPort = process.env.AIDEV_WEB_PORT ? parseInt(process.env.AIDEV_WEB_PORT) : port;
+           
 
             runArgs.push('-p', `${webPort}:${webPort}`);
             runArgs.push('-e', `AIDEV_WEB_PORT=${webPort}`);
+            runArgs.push('-e', `CONTAINER_PREFIX=${getContainerName('')}`);
 
             log(`Web container will run on port ${webPort}`, 'info');
 
-            // Add host proxy environment variable for web containers (unless disabled)
-            if (!disableProxy) {
+            // Add host proxy environment variable for web containers
+            const host = process.env.AIDEV_HOST_WORKSPACE ? hostname() : 'host.docker.internal';
+            runArgs.push('-e', `AIDEV_HOST_PROXY=http://${host}:8888`);
 
-                const proxyPort = Math.floor(Math.random() * 100) + 8800;
-
-                const host = process.env.AIDEV_HOST_WORKSPACE ? hostname() : 'host.docker.internal';
-                runArgs.push('-e', `AIDEV_HOST_PROXY=http://${host}:${proxyPort}`);
-                log(`Container will use host proxy at port ${proxyPort} for container management`, 'info');
-                log(`Make sure to start the proxy with: aidev proxy --port ${proxyPort}`, 'info');
-
-                startProxyServer({ port: proxyPort });
-            }
+            log(`Container can use a proxy for container management`, 'info');
+            log(`Make sure to start the proxy with: aidev proxy start`, 'info');
         }
 
         // Add the container image name
@@ -162,7 +150,7 @@ export async function containerStartCommand(options: Options): Promise<void> {
         log(`Starting container ${containerName}...`, 'info');
 
         try {
-            await execAsync(`docker ${runArgs.join(' ')}`);
+            await execAsync(`docker ${runArgs.join(' ')}`, { cwd: path });
             log(`Container ${containerName} started successfully`, 'success');
 
             if (configType === 'web') {

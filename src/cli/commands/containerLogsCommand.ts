@@ -49,8 +49,29 @@ export async function containerLogsCommand(options: Options): Promise<void> {
         
         // Spawn docker logs process
         const logsProcess = spawn('docker', args, {
-            stdio: 'inherit'
+            stdio: ['inherit', 'pipe', 'pipe']
         });
+        
+        // Handle stdout
+        logsProcess.stdout?.on('data', (data: Buffer) => {
+            const lines = data.toString().split('\n');
+            lines.forEach((line: string) => {
+                if (line.trim()) {
+                    log(line, 'info');
+                }
+            });
+        });
+        
+        // Handle stderr
+        logsProcess.stderr?.on('data', (data: Buffer) => {
+            const lines = data.toString().split('\n');
+            lines.forEach((line: string) => {
+                if (line.trim()) {
+                    log(line, 'error');
+                }
+            });
+        });
+        
         
         logsProcess.on('error', (error) => {
             log(`Failed to get logs: ${error.message}`, 'error');

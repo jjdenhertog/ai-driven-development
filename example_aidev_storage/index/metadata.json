@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "created_at": "2025-07-22T06:38:05Z",
+  "updated_at": "2025-07-22T07:54:49Z",
+  "mode": "incremental",
+  "project_status": "initialized",
+  "statistics": {
+    "total_source_files": 14,
+    "total_indexed_items": 2,
+    "breakdown": {
+      "components": 2,
+      "hooks": 0,
+      "utilities": 0,
+      "styles": 0,
+      "layouts": 0,
+      "api_routes": 0,
+      "patterns": 0
+    }
+  },
+  "insights": {
+    "most_used_components": ["RootLayout (1)", "Home (1)"],
+    "most_used_hooks": [],
+    "most_used_utilities": []
+  },
+  "last_update": {
+    "update_period": {
+      "from": "2025-07-22T06:38:05Z",
+      "to": "2025-07-22T07:54:49Z"
+    },
+    "files_scanned": 14,
+    "total_changes": {
+      "added": 2,
+      "modified": 0,
+      "removed": 0
+    },
+    "by_type": {
+      "components": {
+        "added": 2,
+        "modified": 0,
+        "removed": 0
+      },
+      "hooks": {
+        "added": 0,
+        "modified": 0,
+        "removed": 0
+      },
+      "utilities": {
+        "added": 0,
+        "modified": 0,
+        "removed": 0
+      },
+      "styles": {
+        "added": 0,
+        "modified": 0,
+        "removed": 0
+      }
+    }
+  },
+  "notes": "Next.js project has been initialized. Found RootLayout and Home components."
+}

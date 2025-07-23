@@ -1,0 +1,6 @@
+{
+  "branchStartingPoint": "master",
+  "mainBranch": "master",
+  "slack_webhook_url": "",
+  "enforce_opus": true
+}

@@ -1,0 +1,12 @@
+{
+  "id": "315",
+  "name": "feature-websocket-updates",
+  "type": "feature",
+  "category": "feature",
+  "description": "Implement WebSocket for real-time dashboard updates",
+  "dependencies": ["304", "312"],
+  "priority": "high",
+  "estimated_complexity": "high",
+  "estimated_lines": 200,
+  "created_at": "2025-01-21T12:00:00Z"
+}

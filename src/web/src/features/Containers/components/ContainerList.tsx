@@ -11,7 +11,6 @@ type ContainerListProps = {
   readonly selectedContainer: string | null
   readonly onSelectContainer: (name: string) => void
   readonly loading?: boolean
-  readonly refreshing?: boolean
   readonly error?: string
   readonly disabled?: boolean
 }
@@ -21,7 +20,6 @@ export const ContainerList: React.FC<ContainerListProps> = ({
     selectedContainer,
     onSelectContainer,
     loading,
-    refreshing,
     error,
     disabled = false
 }) => {
@@ -54,10 +52,6 @@ export const ContainerList: React.FC<ContainerListProps> = ({
 
     return (
         <div className={styles.container}>
-            <h2 className={styles.title}>
-                Containers
-                {!!refreshing && <span className={styles.refreshing}> (Refreshing...)</span>}
-            </h2>
             <div className={styles.list}>
                 {containers.map((container) => (
                     <ContainerItem

@@ -1,0 +1,191 @@
+{
+  "categories": {
+    "setup": {
+      "priority": 1,
+      "description": "Project initialization and configuration",
+      "tasks": [
+        "init-nextjs-project",
+        "configure-typescript",
+        "setup-eslint-prettier",
+        "install-core-dependencies",
+        "configure-path-aliases",
+        "setup-environment-variables",
+        "create-folder-structure"
+      ]
+    },
+    "database": {
+      "priority": 2,
+      "description": "Database setup and schema definition",
+      "tasks": [
+        "setup-prisma-sqlite",
+        "define-user-schema",
+        "define-job-schema",
+        "define-api-token-schema",
+        "create-initial-migration",
+        "setup-seed-script"
+      ]
+    },
+    "patterns": {
+      "priority": 3,
+      "description": "Core patterns and utilities",
+      "tasks": [
+        "create-database-client",
+        "create-api-error-handler",
+        "create-api-response-util",
+        "create-file-validator",
+        "create-path-converter",
+        "create-logger-utility"
+      ]
+    },
+    "authentication": {
+      "priority": 4,
+      "description": "NextAuth.js setup with Google OAuth",
+      "tasks": [
+        "configure-nextauth",
+        "setup-google-provider",
+        "create-auth-middleware",
+        "implement-domain-restriction",
+        "create-user-context",
+        "setup-protected-routes",
+        "create-login-page",
+        "create-user-profile-page"
+      ]
+    },
+    "api-foundation": {
+      "priority": 5,
+      "description": "API route structure and token auth",
+      "tasks": [
+        "create-api-structure",
+        "implement-token-validation",
+        "create-health-endpoint",
+        "setup-api-documentation",
+        "create-validation-schemas"
+      ]
+    },
+    "job-management": {
+      "priority": 6,
+      "description": "Core job queue and management",
+      "tasks": [
+        "create-job-queue-service",
+        "implement-priority-system",
+        "create-job-api-endpoints",
+        "implement-job-submission",
+        "create-job-validation",
+        "implement-auto-cancellation",
+        "create-job-status-tracking"
+      ]
+    },
+    "nexrender-integration": {
+      "priority": 7,
+      "description": "Nexrender wrapper and execution",
+      "tasks": [
+        "install-nexrender-packages",
+        "create-nexrender-service",
+        "implement-job-config-builder",
+        "create-process-manager",
+        "implement-progress-parsing",
+        "handle-render-errors",
+        "implement-cleanup-logic"
+      ]
+    },
+    "realtime-updates": {
+      "priority": 8,
+      "description": "WebSocket implementation",
+      "tasks": [
+        "setup-socket-io",
+        "create-socket-manager",
+        "implement-room-logic",
+        "create-client-hooks",
+        "implement-job-updates",
+        "create-connection-handling"
+      ]
+    },
+    "admin-dashboard": {
+      "priority": 9,
+      "description": "Admin UI and monitoring",
+      "tasks": [
+        "create-dashboard-layout",
+        "implement-job-list-view",
+        "create-job-detail-view",
+        "implement-system-metrics",
+        "create-user-management",
+        "implement-job-controls",
+        "create-queue-visualization",
+        "implement-log-viewer"
+      ]
+    },
+    "notifications": {
+      "priority": 10,
+      "description": "Slack integration",
+      "tasks": [
+        "create-slack-service",
+        "implement-webhook-sender",
+        "setup-bot-api-client",
+        "create-message-formatter",
+        "implement-user-dm-logic",
+        "handle-slack-errors"
+      ]
+    },
+    "testing": {
+      "priority": 11,
+      "description": "Test setup and implementation",
+      "tasks": [
+        "setup-vitest-config",
+        "create-test-utilities",
+        "write-pattern-tests",
+        "write-service-tests",
+        "write-api-tests",
+        "setup-test-database"
+      ]
+    },
+    "deployment": {
+      "priority": 12,
+      "description": "Production preparation",
+      "tasks": [
+        "create-build-scripts",
+        "setup-pm2-config",
+        "create-startup-script",
+        "write-deployment-docs",
+        "create-backup-strategy"
+      ]
+    }
+  },
+  "task_metadata": {
+    "naming_convention": "kebab-case-descriptive",
+    "size_guidelines": {
+      "small": "< 100 lines",
+      "medium": "100-300 lines",
+      "large": "300-500 lines"
+    },
+    "test_requirements": "Each feature task requires tests",
+    "documentation": "API endpoints need JSDoc comments"
+  },
+  "dependencies": {
+    "database": ["setup"],
+    "patterns": ["database"],
+    "authentication": ["patterns"],
+    "api-foundation": ["authentication"],
+    "job-management": ["api-foundation"],
+    "nexrender-integration": ["job-management"],
+    "realtime-updates": ["job-management"],
+    "admin-dashboard": ["realtime-updates", "authentication"],
+    "notifications": ["job-management"],
+    "testing": ["all-features"],
+    "deployment": ["testing"]
+  },
+  "estimated_tasks": {
+    "setup": 7,
+    "database": 6,
+    "patterns": 6,
+    "authentication": 8,
+    "api-foundation": 5,
+    "job-management": 7,
+    "nexrender-integration": 7,
+    "realtime-updates": 6,
+    "admin-dashboard": 8,
+    "notifications": 6,
+    "testing": 6,
+    "deployment": 5,
+    "total": 77
+  }
+}

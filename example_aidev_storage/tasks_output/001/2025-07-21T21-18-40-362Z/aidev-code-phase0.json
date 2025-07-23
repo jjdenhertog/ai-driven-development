@@ -1,0 +1,15 @@
+{
+  "session_id": "unknown",
+  "task_id": "001",
+  "task_name": "init-nextjs-project",
+  "user_prompt": "Unable to retrieve user prompt",
+  "success": false,
+  "success_reason": "Debug logs directory not found",
+  "timeline": [
+    {
+      "type": "error",
+      "timestamp": "2025-07-21T21:19:14.299Z",
+      "message": "Debug logs directory not found"
+    }
+  ]
+}

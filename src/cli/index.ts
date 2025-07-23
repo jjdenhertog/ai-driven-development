@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable max-lines */
 /* eslint-disable unicorn/prefer-module */
 
 import { Command } from "commander";
@@ -13,6 +14,7 @@ import { containerStartCommand } from "./commands/containerStartCommand";
 import { containerStatusCommand } from "./commands/containerStatusCommand";
 import { containerStopCommand } from "./commands/containerStopCommand";
 import { executeNextTaskCommand } from "./commands/executeNextTaskCommand";
+import { proxyCommand } from "./commands/proxyCommand";
 import { executeTaskCommand } from "./commands/executeTaskCommand";
 import { initCommand } from "./commands/initCommand";
 import { learningCommand } from "./commands/learningCommand";
@@ -158,8 +160,6 @@ program
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
-
-                log('Looking for next task...', 'info');
 
                 const result = await executeNextTaskCommand({
                     dryRun: !!cmdObject.dryRun,
@@ -320,12 +320,10 @@ program
     .command('web')
     .description('Start the AIdev web interface for managing tasks and settings')
     .option('--dev', 'Run in development mode (for npm link development)')
-    .option('--disable-proxy', 'Disable the container management proxy (enabled by default)')
     .action(async (options) => {
         try {
             await webCommand({
-                dev: options.dev,
-                disableProxy: options.disableProxy
+                dev: options.dev
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -336,6 +334,30 @@ program
         }
     })
 
+// Proxy command
+program
+    .command('proxy <action>')
+    .description('Start or stop the container management proxy server')
+    .action(async (action: string) => {
+        if (action !== 'start' && action !== 'stop') {
+            logError('Action must be either "start" or "stop"');
+
+            return;
+        }
+
+        try {
+            await proxyCommand({
+                action
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                logError(error.message);
+            } else {
+                logError(String(error));
+            }
+        }
+    });
+
 // Container commands
 const container = program
     .command('container')
@@ -343,11 +365,13 @@ const container = program
 
 container
     .command('start <name>')
-    .description('Start a development container with the given name')
+    .description('Start a container with the given name')
     .option('-t, --type <type>', 'Container type to use (code, learn, plan, or web). If not specified, uses the container name as the type')
-    .option('-p, --port <port>', 'Port to expose for web container (default: 1212)', '1212')
-    .option('--disable-proxy', 'Disable container management proxy for web containers (enabled by default)')
+    .option('--path <path>', 'Change the current working directory', process.cwd())
+    .option('--json', 'Log as JSON')
     .action(async (name: string, cmdObject) => {
+        global.log_as_json = !!cmdObject.json;
+
         const validTypes = ['code', 'learn', 'plan', 'web'];
         if (cmdObject.type && !validTypes.includes(cmdObject.type)) {
             logError(`Container type must be one of: ${validTypes.join(', ')}`);
@@ -359,8 +383,7 @@ container
             await containerStartCommand({
                 name,
                 type: cmdObject.type,
-                port: parseInt(cmdObject.port, 10),
-                disableProxy: cmdObject.disableProxy
+                path: cmdObject.path
             })
         } catch (error) {
             if (error instanceof Error) {
@@ -376,8 +399,11 @@ container
 
 container
     .command('status [name]')
+    .option('--path <path>', 'Change the current working directory', process.cwd())
     .description('Show status of development containers (or all if no name specified)')
-    .action(async (name?: string) => {
+    .option('--json', 'Log as JSON')
+    .action(async (name?: string, cmdObject: { json?: boolean } = {}) => {
+        global.log_as_json = !!cmdObject.json;
         try {
             await containerStatusCommand({
                 name
@@ -399,8 +425,12 @@ container
     .description('View logs from a development container')
     .option('-n, --lines <number>', 'Number of lines to show', '50')
     .option('-f, --follow', 'Follow log output')
+    .option('--path <path>', 'Change the current working directory', process.cwd())
+    .option('--json', 'Log as JSON')
     .action(async (name: string, cmdObject) => {
         try {
+            global.log_as_json = !!cmdObject.json;
+
             await containerLogsCommand({
                 name,
                 lines: parseInt(cmdObject.lines, 10),
@@ -419,8 +449,12 @@ container
     .command('stop <name>')
     .description('Stop a development container')
     .option('-c, --clean', 'Remove the container after stopping')
-    .action(async (name: string, options: { clean?: boolean }) => {
+    .option('--path <path>', 'Change the current working directory', process.cwd())
+    .option('--json', 'Log as JSON')
+    .action(async (name: string, options: { clean?: boolean, json?: boolean }) => {
         try {
+            global.log_as_json = !!options.json;
+
             await containerStopCommand({
                 name,
                 clean: options.clean
@@ -438,14 +472,14 @@ container
     });
 
 container
-    .command('restart <name>')
-    .description('Restart a development container')
-    .option('-c, --clean', 'Remove and recreate the container for a clean start')
-    .action(async (name: string, options: { clean?: boolean }) => {
+    .command('rebuild <name>')
+    .description('Rebuild a container')
+    .option('--path <path>', 'Change the current working directory', process.cwd())
+    .option('--json', 'Log as JSON')
+    .action(async (name: string, options: { json?: boolean }) => {
         try {
+            global.log_as_json = !!options.json;
 
-
-            const { clean } = options;
             const containerName = getContainerName(name);
 
             // Check if container exists
@@ -455,8 +489,8 @@ container
                 throw new Error(`Container ${containerName} does not exist`);
             }
 
-            log(`Restarting container ${name}...`, 'info');
-            await containerStopCommand({ name, clean });
+            log(`Rebuilding container ${name}...`, 'info');
+            await containerStopCommand({ name, clean: true });
             await containerStartCommand({ name });
 
         } catch (error) {
@@ -476,9 +510,7 @@ container
     .description('Open a bash shell in a running container')
     .action(async (name: string) => {
         try {
-            await containerOpenCommand({
-                name
-            })
+            await containerOpenCommand({ name })
         } catch (error) {
             if (error instanceof Error) {
                 logError(error.message);

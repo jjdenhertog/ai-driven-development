@@ -1,0 +1,10 @@
+{
+  "id": "100",
+  "name": "create-database-client",
+  "type": "pattern",
+  "dependencies": ["020"],
+  "estimated_lines": 50,
+  "priority": "critical",
+  "category": "patterns",
+  "description": "Prisma client singleton pattern for database access"
+}

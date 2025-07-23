@@ -1,0 +1,45 @@
+{
+  "task_id": "001",
+  "validation_date": "2025-07-22T07:24:35Z",
+  "overall_status": "failed",
+  "checks": {
+    "tests": {
+      "passed": false,
+      "total": 85,
+      "passing": 72,
+      "failing": 13,
+      "coverage": null
+    },
+    "lint": {
+      "passed": false,
+      "errors": 3,
+      "warnings": 0
+    },
+    "types": {
+      "passed": false,
+      "errors": 28,
+      "any_usage": 31
+    },
+    "build": {
+      "passed": false,
+      "time_seconds": 24,
+      "bundle_size": null
+    },
+    "security": {
+      "passed": false,
+      "total_issues": 8,
+      "details": {
+        "secrets": 0,
+        "dangerous_html": 0,
+        "eval": 0,
+        "vulnerabilities": 8
+      }
+    },
+    "performance": {
+      "console_logs": 0,
+      "large_deps": 13,
+      "complex_components": 0
+    }
+  },
+  "todos_completed": 7
+}

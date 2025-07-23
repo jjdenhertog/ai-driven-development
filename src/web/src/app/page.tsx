@@ -40,8 +40,10 @@ const sections = [
 export default function HomePage() {
     const router = useRouter()
 
-    const createSectionClickHandler = useCallback((href: string) => {
-        return () => router.push(href)
+    const handleSectionClick = useCallback((section: typeof sections[number]) => {
+        return () => {
+            router.push(section.href)
+        }
     }, [router])
 
     return (
@@ -56,7 +58,7 @@ export default function HomePage() {
                     <button
                         type="button"
                         key={section.id}
-                        onClick={createSectionClickHandler(section.href)}
+                        onClick={handleSectionClick(section)}
                         className={styles.card}
                     >
                         <div className={styles.icon}>

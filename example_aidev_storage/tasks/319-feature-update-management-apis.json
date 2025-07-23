@@ -1,0 +1,12 @@
+{
+  "id": "319",
+  "name": "feature-update-management-apis",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create update check and execute endpoints",
+  "dependencies": ["101", "200"],
+  "priority": "medium",
+  "estimated_complexity": "high",
+  "estimated_lines": 200,
+  "created_at": "2025-01-21T12:00:00Z"
+}

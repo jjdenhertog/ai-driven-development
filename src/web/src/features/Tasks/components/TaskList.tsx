@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useMemo, useCallback } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Task } from '@/lib/api'
+import { getStatusIcon, getStatusColorClass } from '@/lib/utils/statusIcons'
 import styles from './TaskList.module.css'
 
 type TaskListProps = {
@@ -32,22 +34,6 @@ export const TaskList: React.FC<TaskListProps> = ({
     onSelectTask,
     onUpdateTask: _onUpdateTask,
 }) => {
-    const getStatusIcon = useCallback((status: Task['status']) => {
-        switch (status) {
-            case 'completed':
-                return '●'
-            case 'archived':
-                return '●'
-            case 'in_progress':
-                return '●'
-            case 'failed':
-                return '●'
-            case 'pending':
-                return '●'
-            default:
-                return '●'
-        }
-    }, [])
 
     const sortedTasks = useMemo(() => {
         return [...tasks].sort((a, b) => {
@@ -84,7 +70,6 @@ export const TaskList: React.FC<TaskListProps> = ({
                         task={task}
                         isSelected={selectedTask?.id === task.id}
                         onSelect={handleTaskClick}
-                        getStatusIcon={getStatusIcon}
                     />
                 ))}
             </div>
@@ -96,10 +81,9 @@ type TaskItemProps = {
   readonly task: Task
   readonly isSelected: boolean
   readonly onSelect: (task: Task) => void
-  readonly getStatusIcon: (status: Task['status']) => string
 }
 
-const TaskItemComponent: React.FC<TaskItemProps> = ({ task, isSelected, onSelect, getStatusIcon }) => {
+const TaskItemComponent: React.FC<TaskItemProps> = ({ task, isSelected, onSelect }) => {
     const handleClick = useCallback(() => {
         onSelect(task)
     }, [task, onSelect])
@@ -110,8 +94,8 @@ const TaskItemComponent: React.FC<TaskItemProps> = ({ task, isSelected, onSelect
             className={`${styles.task} ${isSelected ? styles.selected : ''} ${task.hold ? styles.hold : ''}`}
         >
             <div className={styles.taskHeader}>
-                <span className={`${styles.status} ${styles[`status-${task.status}`]}`}>
-                    {getStatusIcon(task.status)}
+                <span className={`${styles.status} ${styles[`status-${task.status}`]} ${getStatusColorClass(task.status)}`}>
+                    <FontAwesomeIcon icon={getStatusIcon(task.status)} />
                 </span>
                 <span className={styles.id}>{task.id}</span>
                 <span className={`${styles.priority} priority-${task.priority}`}>

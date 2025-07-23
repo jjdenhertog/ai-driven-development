@@ -1,0 +1,12 @@
+{
+  "id": "305",
+  "name": "feature-job-submission-api",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create POST /api/jobs endpoint for job submission",
+  "dependencies": ["301", "302", "023"],
+  "priority": "critical",
+  "estimated_complexity": "high",
+  "estimated_lines": 200,
+  "created_at": "2025-01-21T12:00:00Z"
+}

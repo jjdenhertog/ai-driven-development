@@ -1,0 +1,121 @@
+
+> afx-render-manager@0.1.0 test
+> vitest
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[31m[7m[31m MISSING DEPENDENCY [31m[27m Cannot find dependency 'jsdom'
+
+[39m
+[1m[7m[34m DEV [39m[27m[22m [34mv2.1.9 [39m[90m/workspace/afx-render-manager/.aidev-001-init-nextjs-project[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Errors [27m[22m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 6 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Unhandled Error [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from /workspace/afx-render-manager/.aidev-001-init-nextjs-project/node_modules/vitest/dist/chunks/index.K90BXFOx.js[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m873:9[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m946:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m1188:11[22m[39m
+[90m [2m❯[22m ModuleLoader.defaultResolve node:internal/modules/esm/loader:[2m642:12[22m[39m
+[90m [2m❯[22m ModuleLoader.#cachedDefaultResolve node:internal/modules/esm/loader:[2m591:25[22m[39m
+[90m [2m❯[22m ModuleLoader.resolve node:internal/modules/esm/loader:[2m574:38[22m[39m
+[90m [2m❯[22m ModuleLoader.getModuleJobForImport node:internal/modules/esm/loader:[2m236:38[22m[39m
+[90m [2m❯[22m ModuleLoader.import node:internal/modules/esm/loader:[2m539:34[22m[39m
+[90m [2m❯[22m defaultImportModuleDynamicallyForModule node:internal/modules/esm/utils:[2m221:31[22m[39m
+[90m [2m❯[22m importModuleDynamicallyCallback node:internal/modules/esm/utils:[2m260:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+[2m Test Files [22m [2mno tests[22m
+[2m      Tests [22m [2mno tests[22m
+[2m     Errors [22m [1m[31m6 errors[39m[22m
+[2m   Start at [22m 21:56:33
+[2m   Duration [22m 883ms[2m (transform 38ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 0ms)[22m
+
+[1m[7m[31m FAIL [39m[27m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

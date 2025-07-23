@@ -1,0 +1,10 @@
+{
+  "id": "103",
+  "name": "create-file-validator",
+  "type": "pattern",
+  "dependencies": ["001"],
+  "estimated_lines": 120,
+  "priority": "high",
+  "category": "patterns",
+  "description": "File validation with Dropbox path handling"
+}

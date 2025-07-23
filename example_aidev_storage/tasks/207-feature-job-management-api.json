@@ -1,9 +1,0 @@
-{
-    "id": "207",
-    "name": "feature-job-management-api",
-    "type": "feature",
-    "dependencies": ["100", "200", "201"],
-    "estimated_lines": 300,
-    "priority": "high",
-    "status": "pending"
-}

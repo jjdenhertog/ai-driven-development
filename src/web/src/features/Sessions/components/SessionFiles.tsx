@@ -9,23 +9,22 @@ import { Button } from '@/components/common/Button'
 import styles from './SessionViewer.module.css'
 
 type SessionFilesProps = {
-  readonly timeline: TimelineEntry[]
+    readonly timeline: TimelineEntry[]
 }
 
 type FileInfo = {
-  readonly path: string
-  readonly action: 'write' | 'edit'
-  readonly index: number
-  readonly content?: string
+    readonly path: string
+    readonly action: 'write' | 'edit'
+    readonly index: number
+    readonly content?: string
 }
 
 export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
-    const [expandedPreviews, setExpandedPreviews] = useState<Set<number>>(new Set())
     const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set())
 
     const files = useMemo((): FileInfo[] => {
         const fileMap = new Map<string, FileInfo>()
-    
+
         timeline.forEach((entry, index) => {
             if ((entry.name === 'Write' || entry.name === 'Edit' || entry.name === 'MultiEdit') && entry.file_path) {
                 fileMap.set(entry.file_path, {
@@ -36,20 +35,9 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
                 })
             }
         })
-    
+
         return Array.from(fileMap.values())
     }, [timeline])
-
-    const _togglePreview = useCallback((index: number) => {
-        const newExpanded = new Set(expandedPreviews)
-        if (newExpanded.has(index)) {
-            newExpanded.delete(index)
-        } else {
-            newExpanded.add(index)
-        }
-
-        setExpandedPreviews(newExpanded)
-    }, [expandedPreviews])
 
     const toggleFileExpanded = useCallback((index: number) => {
         const newExpanded = new Set(expandedFiles)
@@ -62,6 +50,11 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
         setExpandedFiles(newExpanded)
     }, [expandedFiles])
 
+
+    const handleToggle = useCallback((index: number) => {
+        return () => toggleFileExpanded(index)
+    }, [toggleFileExpanded])
+
     const noop = useCallback(() => { /* read-only */ }, [])
 
     if (files.length === 0) {
@@ -71,20 +64,17 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
     return (
         <div className={styles.filesList}>
             {files.map((file) => {
-                const handleToggle = () => toggleFileExpanded(file.index)
-                
-                return (
-                <div key={file.index} className={styles.fileItem}>
+                return <div key={file.index} className={styles.fileItem}>
                     <div className={styles.fileHeader}>
                         <Button
                             type="button"
                             variant="ghost"
                             size="small"
                             className={styles.expandButton}
-                            onClick={handleToggle}
+                            onClick={handleToggle(file.index)}
                         >
-                            <FontAwesomeIcon 
-                                icon={faChevronRight} 
+                            <FontAwesomeIcon
+                                icon={faChevronRight}
                                 className={`${styles.expandIcon} ${expandedFiles.has(file.index) ? styles.expanded : ''}`}
                             />
                         </Button>
@@ -105,7 +95,6 @@ export const SessionFiles: React.FC<SessionFilesProps> = ({ timeline }) => {
                         />
                     </div> : null}
                 </div>
-                )
             })}
         </div>
     )

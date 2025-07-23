@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo, use } from 'react'
+import React, { useState, useEffect, useCallback, use } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { useSnackbar } from 'notistack'
@@ -14,6 +14,8 @@ import { EnhancedSessionList } from '@/features/Tasks/components/EnhancedSession
 import { TaskMetadataGrid } from '@/features/Tasks/components/TaskMetadataGrid'
 import { TaskSpecification } from '@/features/Tasks/components/TaskSpecification'
 import { TaskUploads } from '@/features/Tasks/components/TaskUploads'
+import { PhasesList } from '@/features/Phases/components/PhasesList'
+import { PhaseViewer } from '@/features/Phases/components/PhaseViewer'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/common/Button'
 import styles from '@/features/Tasks/components/TaskDetails.module.css'
@@ -28,8 +30,9 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const tabParam = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | null
     const sessionParam = searchParams.get('session')
 
-    const [activeTab, setActiveTab] = useState<'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads'>(tabParam || 'overview')
+    const [activeTab, setActiveTab] = useState<'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | 'phases'>(tabParam || 'overview')
     const [selectedSession, setSelectedSession] = useState<string | null>(sessionParam)
+    const [selectedPhase, setSelectedPhase] = useState<string | null>(searchParams.get('phase'))
     const [taskContent, setTaskContent] = useState('')
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -59,35 +62,38 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
         () => task ? api.getTaskOutput(task.id, 'decision_tree.jsonl').catch(() => null) : null
     )
 
+    // Get phases list
+    const { data: phasesData } = useSWR(
+        task ? `tasks/${task.id}/phases` : null,
+        () => task ? api.getTaskPhases(task.id).catch(() => null) : null
+    )
+
     // Check if we have any output files available
     // Tabs are hidden by default and only shown when data is confirmed to exist
-    const hasSessions = useMemo(() => {
-        // Only show if we have actual session data
-        return sessionsData?.sessions && sessionsData.sessions.length > 0
-    }, [sessionsData])
-
-    const hasPrp = useMemo(() => {
-        // Only show if we have actual PRP or last result data
-        // Since we catch errors and return null, this will only be true when data exists
-        return (prpData !== null && prpData !== undefined) || (lastResultData !== null && lastResultData !== undefined)
-    }, [prpData, lastResultData])
-
-    const hasDecisionTree = useMemo(() => {
-        // Only show if we have actual decision tree data
-        return decisionTreeData !== null && decisionTreeData !== undefined
-    }, [decisionTreeData])
+    const hasSessions = sessionsData?.sessions && sessionsData.sessions.length > 0
+    const hasPrp = (prpData !== null && prpData !== undefined) || (lastResultData !== null && lastResultData !== undefined)
+    const hasDecisionTree = decisionTreeData !== null && decisionTreeData !== undefined
+    const hasPhases = phasesData?.phases && phasesData.phases.length > 0
 
     // Update URL when tab changes
-    const handleTabChange = useCallback((tab: 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads') => {
+    const handleTabChange = useCallback((tab: 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | 'phases') => {
+        // Only update if actually changing
+        if (tab === activeTab) return
+        
         setActiveTab(tab)
         const params = new URLSearchParams(searchParams.toString())
         params.set('tab', tab)
+        
         if (tab !== 'sessions') {
             params.delete('session')
         }
-
+        
+        if (tab !== 'phases') {
+            params.delete('phase')
+        }
+        
         router.push(`/tasks/${taskId}?${params.toString()}`)
-    }, [searchParams, router, taskId])
+    }, [searchParams, router, taskId, activeTab])
 
     // Auto-select session from URL on initial load
     useEffect(() => {
@@ -102,13 +108,15 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     // Ensure active tab is still valid when data changes
     useEffect(() => {
         if (activeTab === 'prp' && !hasPrp) {
-            handleTabChange('overview')
+            setActiveTab('overview')
         } else if (activeTab === 'sessions' && !hasSessions) {
-            handleTabChange('overview')
+            setActiveTab('overview')
         } else if (activeTab === 'decision-tree' && !hasDecisionTree) {
-            handleTabChange('overview')
+            setActiveTab('overview')
+        } else if (activeTab === 'phases' && !hasPhases) {
+            setActiveTab('overview')
         }
-    }, [activeTab, hasPrp, hasSessions, hasDecisionTree, handleTabChange])
+    }, [activeTab, hasPrp, hasSessions, hasDecisionTree, hasPhases])
 
     useEffect(() => {
         if (task) {
@@ -189,6 +197,10 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
         handleTabChange('uploads')
     }, [handleTabChange])
 
+    const handleTabChangePhases = useCallback(() => {
+        handleTabChange('phases')
+    }, [handleTabChange])
+
     const handleConfirmDelete = useCallback(() => {
         handleDeleteTask().catch(() => {
             // Error handled in handleDeleteTask
@@ -201,39 +213,43 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
 
     // Sync URL params with state when navigating with browser back/forward
     useEffect(() => {
-        const newTab = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | null
+        const newTab = searchParams.get('tab') as 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | 'phases' | null
         const newSession = searchParams.get('session')
+        const newPhase = searchParams.get('phase')
 
-        if (newTab && newTab !== activeTab) {
+        if (newTab) {
             setActiveTab(newTab)
         }
 
-        if (newSession !== selectedSession) {
-            setSelectedSession(newSession)
-        }
-    }, [searchParams, activeTab, selectedSession])
+        setSelectedSession(newSession)
+        setSelectedPhase(newPhase)
+    }, [searchParams])
 
     // Update URL when session changes
     const handleSessionChange = useCallback((sessionId: string) => {
+        // Only update if actually changing
+        if (sessionId === selectedSession) return
+        
         setSelectedSession(sessionId)
         const params = new URLSearchParams(searchParams.toString())
         params.set('session', sessionId)
         router.push(`/tasks/${taskId}?${params.toString()}`)
-    }, [searchParams, router, taskId])
+    }, [searchParams, router, taskId, selectedSession])
 
-    const canEdit = useMemo(() => {
-        if (!task)
-            return false;
+    // Update URL when phase changes
+    const handlePhaseChange = useCallback((phaseId: string) => {
+        // Only update if actually changing
+        if (phaseId === selectedPhase) return
+        
+        setSelectedPhase(phaseId)
+        const params = new URLSearchParams(searchParams.toString())
+        params.set('phase', phaseId)
+        router.push(`/tasks/${taskId}?${params.toString()}`)
+    }, [searchParams, router, taskId, selectedPhase])
 
-        return task.status === 'pending' || (task.status as any) === 'draft'
-    }, [task])
-
-    const canEditHold = useMemo(() => {
-        if (!task)
-            return false
-
-        return task.status === 'pending' || (task.status as any) === 'draft'
-    }, [task])
+    const canEdit = task ? (task.status !== 'completed' && task.status !== 'archived') : false
+    const canEditHold = task ? (task.status !== 'completed' && task.status !== 'archived') : false
+    const showUploads = task ? (task.status !== 'completed' && task.status !== 'archived') : false
 
 
     if (!task) return <div className="loading" />
@@ -287,12 +303,22 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                         Decision Tree
                     </Button>
                 )}
-                <Button
-                    variant={activeTab === 'uploads' ? 'primary' : 'ghost'}
-                    onClick={handleTabChangeUploads}
-                >
-                    Uploads
-                </Button>
+                {!!hasPhases && (
+                    <Button
+                        variant={activeTab === 'phases' ? 'primary' : 'ghost'}
+                        onClick={handleTabChangePhases}
+                    >
+                        Phases Output
+                    </Button>
+                )}
+                {showUploads ? (
+                    <Button
+                        variant={activeTab === 'uploads' ? 'primary' : 'ghost'}
+                        onClick={handleTabChangeUploads}
+                    >
+                        Uploads
+                    </Button>
+                ) : null}
             </div>
 
             <div className={styles.content}>
@@ -345,7 +371,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                                 readOnly
                                 height="auto"
                                 minHeight={400}
-                                maxHeight={800}
+                                maxHeight={50_000}
                             />
                         ) : lastResultData ? (
                             <CodeEditor
@@ -354,7 +380,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                                 readOnly
                                 height="auto"
                                 minHeight={400}
-                                maxHeight={800}
+                                maxHeight={50_000}
                             />
                         ) : (
                             <div className={styles.empty}>No PRP data available</div>
@@ -386,6 +412,30 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                     </div>
                 )}
 
+                {activeTab === 'phases' && (
+                    <div className={styles.phases}>
+                        <div className={styles.phaseList}>
+                            <h3>Phases</h3>
+                            {phasesData?.phases ? (
+                                <PhasesList
+                                    phases={phasesData.phases}
+                                    selectedPhase={selectedPhase}
+                                    onSelectPhase={handlePhaseChange}
+                                />
+                            ) : (
+                                <div className={styles.empty}>No phase outputs available</div>
+                            )}
+                        </div>
+                        {selectedPhase ? (
+                            <div className={styles.phaseContent}>
+                                <PhaseViewer
+                                    taskId={task.id}
+                                    phaseId={selectedPhase}
+                                />
+                            </div>
+                        ) : null}
+                    </div>
+                )}
 
             </div>
             

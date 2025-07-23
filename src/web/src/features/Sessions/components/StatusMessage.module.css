@@ -1,0 +1,17 @@
+.statusMessage {
+    font-size: 0.813rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.statusMessage pre {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+}

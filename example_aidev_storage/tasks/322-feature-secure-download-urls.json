@@ -1,0 +1,12 @@
+{
+  "id": "322",
+  "name": "feature-secure-download-urls",
+  "type": "feature",
+  "category": "feature",
+  "description": "Generate secure time-limited download URLs",
+  "dependencies": ["307"],
+  "priority": "medium",
+  "estimated_complexity": "medium",
+  "estimated_lines": 100,
+  "created_at": "2025-01-21T12:00:00Z"
+}

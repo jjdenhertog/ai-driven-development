@@ -1,0 +1,12 @@
+{
+  "id": "326",
+  "name": "feature-user-service",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create user service for profile and job ownership",
+  "dependencies": ["323", "325"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 150,
+  "created_at": "2025-01-21T12:00:00Z"
+}

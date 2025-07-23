@@ -1,9 +1,0 @@
-{
-    "id": "005",
-    "name": "configure-pm2-service",
-    "type": "instruction",
-    "dependencies": ["001"],
-    "estimated_lines": 0,
-    "priority": "medium",
-    "status": "pending"
-}

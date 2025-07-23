@@ -1,0 +1,12 @@
+{
+  "id": "325",
+  "name": "feature-api-token-management",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create API token validation and management service",
+  "dependencies": ["023", "100"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 120,
+  "created_at": "2025-01-21T12:00:00Z"
+}

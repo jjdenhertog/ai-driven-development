@@ -1,0 +1,10 @@
+{
+  "task_id": "001",
+  "fix_date": "2025-07-22T07:45:58Z",
+  "initial_failures": 13,
+  "iterations": 3,
+  "fixes_applied": 3,
+  "final_status": "partial_fix",
+  "remaining_failures": 3,
+  "success": false
+}

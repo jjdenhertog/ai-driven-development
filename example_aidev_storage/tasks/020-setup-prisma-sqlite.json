@@ -1,0 +1,10 @@
+{
+  "id": "020",
+  "name": "setup-prisma-sqlite",
+  "type": "feature",
+  "dependencies": ["004", "006"],
+  "estimated_lines": 100,
+  "priority": "critical",
+  "category": "database",
+  "description": "Initialize Prisma ORM with SQLite database"
+}

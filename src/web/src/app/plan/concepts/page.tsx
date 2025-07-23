@@ -18,7 +18,7 @@ import { NewConceptModal } from '@/features/Concepts/components/NewConceptModal'
 
 function ConceptsPageContent() {
     const router = useRouter()
-    const pathname = usePathname()
+    const _pathname = usePathname()
     const searchParams = useSearchParams()
     const selectedFile = searchParams.get('file')
     const { enqueueSnackbar } = useSnackbar()
@@ -149,32 +149,30 @@ function ConceptsPageContent() {
     )
 
     const sidebarContent = (
-        <>
-            <div className={styles.fileList}>
-                {concepts.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p>No concepts yet</p>
-                    </div>
-                ) : (
-                    concepts.map((concept) => (
-                        <Button
-                            key={concept.name}
-                            onClick={createFileSelectHandler(concept.name)}
-                            variant={selectedFile === concept.name ? 'primary' : 'ghost'}
-                            fullWidth
-                            className={styles.fileItem}
-                        >
-                            <FontAwesomeIcon icon={faFileAlt} className={styles.fileIcon} />
-                            <div className={styles.fileInfo}>
-                                <span className={styles.fileName}>{concept.name}</span>
-                                <span className={styles.fileSize}>
-                                    {concept.size ? `${(concept.size / 1024).toFixed(1)}KB` : ''}
-                                </span>
-                            </div>
-                        </Button>
-                    )))}
-            </div>
-        </>
+        <div className={styles.fileList}>
+            {concepts.length === 0 ? (
+                <div className={styles.empty}>
+                    <p>No concepts yet</p>
+                </div>
+            ) : (
+                concepts.map((concept) => (
+                    <Button
+                        key={concept.name}
+                        onClick={createFileSelectHandler(concept.name)}
+                        variant={selectedFile === concept.name ? 'primary' : 'ghost'}
+                        fullWidth
+                        className={styles.fileItem}
+                    >
+                        <FontAwesomeIcon icon={faFileAlt} className={styles.fileIcon} />
+                        <div className={styles.fileInfo}>
+                            <span className={styles.fileName}>{concept.name}</span>
+                            <span className={styles.fileSize}>
+                                {concept.size ? `${(concept.size / 1024).toFixed(1)}KB` : ''}
+                            </span>
+                        </div>
+                    </Button>
+                )))}
+        </div>
     )
 
     return (

@@ -48,7 +48,7 @@ export function TaskUploads({ task, onUpdateTask }: TaskUploadsProps) {
                     formData.append('description', description)
                 }
 
-                const response = await fetch('/api/tasks/upload', {
+                const response = await fetch('/api/uploads', {
                     method: 'POST',
                     body: formData
                 })

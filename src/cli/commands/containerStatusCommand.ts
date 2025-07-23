@@ -41,10 +41,11 @@ export async function containerStatusCommand(options: Options): Promise<void> {
             log('─'.repeat(50), 'info');
             
             try {
+                const containerPrefix = getContainerName('')
                 const { stdout } = await execAsync(
-                    'docker ps -a --filter "name=aidev-" --format "{{.Names}}|{{.State}}|{{.Status}}"'
+                    `docker ps -a --filter "name=${containerPrefix}" --format "{{.Names}}|{{.State}}|{{.Status}}"`
                 );
-                
+
                 if (stdout.trim()) {
                     const containers = stdout.trim().split('\n');
                     containers.forEach(container => {

@@ -1,0 +1,11 @@
+{"type":"success","message":"[aidev] \u001b[38;5;36mPreparing git branch...\u001b[0m","timestamp":"2025-07-21T21:18:40.367Z"}
+{"type":"info","message":"[aidev] Executing Task: 001 - init-nextjs-project","timestamp":"2025-07-21T21:18:44.588Z"}
+{"type":"info","message":"[aidev] Starting execution of task 001","timestamp":"2025-07-21T21:18:44.588Z"}
+{"type":"success","message":"[aidev] \u001b[38;5;36mStarting Claude with aidev-code-task command...\u001b[0m","timestamp":"2025-07-21T21:18:44.589Z"}
+{"type":"warn","message":"[aidev] \u001b[38;5;214mDangerously skipping permission checks of Claude Code\u001b[0m","timestamp":"2025-07-21T21:18:44.589Z"}
+{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-21T21:19:11.190Z"}
+{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-21T21:19:11.190Z"}
+{"type":"info","message":"[aidev] \nClaude command exited with code: 0","timestamp":"2025-07-21T21:19:14.298Z"}
+{"type":"info","message":"[aidev] Creating session report...","timestamp":"2025-07-21T21:19:14.299Z"}
+{"type":"error","message":"[aidev] \u001b[31mPhase aidev-code-phase0.md failed\u001b[0m","timestamp":"2025-07-21T21:19:14.299Z"}
+{"type":"info","message":"[aidev] Removing worktree...","timestamp":"2025-07-21T21:19:14.301Z"}

@@ -1,0 +1,146 @@
+{
+  "concept_type": "after_effects_render_manager",
+  "core_purpose": "Centralized render queue management system that wraps nexrender CLI, providing authentication, user management, queue control, and monitoring for After Effects rendering on a single Windows machine",
+  "detected_features": {
+    "job_submission_api": {
+      "description": "REST API for external services to submit render jobs with nexrender configurations",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs API token authentication",
+        "requires request validation with Zod",
+        "needs file path conversion (macOS to Windows)",
+        "requires job queue management"
+      ],
+      "questions_asked": ["database", "nexrender_installation"],
+      "user_decisions": {
+        "database": "SQLite",
+        "nexrender_installation": "local_to_project"
+      }
+    },
+    "file_validation": {
+      "description": "Validates files exist in Dropbox with size stability and age checks",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs file system access",
+        "requires path with spaces handling",
+        "needs retry logic for validation",
+        "monitors file size changes"
+      ],
+      "questions_asked": ["dropbox_path"],
+      "user_decisions": {
+        "dropbox_path": "C:\\Users\\jjdenhertog\\Men in Green Dropbox\\"
+      }
+    },
+    "user_management": {
+      "description": "Google OAuth with company domain restriction, macOS username mapping",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs NextAuth.js configuration",
+        "requires Google OAuth setup",
+        "needs user profile management",
+        "stores multiple macOS usernames per user"
+      ],
+      "questions_asked": ["auth_setup", "company_domain"],
+      "user_decisions": {
+        "auth_setup": "need_to_create_google_credentials",
+        "company_domain": "@meningreen.agency"
+      }
+    },
+    "render_execution": {
+      "description": "Spawns nexrender CLI processes to execute After Effects renders",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs process management",
+        "requires stdout/stderr parsing",
+        "needs progress tracking",
+        "handles render crashes with retries"
+      ],
+      "questions_asked": ["aerender_path", "nexrender_scripts"],
+      "user_decisions": {
+        "aerender_path": "C:\\Program Files\\Adobe\\Adobe After Effects 2025\\Support Files\\aerender.exe",
+        "nexrender_scripts": "already_have_scripts"
+      }
+    },
+    "admin_dashboard": {
+      "description": "Web interface for monitoring jobs, system health, and administrative actions",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs real-time updates (WebSocket)",
+        "requires role-based access control",
+        "needs system metrics monitoring",
+        "provides job management UI"
+      ],
+      "questions_asked": ["port"],
+      "user_decisions": {
+        "port": "3000"
+      }
+    },
+    "notification_system": {
+      "description": "Slack notifications for job completion and admin alerts",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs Slack webhook integration",
+        "requires Slack bot for DMs",
+        "handles notification failures silently",
+        "sends user-specific notifications"
+      ],
+      "questions_asked": ["slack_integration"],
+      "user_decisions": {
+        "slack_integration": "both_webhook_and_bot"
+      }
+    },
+    "queue_management": {
+      "description": "Sequential job processing with priority system and auto-cancellation",
+      "confidence": "high",
+      "source": "explicit",
+      "technical_implications": [
+        "needs priority queue implementation",
+        "requires job state management",
+        "handles automatic cancellation logic",
+        "prevents concurrent renders"
+      ],
+      "questions_asked": ["database"],
+      "user_decisions": {
+        "database": "SQLite"
+      }
+    },
+    "update_system": {
+      "description": "Manual update system via git pull with migration support",
+      "confidence": "medium",
+      "source": "explicit",
+      "technical_implications": [
+        "needs git integration",
+        "requires database migration handling",
+        "needs process restart capability",
+        "checks for active renders before update"
+      ],
+      "questions_asked": ["git_repository"],
+      "user_decisions": {
+        "git_repository": "setup_later"
+      }
+    }
+  },
+  "technical_patterns": {
+    "needs_realtime": true,
+    "needs_background_jobs": true,
+    "needs_file_handling": true,
+    "scale_requirements": "single-machine",
+    "security_level": "internal-tool",
+    "data_retention": "7-days",
+    "error_handling": "automatic-retries",
+    "deployment": "windows-service"
+  },
+  "business_context": {
+    "industry": "creative-agency",
+    "user_types": ["artists", "project_managers", "admins"],
+    "workflow": "submit -> validate -> queue -> render -> notify",
+    "integrations": ["After Effects", "Dropbox", "Slack", "Google OAuth"],
+    "compliance": "company-email-restriction"
+  }
+}

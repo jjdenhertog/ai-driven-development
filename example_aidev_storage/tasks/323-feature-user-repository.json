@@ -1,0 +1,12 @@
+{
+  "id": "323",
+  "name": "feature-user-repository",
+  "type": "feature",
+  "category": "feature",
+  "description": "Extend user repository with profile management methods",
+  "dependencies": ["021", "100"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 150,
+  "created_at": "2025-01-21T12:00:00Z"
+}

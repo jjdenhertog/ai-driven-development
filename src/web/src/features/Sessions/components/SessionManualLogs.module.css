@@ -1,0 +1,148 @@
+.container {
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-tertiary);
+}
+
+.header:hover {
+    background-color: var(--bg-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expandButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform 0.2s;
+    color: var(--text-tertiary);
+}
+
+.expandButton.expanded {
+    transform: rotate(90deg);
+}
+
+.title {
+    font-weight: 500;
+    flex: 1;
+}
+
+.fileName {
+    font-size: 0.813rem;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+}
+
+.content {
+    border-top: 1px solid var(--border-secondary);
+    padding: 1rem;
+}
+
+.loading,
+.error,
+.noLogs {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-tertiary);
+}
+
+.error {
+    color: var(--error);
+}
+
+.noLogs {
+    font-style: italic;
+}
+
+.logsTimeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.logEntry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--border-tertiary);
+    font-size: 0.813rem;
+}
+
+.logEntry:last-child {
+    border-bottom: none;
+}
+
+.logEntry.error {
+    color: var(--error);
+}
+
+.logEntry.warn {
+    color: var(--warning);
+}
+
+.logEntry.success {
+    color: var(--success);
+}
+
+.logTimestamp {
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.logType {
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.logMessage {
+    flex: 1;
+    word-break: break-word;
+    white-space: pre-wrap;
+    font-family: var(--font-mono);
+}
+
+/* ANSI color classes */
+.logMessage.ansi-black { color: #000000; }
+.logMessage.ansi-red { color: #cd3131; }
+.logMessage.ansi-green { color: #0dbc79; }
+.logMessage.ansi-yellow { color: #e5e510; }
+.logMessage.ansi-blue { color: #2472c8; }
+.logMessage.ansi-magenta { color: #bc3fbc; }
+.logMessage.ansi-cyan { color: #11a8cd; }
+.logMessage.ansi-white { color: #e5e5e5; }
+.logMessage.ansi-bright-black { color: #666666; }
+.logMessage.ansi-bright-red { color: #f14c4c; }
+.logMessage.ansi-bright-green { color: #23d18b; }
+.logMessage.ansi-bright-yellow { color: #f5f543; }
+.logMessage.ansi-bright-blue { color: #3b8eea; }
+.logMessage.ansi-bright-magenta { color: #d670d6; }
+.logMessage.ansi-bright-cyan { color: #29b8db; }
+.logMessage.ansi-bright-white { color: #ffffff; }
+.logMessage.ansi-orange { color: #ff9800; }
+
+.rawContent {
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-family: var(--font-mono);
+}

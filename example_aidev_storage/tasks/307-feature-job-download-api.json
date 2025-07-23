@@ -1,0 +1,12 @@
+{
+  "id": "307",
+  "name": "feature-job-download-api",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create GET /api/jobs/:id/download endpoint for file streaming",
+  "dependencies": ["300", "023"],
+  "priority": "high",
+  "estimated_complexity": "medium",
+  "estimated_lines": 120,
+  "created_at": "2025-01-21T12:00:00Z"
+}

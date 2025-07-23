@@ -1,9 +1,0 @@
-{
-    "id": "208",
-    "name": "feature-system-management-api",
-    "type": "feature",
-    "dependencies": ["100", "200"],
-    "estimated_lines": 400,
-    "priority": "medium",
-    "status": "pending"
-}

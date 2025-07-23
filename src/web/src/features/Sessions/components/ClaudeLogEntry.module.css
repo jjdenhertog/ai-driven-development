@@ -1,0 +1,200 @@
+.logEntry {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-tertiary);
+    font-size: 0.813rem;
+}
+
+.logEntry:last-child {
+    border-bottom: none;
+}
+
+.logHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0 -0.75rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+}
+
+.logHeader.clickable {
+    cursor: pointer;
+}
+
+.logHeader.clickable:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.logEntry.error .logHeader {
+    color: var(--error);
+}
+
+.logEntry.status .logHeader {
+    color: var(--text-secondary);
+}
+
+.logTimestamp {
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.logIcon {
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.logLabel {
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.logDuration {
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+}
+
+.logPreview {
+    flex: 1;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.expandButton {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    transition: transform 0.2s;
+    color: var(--text-tertiary);
+}
+
+.expandButton.expanded {
+    transform: rotate(90deg);
+}
+
+.logDetails {
+    padding: 0.5rem 0 0.5rem 1rem;
+    border-left: 2px solid var(--border-tertiary);
+    margin-left: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.fullMessage pre,
+.result pre,
+.details pre {
+    margin: 0;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.25rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--font-mono);
+}
+
+.filePath {
+    margin-bottom: 0.5rem;
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+}
+
+.filePreview {
+    margin-top: 0.5rem;
+}
+
+.codeBlock {
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-family: var(--font-mono);
+}
+
+.codeBlock code {
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre;
+}
+
+.reasoning,
+.decision {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border-radius: 0.25rem;
+    font-size: 0.813rem;
+}
+
+.writeResult {
+    margin-top: 0.5rem;
+}
+
+.showMoreButton {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.showMoreButton:hover {
+    background: var(--bg-tertiary);
+}
+
+.fullContent {
+    margin-top: 0.5rem;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.todoList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.todoItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    background: var(--bg-primary);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.todoItem.completed {
+    opacity: 0.7;
+}
+
+.todoItem.in_progress {
+    background: var(--bg-secondary);
+}
+
+.todoStatus {
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+.todoContent {
+    flex: 1;
+}

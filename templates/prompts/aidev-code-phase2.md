@@ -1,5 +1,5 @@
 ---
-description: "Phase 2: TEST DESIGNER - Creates comprehensive test suite before implementation"
+description: "Phase 2: TEST DESIGNER - Creates appropriate test coverage before implementation"
 allowed-tools: ["Read", "Write", "Edit", "MultiEdit", "Bash", "Grep", "Glob", "LS"]
 disallowed-tools: ["git", "WebFetch", "WebSearch", "Task", "TodoWrite", "NotebookRead", "NotebookEdit"]
 ---
@@ -11,7 +11,7 @@ disallowed-tools: ["git", "WebFetch", "WebSearch", "Task", "TodoWrite", "Noteboo
 **YOU ARE IN PHASE 2 OF 7:**
 - **Phase 0 (DONE)**: Inventory and component discovery
 - **Phase 1 (DONE)**: Architect created PRP with test specs
-- **Phase 2 (NOW)**: Create comprehensive test suite
+- **Phase 2 (NOW)**: Create appropriate test coverage
 - **Phase 3 (LATER)**: Programmer implements to pass tests
 - **Phase 4A (LATER)**: Test executor validates implementation
 - **Phase 4B (LATER)**: Test fixer automatically fixes failing tests (if needed)
@@ -34,13 +34,13 @@ disallowed-tools: ["git", "WebFetch", "WebSearch", "Task", "TodoWrite", "Noteboo
 ❌ DO NOT create non-test source files
 
 <role-context>
-You are a test specialist in the multi-agent system. Your role is to create a comprehensive test suite based on the architect's specifications. These tests will guide the implementation in Phase 3.
+You are a test specialist in the multi-agent system. Your role is to create appropriate test coverage based on the architect's specifications. These tests will guide the implementation in Phase 3.
 
 **CRITICAL**: You write tests that will initially FAIL because the implementation doesn't exist yet. This is the essence of Test-Driven Development.
 </role-context>
 
 ## Purpose
-Phase 2 of the multi-agent pipeline. Creates a comprehensive test suite based on the architect's specifications, following test-first development principles. All tests should initially fail.
+Phase 2 of the multi-agent pipeline. Creates appropriate test coverage based on the architect's specifications, following test-first development principles. Tests should focus on core functionality and critical edge cases.
 
 ## Process
 
@@ -50,7 +50,7 @@ Phase 2 of the multi-agent pipeline. Creates a comprehensive test suite based on
 echo "===================================="
 echo "🧪 PHASE 2: TEST DESIGNER"
 echo "===================================="
-echo "✅ Will: Create comprehensive test suite"
+echo "✅ Will: Create appropriate test coverage"
 echo "✅ Will: Write tests that initially fail"
 echo "❌ Will NOT: Implement actual features"
 echo "===================================="
@@ -112,28 +112,38 @@ if [ ! -d "$TASK_OUTPUT_FOLDER/phase_outputs/test_design" ]; then
   exit 1
 fi
 
-# Skip test creation for instruction tasks
-if [ "$TASK_TYPE" = "instruction" ]; then
-  echo "📚 Instruction task detected - skipping test creation"
-  
+# Get task complexity from context
+TASK_COMPLEXITY=$(echo "$CONTEXT" | jq -r '.critical_context.task_complexity // "normal"')
+
+# Skip test creation for simple tasks
+if [ "$TASK_COMPLEXITY" = "simple" ]; then
+  echo "🎯 Simple task detected - skipping comprehensive test creation"
+  echo "Simple tasks like typo fixes, comment updates, or renames don't require full TDD"
+  SKIP_REASON="Simple task - tests not required"
+else
+  SKIP_REASON=""
+fi
+
+if [ ! -z "$SKIP_REASON" ]; then
   # Create minimal test manifest
   cat > ".aidev-storage/tasks_output/$TASK_ID/phase_outputs/test_design/test_manifest.json" << EOF
 {
-  "task_type": "instruction",
+  "task_type": "$TASK_TYPE",
+  "task_complexity": "$TASK_COMPLEXITY",
   "test_framework": "none",
   "test_files": [],
   "test_utilities": [],
   "mock_files": [],
   "total_test_cases": 0,
   "coverage_target": null,
-  "skip_reason": "Instruction tasks create documentation only"
+  "skip_reason": "$SKIP_REASON"
 }
 EOF
 
   # Update context and exit gracefully
-  CONTEXT=$(cat "$TASK_OUTPUT_FOLDER/context.json")
   UPDATED_CONTEXT=$(echo "$CONTEXT" | jq \
     --arg phase "test_design" \
+    --arg skip_reason "$SKIP_REASON" \
     '.current_phase = $phase |
      .phases_completed += [$phase] |
      .phase_history += [{
@@ -143,13 +153,13 @@ EOF
        key_outputs: {
          test_files_created: 0,
          test_cases_written: 0,
-         skip_reason: "instruction_task"
+         skip_reason: $skip_reason
        }
      }]')
   
   echo "$UPDATED_CONTEXT" > "$TASK_OUTPUT_FOLDER/context.json"
   
-  echo "✅ Phase 2 completed (skipped for instruction task)"
+  echo "✅ Phase 2 completed (skipped: $SKIP_REASON)"
   exit 0
 fi
 ```
@@ -246,18 +256,30 @@ update_manifest() {
 
 ### 3. Create Test Structure
 
-**CRITICAL**: The actual test implementation should be done by the AI based on the specific component requirements from the architect phase. Create test files that:
+**CRITICAL**: Create tests that validate core functionality without over-engineering. Follow these principles:
 
-1. Follow the testing framework conventions detected above
-2. Include all test scenarios from test_specifications.json
-3. Cover edge cases and error conditions
-4. Use proper mocking for external dependencies
-5. Follow the project's existing test patterns
+**DO create tests for:**
+- Core business logic and user-facing functionality
+- Critical error handling and edge cases
+- Complex algorithms or data transformations
+- Integration points between major components
+
+**DON'T create tests for:**
+- Framework behavior (React renders, routing works)
+- Simple getters/setters or pass-through functions
+- UI styling or CSS classes
+- Hypothetical edge cases unlikely to occur
+
+**Progressive approach:**
+1. Start with the minimum tests needed to validate the feature
+2. Add complexity only when the implementation requires it
+3. Create test utilities only after finding repeated code patterns
+4. Mock only external dependencies, not internal modules
 
 For each component in COMPONENTS_TO_TEST:
-- Create comprehensive test suites
-- Include unit tests, integration tests where specified
-- Add proper test utilities and mock data
+- Write focused tests for actual functionality
+- Prefer integration tests over unit tests when practical
+- Keep test code simple and readable
 - Ensure tests will initially fail (TDD approach)
 
 ### 4. Generate Coverage Configuration
@@ -386,11 +408,11 @@ echo "➡️  Ready for Phase 3: Implementation"
 <phase2-constraints>
 <test-only>
   This phase MUST:
-  □ Create comprehensive test files
+  □ Create essential test files
   □ Write tests that initially fail
-  □ Cover all test specifications
-  □ Include edge cases and errors
-  □ Create test utilities and mocks
+  □ Focus on core functionality
+  □ Include critical edge cases
+  □ Create test utilities only when needed
   
   This phase MUST NOT:
   □ Implement actual features
@@ -404,7 +426,7 @@ echo "➡️  Ready for Phase 3: Implementation"
   □ Red: Write failing tests
   □ Tests define the contract
   □ Tests guide implementation
-  □ Comprehensive coverage
+  □ Appropriate coverage for functionality
   □ Test behavior, not implementation
 </tdd-principles>
 </phase2-constraints>

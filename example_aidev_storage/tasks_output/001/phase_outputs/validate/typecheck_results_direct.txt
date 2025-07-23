@@ -1,0 +1,1 @@
+src/__tests__/integration/build.test.ts(101,46): error TS2304: Cannot find name 'buildDir'.

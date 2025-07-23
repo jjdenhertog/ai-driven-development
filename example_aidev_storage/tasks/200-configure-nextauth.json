@@ -1,0 +1,10 @@
+{
+  "id": "200",
+  "name": "configure-nextauth",
+  "type": "feature",
+  "dependencies": ["004", "021", "006"],
+  "estimated_lines": 200,
+  "priority": "critical",
+  "category": "authentication",
+  "description": "Set up NextAuth.js v5 with JWT strategy"
+}

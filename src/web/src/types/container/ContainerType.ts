@@ -1,1 +1,0 @@
-export type ContainerType = 'code' | 'learn' | 'plan' | 'web'

@@ -17,7 +17,7 @@ import { getTaskSession } from './api/sessions/getTaskSession'
 import { getTaskOutput } from './api/sessions/getTaskOutput'
 
 // Container APIs
-import { Container, ConceptFile, ConceptFeature, Preference, Example, Template } from '@/types'
+import { Container, ConceptFile, ConceptFeature, Preference, Example, Template, Prompt } from '@/types'
 import { fetchJson } from './api/http/fetchJson'
 import { API_BASE } from './api/constants'
 
@@ -60,6 +60,7 @@ export const api = {
         if (!response.ok) {
             throw new Error(`Failed to delete concept: ${response.statusText}`)
         }
+        
         return response.json()
     },
   
@@ -88,6 +89,32 @@ export const api = {
     updateTemplate: (name: string, content: string) => 
         import('./api/http/putJson').then(({ putJson }) => 
             putJson(`${API_BASE}/templates/${name}`, { content })
+        ),
+  
+    // Prompts
+    getPrompts: () => fetchJson<Prompt[]>(`${API_BASE}/prompts`),
+    getPrompt: (name: string) => 
+        fetchJson<{ content: string }>(`${API_BASE}/prompts/${name}`),
+    updatePrompt: (name: string, content: string) => 
+        import('./api/http/putJson').then(({ putJson }) => 
+            putJson(`${API_BASE}/prompts/${name}`, { content })
+        ),
+  
+    // Settings
+    getSettings: () => fetchJson<{
+        mainBranch: string
+        branchStartingPoint: string
+        slack_webhook_url: string
+        enforce_opus: boolean
+    }>(`${API_BASE}/settings`),
+    updateSettings: (settings: {
+        mainBranch: string
+        branchStartingPoint: string
+        slack_webhook_url: string
+        enforce_opus: boolean
+    }) => 
+        import('./api/http/putJson').then(({ putJson }) => 
+            putJson(`${API_BASE}/settings`, settings)
         ),
   
     // Containers
@@ -150,4 +177,10 @@ export const api = {
 
         return response.json()
     },
+    
+    // Task phases
+    getTaskPhases: (taskId: string) => 
+        fetchJson<{ phases: { id: string; label: string }[] }>(`${API_BASE}/tasks/${taskId}/phases`),
+    getTaskPhase: (taskId: string, phaseId: string) =>
+        fetchJson<{ phase: string; files: { filename: string; content: string; size: number; modified: string }[] }>(`${API_BASE}/tasks/${taskId}/phases/${phaseId}`),
 }

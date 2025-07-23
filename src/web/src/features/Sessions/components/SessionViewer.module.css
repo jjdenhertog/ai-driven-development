@@ -604,19 +604,43 @@
 }
 
 /* Logs view */
-.logsView {
+.sessionContent {
   flex: 1;
+  overflow-y: auto;
+}
+
+.logsContainer {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.phaseFilesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.phaseFilesSection h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.noLogs {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-style: italic;
 }
 
 .logsHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
 .logsHeader h4 {
@@ -670,6 +694,9 @@
   flex: 1;
   overflow: auto;
   padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 0.5rem;
 }
 
 .logsContent pre {

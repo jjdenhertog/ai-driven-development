@@ -1,0 +1,28 @@
+src/test-utils/mocks/next.ts(46,7): error TS1005: '>' expected.
+src/test-utils/mocks/next.ts(46,10): error TS1005: ')' expected.
+src/test-utils/mocks/next.ts(50,8): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(51,5): error TS1161: Unterminated regular expression literal.
+src/test-utils/mocks/next.ts(52,3): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(53,1): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(65,8): error TS1005: '>' expected.
+src/test-utils/mocks/next.ts(65,12): error TS1005: ')' expected.
+src/test-utils/mocks/next.ts(65,20): error TS1005: ';' expected.
+src/test-utils/mocks/next.ts(65,21): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(65,30): error TS1109: Expression expected.
+src/test-utils/mocks/next.ts(67,6): error TS1161: Unterminated regular expression literal.
+src/test-utils/mocks/next.ts(68,3): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(69,1): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(73,11): error TS1110: Type expected.
+src/test-utils/mocks/next.ts(73,23): error TS1161: Unterminated regular expression literal.
+src/test-utils/mocks/next.ts(177,23): error TS1005: '>' expected.
+src/test-utils/mocks/next.ts(177,31): error TS1005: ')' expected.
+src/test-utils/mocks/next.ts(177,33): error TS1136: Property assignment expected.
+src/test-utils/mocks/next.ts(177,51): error TS1109: Expression expected.
+src/test-utils/mocks/next.ts(177,52): error TS1109: Expression expected.
+src/test-utils/mocks/next.ts(177,53): error TS1109: Expression expected.
+src/test-utils/mocks/next.ts(178,20): error TS1005: '>' expected.
+src/test-utils/mocks/next.ts(178,32): error TS1109: Expression expected.
+src/test-utils/mocks/next.ts(179,8): error TS1110: Type expected.
+src/test-utils/mocks/next.ts(180,5): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(181,3): error TS1128: Declaration or statement expected.
+src/test-utils/mocks/next.ts(184,1): error TS1128: Declaration or statement expected.

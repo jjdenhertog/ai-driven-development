@@ -1,0 +1,14 @@
+{
+  "components": [],
+  "hooks": [],
+  "utilities": [],
+  "patterns": [],
+  "layouts": [],
+  "styles": [],
+  "warnings": [
+    "This appears to be a new Next.js project initialization - no existing components found to reuse",
+    "Preference files and examples are available for reference",
+    "Initialize Next.js project with App Router as per project conventions",
+    "Follow AI-Dev guidelines: ask if uncertain, verify paths exist, check package.json"
+  ]
+}

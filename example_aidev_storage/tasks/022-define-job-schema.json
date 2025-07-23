@@ -1,0 +1,10 @@
+{
+  "id": "022",
+  "name": "define-job-schema",
+  "type": "feature",
+  "dependencies": ["021"],
+  "estimated_lines": 120,
+  "priority": "critical",
+  "category": "database",
+  "description": "Create Job model with comprehensive status tracking"
+}

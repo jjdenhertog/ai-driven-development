@@ -12,7 +12,6 @@ export type { SessionMetadata } from './session/SessionMetadata'
 
 // Container exports
 export type { Container } from './container/Container'
-export type { ContainerType } from './container/ContainerType'
 export type { ContainerStatus } from './container/ContainerStatus'
 export type { ContainerLog } from './container/ContainerLog'
 
@@ -29,9 +28,15 @@ export type { ExampleType } from './example/ExampleType'
 // Template exports
 export type { Template } from './template/Template'
 
+// Prompt exports
+export type { Prompt } from './prompt/Prompt'
+
 // Concept Feature exports
 export type { ConceptFeature } from './conceptFeature/ConceptFeature'
 export type { ConceptFeatureState } from './conceptFeature/ConceptFeatureState'
 
 // Common exports
 export type { ImageWithDescription } from './common/ImageWithDescription'
+
+// Settings exports
+export type { Settings } from './settings/Settings'

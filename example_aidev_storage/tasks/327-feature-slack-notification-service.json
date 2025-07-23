@@ -1,0 +1,12 @@
+{
+  "id": "327",
+  "name": "feature-slack-notification-service",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create Slack notification service for job updates",
+  "dependencies": ["006"],
+  "priority": "medium",
+  "estimated_complexity": "medium",
+  "estimated_lines": 150,
+  "created_at": "2025-01-21T12:00:00Z"
+}

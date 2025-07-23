@@ -1,0 +1,15 @@
+
+> afx-render-manager@0.1.0 lint
+> next lint
+
+
+[36m./src/app/__tests__/layout.test.tsx[39m
+[33m142[39m:[33m15[39m  [31m[1mError[22m[39m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[39m
+
+[36m./src/app/__tests__/page.test.tsx[39m
+[33m6[39m:[33m26[39m  [31m[1mError[22m[39m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[39m
+
+[36m./src/test-utils/mocks/next.ts[39m
+[33m46[39m:[33m6[39m  [31m[1mError[22m[39m: Parsing error: '>' expected.
+
+[36minfo[39m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules

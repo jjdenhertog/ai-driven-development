@@ -1,0 +1,10 @@
+{
+  "id": "201",
+  "name": "setup-google-provider",
+  "type": "feature",
+  "dependencies": ["200"],
+  "estimated_lines": 150,
+  "priority": "critical",
+  "category": "authentication",
+  "description": "Configure Google OAuth with @meningreen.agency restriction"
+}

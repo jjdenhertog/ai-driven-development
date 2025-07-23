@@ -1,0 +1,12 @@
+{
+  "id": "303",
+  "name": "feature-nexrender-service",
+  "type": "feature",
+  "category": "feature",
+  "description": "Create nexrender service placeholder for render execution",
+  "dependencies": ["301"],
+  "priority": "critical",
+  "estimated_complexity": "medium",
+  "estimated_lines": 100,
+  "created_at": "2025-01-21T12:00:00Z"
+}

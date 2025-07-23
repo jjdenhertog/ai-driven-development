@@ -8,7 +8,6 @@ import addHooks from '../utils/claude/addHooks';
 import { autoRetryClaude } from '../utils/claude/autoRetryClaude';
 import removeHooks from '../utils/claude/removeHooks';
 import { addToGitignore } from '../utils/git/addToGitignore';
-import { checkGitAuth } from '../utils/git/checkGitAuth';
 import { checkGitInitialized } from '../utils/git/checkGitInitialized';
 import { createCommit } from '../utils/git/createCommit';
 import { ensureBranch } from '../utils/git/ensureBranch';
@@ -20,7 +19,6 @@ import { pushBranch } from '../utils/git/pushBranch';
 import { log } from "../utils/logger";
 import { createSession } from '../utils/storage/createSession';
 import { createSessionReport } from '../utils/storage/createSessionReport';
-import { createTaskPR } from '../utils/tasks/createTaskPR';
 import { getBranchName } from '../utils/tasks/getBranchName';
 import { updateTaskFile } from '../utils/tasks/updateTaskFile';
 import { validateTaskForExecution } from '../utils/tasks/validateTaskForExecution';
@@ -211,47 +209,6 @@ CRITICAL: You are in a git worktree. ALL work must be done within the current di
 
     await autoRetryClaude({ claudeCommand: claudeCommand('aidev-update-index.md'), logPath });
 
-
-
-    // const sessionReportPhase1 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase1.md'), logPath });
-    // if (!sessionReportPhase1?.success) {
-    //     log(`Phase 1 failed`, 'error', undefined, logPath);
-    //     removeHooks(worktreePath);
-    //     updateTaskFile(task.path, {
-    //         status: 'failed'
-    //     });
-    //     await removeWorktree();
-
-    //     return;
-    // }
-
-
-    // const sessionReportPhase2 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase2.md'), logPath });
-    // if (!sessionReportPhase2?.success) {
-
-    //     log(`Phase 2 failed`, 'error', undefined, logPath);
-    //     removeHooks(worktreePath);
-    //     updateTaskFile(task.path, {
-    //         status: 'failed'
-    //     });
-    //     await removeWorktree();
-
-    //     return;
-    // }
-
-    // const sessionReportPhase3 = await autoRetryClaude({ claudeCommand: claudeCommand('aidev-code-phase3.md'), logPath });
-    // if (!sessionReportPhase3?.success) {
-    //     log(`Phase 3 failed`, 'error', undefined, logPath);
-    //     removeHooks(worktreePath);
-    //     updateTaskFile(task.path, {
-    //         status: 'failed'
-    //     });
-    //     await removeWorktree();
-
-    //     return;
-    // }
-
-
     ///////////////////////////////////////////////////////////
     // Update task status and create PR
     ///////////////////////////////////////////////////////////
@@ -295,12 +252,6 @@ CRITICAL: You are in a git worktree. ALL work must be done within the current di
             });
             
             return; // Exit without removing worktree
-        }
-
-        // Create PR
-        if (checkGitAuth()) {
-            log(`Creating PR...`, 'info', undefined, logPath);
-            await createTaskPR(task, branchName, worktreePath);
         }
 
         ///////////////////////////////////////////////////////////

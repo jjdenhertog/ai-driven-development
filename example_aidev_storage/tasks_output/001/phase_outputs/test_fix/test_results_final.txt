@@ -1,0 +1,32 @@
+
+> afx-render-manager@0.1.0 test
+> vitest --run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/workspace/afx-render-manager/.aidev-001-init-nextjs-project[39m
+
+[90mstderr[2m | src/app/layout.test.tsx[2m > [22m[2mRootLayout[2m > [22m[2mRendering[2m > [22m[2mshould render children correctly
+[22m[39mIn HTML, <html> cannot be a child of <div>.
+This will cause a hydration error.
+
+ [32m✓[39m src/app/layout.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 304[2mms[22m[39m
+ [32m✓[39m src/__tests__/config/typescript.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+ [2m[90m↓[39m[22m src/__tests__/integration/dev-server.test.ts [2m([22m[2m7 tests[22m[2m | [22m[33m7 skipped[39m[2m)[22m
+ [32m✓[39m src/__tests__/config/eslint.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 5879[2mms[22m[39m
+   [33m[2m✓[22m[39m ESLint Configuration Tests[2m > [22mLinting[2m > [22mshould pass linting without errors [33m5863[2mms[22m[39m
+[90mstderr[2m | src/app/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mRendering[2m > [22m[2mshould render the home page without errors
+[22m[39mReceived `true` for a non-boolean attribute `priority`.
+
+If you want to write it to the DOM, pass a string instead: priority="true" or priority={value.toString()}.
+
+ [32m✓[39m src/app/page.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 461[2mms[22m[39m
+ [32m✓[39m src/__tests__/integration/build.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 47888[2mms[22m[39m
+   [33m[2m✓[22m[39m Build Process Integration Tests[2m > [22mBuild Command[2m > [22mshould build project without errors [33m42855[2mms[22m[39m
+   [33m[2m✓[22m[39m Build Process Integration Tests[2m > [22mBuild Command[2m > [22mshould not have TypeScript errors [33m5010[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (6)[39m
+[2m      Tests [22m [1m[32m30 passed[39m[22m[2m | [22m[33m7 skipped[39m[90m (37)[39m
+[2m   Start at [22m 22:28:51
+[2m   Duration [22m 50.22s[2m (transform 592ms, setup 2.96s, collect 748ms, tests 54.57s, environment 6.93s, prepare 1.17s)[22m
+

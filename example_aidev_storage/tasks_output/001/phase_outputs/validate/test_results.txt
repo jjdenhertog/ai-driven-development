@@ -1,0 +1,214 @@
+
+> afx-render-manager@0.1.0 test
+> vitest --run --coverage
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/workspace/afx-render-manager/.aidev-001-init-nextjs-project[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+(node:25934) [DEP0147] DeprecationWarning: In future versions of Node.js, fs.rmdir(path, { recursive: true }) will be removed. Use fs.rm(path, { recursive: true }) instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m __tests__/config/validation.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 99[2mms[22m[39m
+[90mstderr[2m | src/app/__tests__/page.test.tsx[2m > [22m[2mHomePage[2m > [22m[2mlayout integration[2m > [22m[2mshould work correctly within RootLayout
+[22m[39mWarning: validateDOMNesting(...): <html> cannot appear as a child of <div>.
+    at html
+    at MockLayout (/workspace/afx-render-manager/.aidev-001-init-nextjs-project/src/app/__tests__/page.test.tsx:157:29)
+
+ [32m✓[39m src/app/__tests__/page.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 529[2mms[22m[39m
+[90mstderr[2m | src/app/__tests__/layout.test.tsx[2m > [22m[2mRootLayout[2m > [22m[2mchildren rendering[2m > [22m[2mshould render children content correctly
+[22m[39mWarning: validateDOMNesting(...): <html> cannot appear as a child of <div>.
+    at html
+    at RootLayout (/workspace/afx-render-manager/.aidev-001-init-nextjs-project/src/app/layout.tsx:18:3)
+
+ [31m❯[39m src/app/__tests__/layout.test.tsx [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 210[2mms[22m[39m
+[31m   [31m×[31m RootLayout[2m > [22mperformance[2m > [22mshould not re-render unnecessarily[90m 23[2mms[22m[31m[39m
+[31m     → expected "spy" to be called 1 times, but got 2 times[39m
+ [31m❯[39m __tests__/integration/build.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 36383[2mms[22m[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mTypeScript compilation[2m > [22mshould compile without type errors[33m 7680[2mms[22m[31m[39m
+[31m     → Command failed: npx tsc --noEmit
+[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mESLint[2m > [22mshould pass linting without errors[33m 5442[2mms[22m[31m[39m
+[31m     → Command failed: npm run lint
+
+[36m./src/app/__tests__/layout.test.tsx[31m
+[33m142[31m:[33m15[31m  [31m[1mError[22m[31m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/app/__tests__/page.test.tsx[31m
+[33m6[31m:[33m26[31m  [31m[1mError[22m[31m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m46[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mproduction build[2m > [22mshould build without errors[33m 23197[2mms[22m[31m[39m
+[31m     → Command failed: npm run build
+[31m
+Failed to compile.[31m
+
+[36m./src/app/__tests__/layout.test.tsx[31m
+[33m142[31m:[33m15[31m  [31m[1mError[22m[31m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/app/__tests__/page.test.tsx[31m
+[33m6[31m:[33m26[31m  [31m[1mError[22m[31m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m46[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m   [31m×[31m Build Process Tests[2m > [22mproduction build[2m > [22mshould create build manifest[90m 15[2mms[22m[31m[39m
+[31m     → expected undefined to be defined[39m
+ [31m❯[39m __tests__/integration/smoke.test.ts [2m([22m[2m11 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 41061[2mms[22m[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdependencies[2m > [22mshould install all dependencies without errors[33m 4919[2mms[22m[31m[39m
+[31m     → expected '\nup to date, audited 533 packages in…' to contain 'added'[39m
+   [33m[2m✓[22m[39m Application Smoke Tests[2m > [22mdependencies[2m > [22mshould have all required dependencies [33m1085[2mms[22m[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould start on port 3000[33m 5023[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould serve the home page[33m 5007[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mdevelopment server[2m > [22mshould have no console errors on page load[33m 5005[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mstatic assets[2m > [22mshould serve favicon[33m 5002[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mstatic assets[2m > [22mshould handle 404 for missing assets[33m 5005[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22mAPI routes[2m > [22mshould handle API health check endpoint[33m 5002[2mms[22m[31m[39m
+[31m     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m   [31m×[31m Application Smoke Tests[2m > [22menvironment[2m > [22mshould be in development mode during dev[90m 3[2mms[22m[31m[39m
+[31m     → expected 'test' to be 'development' // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 13 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mTypeScript compilation[2m > [22mshould compile without type errors
+[31m[1mError[22m: Command failed: npx tsc --noEmit
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mESLint[2m > [22mshould pass linting without errors
+[31m[1mError[22m: Command failed: npm run lint
+
+[36m./src/app/__tests__/layout.test.tsx[31m
+[33m142[31m:[33m15[31m  [31m[1mError[22m[31m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/app/__tests__/page.test.tsx[31m
+[33m6[31m:[33m26[31m  [31m[1mError[22m[31m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m46[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mproduction build[2m > [22mshould build without errors
+[31m[1mError[22m: Command failed: npm run build
+[31m
+Failed to compile.[31m
+
+[36m./src/app/__tests__/layout.test.tsx[31m
+[33m142[31m:[33m15[31m  [31m[1mError[22m[31m: 'container' is assigned a value but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/app/__tests__/page.test.tsx[31m
+[33m6[31m:[33m26[31m  [31m[1mError[22m[31m: 'within' is defined but never used.  [90m[1m@typescript-eslint/no-unused-vars[22m[31m
+
+[36m./src/test-utils/mocks/next.ts[31m
+[33m46[31m:[33m6[31m  [31m[1mError[22m[31m: Parsing error: '>' expected.
+
+[36minfo[31m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/building-your-application/configuring/eslint#disabling-rules
+[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/build.test.ts[2m > [22mBuild Process Tests[2m > [22mproduction build[2m > [22mshould create build manifest
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m __tests__/integration/build.test.ts:[2m110:41[22m[39m
+    [90m108| [39m        
+    [90m109| [39m        [34mexpect[39m(manifestData[33m.[39mpages)[33m.[39m[34mtoBeDefined[39m()
+    [90m110| [39m        [34mexpect[39m(manifestData[33m.[39mpages[[32m'/'[39m])[33m.[39m[34mtoBeDefined[39m()
+    [90m   | [39m                                        [31m^[39m
+    [90m111| [39m      }
+    [90m112| [39m    })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdependencies[2m > [22mshould install all dependencies without errors
+[31m[1mAssertionError[22m: expected '\nup to date, audited 533 packages in…' to contain 'added'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- added[39m
+[31m+[39m
+[31m+ up to date, audited 533 packages in 5s[39m
+[31m+[39m
+[31m+ 170 packages are looking for funding[39m
+[31m+   run `npm fund` for details[39m
+[31m+[39m
+[31m+ 8 vulnerabilities (7 moderate, 1 critical)[39m
+[31m+[39m
+[31m+ To address all issues (including breaking changes), run:[39m
+[31m+   npm audit fix --force[39m
+[31m+[39m
+[31m+ Run `npm audit` for details.[39m
+[31m+[39m
+
+[36m [2m❯[22m __tests__/integration/smoke.test.ts:[2m24:22[22m[39m
+    [90m 22| [39m      
+    [90m 23| [39m      [34mexpect[39m(stderr)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m'ERR!'[39m)
+    [90m 24| [39m      [34mexpect[39m(stdout)[33m.[39m[34mtoContain[39m([32m'added'[39m)
+    [90m   | [39m                     [31m^[39m
+    [90m 25| [39m    }[33m,[39m [34m30000[39m) [90m// 30 second timeout for npm install[39m
+    [90m 26| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould start on port 3000
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould serve the home page
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mdevelopment server[2m > [22mshould have no console errors on page load
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mstatic assets[2m > [22mshould serve favicon
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mstatic assets[2m > [22mshould handle 404 for missing assets
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22mAPI routes[2m > [22mshould handle API health check endpoint
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m __tests__/integration/smoke.test.ts[2m > [22mApplication Smoke Tests[2m > [22menvironment[2m > [22mshould be in development mode during dev
+[31m[1mAssertionError[22m: expected 'test' to be 'development' // Object.is equality[39m
+
+Expected: [32m"[7mdevelopmen[27mt"[39m
+Received: [31m"[7mtes[27mt"[39m
+
+[36m [2m❯[22m __tests__/integration/smoke.test.ts:[2m113:36[22m[39m
+    [90m111| [39m
+    [90m112| [39m    [34mit[39m([32m'should be in development mode during dev'[39m[33m,[39m () [33m=>[39m {
+    [90m113| [39m      [34mexpect[39m(process[33m.[39menv[33m.[39m[33mNODE_ENV[39m)[33m.[39m[34mtoBe[39m([32m'development'[39m)
+    [90m   | [39m                                   [31m^[39m
+    [90m114| [39m    })
+    [90m115| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/app/__tests__/layout.test.tsx[2m > [22mRootLayout[2m > [22mperformance[2m > [22mshould not re-render unnecessarily
+[31m[1mAssertionError[22m: expected "spy" to be called 1 times, but got 2 times[39m
+[36m [2m❯[22m src/app/__tests__/layout.test.tsx:[2m179:25[22m[39m
+    [90m177| [39m      
+    [90m178| [39m      [90m// Should not cause additional renders[39m
+    [90m179| [39m      [34mexpect[39m(renderSpy)[33m.[39m[34mtoHaveBeenCalledTimes[39m([34m1[39m)
+    [90m   | [39m                        [31m^[39m
+    [90m180| [39m    })
+    [90m181| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m13 failed[39m[22m[2m | [22m[1m[32m72 passed[39m[22m[90m (85)[39m
+[2m   Start at [22m 07:18:39
+[2m   Duration [22m 48.94s[2m (transform 492ms, setup 1.56s, collect 1.48s, tests 78.28s, environment 6.78s, prepare 1.05s)[22m
+

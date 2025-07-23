@@ -5,6 +5,8 @@ version: "1.0.0"
 dependencies: ["technology-stack", "styling", "state-management"]
 tags: ["react", "components", "typescript", "performance", "patterns"]
 priority: "critical"
+
+
 ai-instructions:
   - "ALWAYS use TypeScript with readonly props"
   - "ALWAYS use arrow functions with React.FC type annotation"

@@ -1,0 +1,10 @@
+{
+  "id": "101",
+  "name": "create-api-error-handler",
+  "type": "pattern",
+  "dependencies": ["004"],
+  "estimated_lines": 100,
+  "priority": "critical",
+  "category": "patterns",
+  "description": "Consistent API error handling with Sentry integration"
+}

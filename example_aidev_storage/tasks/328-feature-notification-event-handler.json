@@ -1,0 +1,12 @@
+{
+  "id": "328",
+  "name": "feature-notification-event-handler",
+  "type": "feature",
+  "category": "feature",
+  "description": "Connect job events to notification service",
+  "dependencies": ["301", "327"],
+  "priority": "medium",
+  "estimated_complexity": "low",
+  "estimated_lines": 80,
+  "created_at": "2025-01-21T12:00:00Z"
+}

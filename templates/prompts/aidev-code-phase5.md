@@ -76,13 +76,8 @@ TASK_TYPE=$(echo "$TASK_JSON" | jq -r '.type // "feature"')
 
 echo "📋 Task: $TASK_ID - $TASK_NAME"
 
-# Verify required phases completed based on task type
-if [ "$TASK_TYPE" = "instruction" ]; then
-  # For instruction tasks, test_design might be skipped
-  REQUIRED_PHASES="inventory architect implement validate"
-else
-  REQUIRED_PHASES="inventory architect test_design implement validate"
-fi
+# Verify required phases completed
+REQUIRED_PHASES="inventory architect test_design implement validate"
 
 for PHASE in $REQUIRED_PHASES; do
   if [ ! -d "$TASK_OUTPUT_FOLDER/phase_outputs/$PHASE" ]; then
@@ -132,21 +127,12 @@ if [ ! -f "$TASK_OUTPUT_FOLDER/phase_outputs/architect/prp.md" ]; then
 fi
 PRP=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/architect/prp.md")
 
-# Handle task type differences
-if [ "$TASK_TYPE" = "instruction" ]; then
-  # For instruction tasks, test manifest might be minimal
-  if [ -f "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json" ]; then
-    TEST_MANIFEST=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json")
-  else
-    TEST_MANIFEST='{"test_files": [], "total_test_cases": 0}'
-  fi
-else
-  if [ ! -f "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json" ]; then
-    echo "❌ ERROR: Test manifest missing for non-instruction task"
-    exit 1
-  fi
-  TEST_MANIFEST=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json")
+# Load test manifest
+if [ ! -f "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json" ]; then
+  echo "❌ ERROR: Test manifest missing"
+  exit 1
 fi
+TEST_MANIFEST=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/test_design/test_manifest.json")
 
 if [ ! -f "$TASK_OUTPUT_FOLDER/phase_outputs/implement/implementation_summary.json" ]; then
   echo "❌ ERROR: Implementation summary missing"
@@ -203,10 +189,7 @@ FILES_CREATED=$(echo "$IMPLEMENTATION" | jq -r '.files_created // 0')
 TESTS_WRITTEN=$(echo "$TEST_MANIFEST" | jq -r '.total_test_cases // 0')
 
 # Handle different validation types
-if [ "$TASK_TYPE" = "instruction" ]; then
-  COVERAGE="N/A"
-  OVERALL_STATUS=$(echo "$VALIDATION" | jq -r '.overall_status // "documentation_created"')
-elif [ "$TASK_TYPE" = "pattern" ]; then
+if [ "$TASK_TYPE" = "pattern" ]; then
   COVERAGE="N/A"
   OVERALL_STATUS=$(echo "$VALIDATION" | jq -r '.overall_status // "pattern_validated"')
 else
@@ -220,156 +203,172 @@ fi
 ```bash
 echo "🔍 Performing code quality review..."
 
-# Initialize review findings
+# Initialize review findings with practical quality focus
+# Scoring: 40% code quality, 30% test effectiveness, 20% architecture, 10% documentation
 REVIEW_FINDINGS='{
   "code_quality": {
     "strengths": [],
     "improvements": [],
-    "score": 0
+    "score": 0,
+    "max_score": 40
   },
-  "pattern_adherence": {
-    "followed": [],
-    "violations": [],
-    "score": 0
-  },
-  "test_quality": {
+  "test_effectiveness": {
     "coverage": '$COVERAGE',
-    "test_design": [],
-    "score": 0
+    "strengths": [],
+    "improvements": [],
+    "score": 0,
+    "max_score": 30
   },
   "architecture": {
-    "decisions": [],
-    "consistency": [],
-    "score": 0
+    "strengths": [],
+    "improvements": [],
+    "score": 0,
+    "max_score": 20
+  },
+  "documentation": {
+    "strengths": [],
+    "improvements": [],
+    "score": 0,
+    "max_score": 10
   }
 }'
 
 # Review code quality
 echo "Analyzing code quality..."
 
-# Check for code reuse
+# Code Quality Assessment (40% of total score)
+# Focus on actual implementation quality, not just metrics
+
+# Check for code reuse (10 points)
 if [ "$COMPONENTS_REUSED" -gt 0 ]; then
   REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Excellent code reuse - '$COMPONENTS_REUSED' components reused"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 20')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 10')
 fi
 
-# Check type safety (skip for instruction tasks)
-if [ "$TASK_TYPE" != "instruction" ]; then
-  TYPE_ERRORS=$(echo "$VALIDATION" | jq -r '.checks.types.errors // 0')
-  if [ "$TYPE_ERRORS" -eq 0 ]; then
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Type-safe implementation with no TypeScript errors"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 20')
+# Check implementation simplicity (15 points)
+# Look for signs of over-engineering
+CONSOLE_LOGS=$(echo "$VALIDATION" | jq -r '.checks.performance.console_logs // 0')
+if [ "$CONSOLE_LOGS" -eq 0 ]; then
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Clean implementation without debug artifacts"]')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 5')
+fi
+
+# Check type safety and code cleanliness (15 points)
+TYPE_ERRORS=$(echo "$VALIDATION" | jq -r '.checks.types.errors // 0')
+LINT_ERRORS=$(echo "$VALIDATION" | jq -r '.checks.lint.errors // 0')
+
+if [ "$TYPE_ERRORS" -eq 0 ] && [ "$LINT_ERRORS" -eq 0 ]; then
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Clean, type-safe code with no errors"]')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 15')
+elif [ "$TYPE_ERRORS" -eq 0 ]; then
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Type-safe implementation"]')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 10')
+else
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.improvements += ["Address '$TYPE_ERRORS' type errors and '$LINT_ERRORS' lint issues"]')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 5')
+fi
+```
+
+### 3. Test Effectiveness Review
+
+```bash
+echo "🧪 Reviewing test effectiveness..."
+
+# Test Effectiveness Assessment (30% of total score)
+# Focus on practical test coverage, not just metrics
+
+if [ "$TASK_COMPLEXITY" = "simple" ]; then
+  # Simple tasks get full points if implementation works
+  if [ "$OVERALL_STATUS" = "passed" ]; then
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.strengths += ["Simple task completed successfully"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 30')
   else
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.improvements += ["Address '$TYPE_ERRORS' TypeScript errors for better type safety"]')
-  fi
-
-  # Check linting
-  LINT_ERRORS=$(echo "$VALIDATION" | jq -r '.checks.lint.errors // 0')
-  if [ "$LINT_ERRORS" -eq 0 ]; then
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Clean code with no linting errors"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 15')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.improvements += ["Simple task but validation failed"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 15')
   fi
 else
-  # For instruction tasks, check documentation quality
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.strengths += ["Documentation created as specified"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.code_quality.score += 35')
-  TYPE_ERRORS=0
-  LINT_ERRORS=0
-fi
-```
-
-### 3. Pattern Adherence Review
-
-```bash
-echo "📐 Reviewing pattern adherence..."
-
-# Check if patterns from inventory were used
-PATTERNS_MATCHED=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/inventory/pattern_matches.json" | jq -r '.matched_patterns | length')
-
-if [ "$PATTERNS_MATCHED" -gt 0 ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.followed += ["Successfully applied '$PATTERNS_MATCHED' established patterns"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.score += 25')
-fi
-
-# Check for anti-patterns
-CONSOLE_LOGS=$(echo "$VALIDATION" | jq -r '.checks.performance.console_logs')
-if [ "$CONSOLE_LOGS" -gt 0 ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.violations += ["Found '$CONSOLE_LOGS' console.log statements - remove for production"]')
-else
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.followed += ["No console.log statements - production ready"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.score += 10')
-fi
-
-# Check security patterns (skip for instruction tasks)
-if [ "$TASK_TYPE" != "instruction" ]; then
-  SECURITY_ISSUES=$(echo "$VALIDATION" | jq -r '.checks.security.total_issues // 0')
-  if [ "$SECURITY_ISSUES" -eq 0 ]; then
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.followed += ["Secure coding practices - no security issues found"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.score += 15')
-  fi
-else
-  SECURITY_ISSUES=0
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.followed += ["Documentation follows established patterns"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.pattern_adherence.score += 15')
-fi
-```
-
-### 4. Test Quality Review
-
-```bash
-echo "🧪 Reviewing test quality..."
-
-# Analyze test coverage based on task type
-if [ "$TASK_TYPE" = "instruction" ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Documentation task - test coverage not applicable"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 30')
-elif [ "$TASK_TYPE" = "pattern" ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Pattern implementation validated"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 30')
-else
-  # Feature tasks - normal coverage analysis
+  # Regular feature tasks - evaluate test quality
   if [ "$COVERAGE" != "N/A" ] && [ "$COVERAGE" -ge 80 ]; then
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Excellent test coverage at '$COVERAGE'%"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 30')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.strengths += ["Excellent test coverage at '$COVERAGE'%"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 20')
   elif [ "$COVERAGE" != "N/A" ] && [ "$COVERAGE" -ge 60 ]; then
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Good test coverage at '$COVERAGE'%"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 20')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.strengths += ["Good test coverage at '$COVERAGE'%"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 15')
   else
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Test coverage needs improvement: '$COVERAGE'%"]')
-    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 10')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.improvements += ["Improve test coverage from '$COVERAGE'%"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 10')
   fi
-fi
-
-# Check TDD adherence
-if [ "$TESTS_WRITTEN" -gt 0 ] && [ "$FILES_CREATED" -gt 0 ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.test_design += ["Test-first development successfully applied"]')
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_quality.score += 20')
+  
+  # Bonus for all tests passing
+  FAILING_TESTS=$(echo "$VALIDATION" | jq -r '.checks.tests.failing // 0')
+  if [ "$FAILING_TESTS" -eq 0 ] && [ "$TESTS_WRITTEN" -gt 0 ]; then
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.strengths += ["All '$TESTS_WRITTEN' tests passing"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.test_effectiveness.score += 10')
+  fi
 fi
 ```
 
-### 5. Architecture Review
+### 4. Architecture Review
 
 ```bash
-echo "🏗️ Reviewing architecture decisions..."
+echo "🏗️ Reviewing architecture..."
+
+# Architecture Assessment (20% of total score)
+# Focus on practical design decisions, not over-engineering
+
+# Get task complexity for context
+TASK_COMPLEXITY=$(echo "$CONTEXT" | jq -r '.critical_context.task_complexity // "normal"')
 
 # Load architecture decisions
-if [ ! -f "$TASK_OUTPUT_FOLDER/phase_outputs/architect/architecture_decisions.json" ]; then
-  echo "❌ ERROR: Architecture decisions missing from Phase 1"
-  exit 1
+if [ -f "$TASK_OUTPUT_FOLDER/phase_outputs/architect/architecture_decisions.json" ]; then
+  ARCH_DECISIONS=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/architect/architecture_decisions.json")
+  DECISION_COUNT=$(echo "$ARCH_DECISIONS" | jq '.decisions | length')
+else
+  DECISION_COUNT=0
 fi
-ARCH_DECISIONS=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/architect/architecture_decisions.json")
-DECISION_COUNT=$(echo "$ARCH_DECISIONS" | jq '.decisions | length')
 
-if [ "$DECISION_COUNT" -gt 0 ]; then
-  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.decisions += ["'$DECISION_COUNT' architectural decisions documented and followed"]')
+# Check pattern usage
+PATTERNS_MATCHED=$(cat "$TASK_OUTPUT_FOLDER/phase_outputs/inventory/pattern_matches.json" | jq -r '.matched_patterns | length')
+
+if [ "$TASK_COMPLEXITY" = "simple" ]; then
+  # Simple tasks should have minimal architecture
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.strengths += ["Appropriately simple architecture for task"]')
   REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.score += 20')
+else
+  # Complex tasks - evaluate architecture quality
+  if [ "$DECISION_COUNT" -gt 0 ] && [ "$PATTERNS_MATCHED" -gt 0 ]; then
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.strengths += ["Well-documented architecture with pattern reuse"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.score += 20')
+  elif [ "$DECISION_COUNT" -gt 0 ]; then
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.strengths += ["Architecture decisions documented"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.score += 15')
+  else
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.improvements += ["Document key architecture decisions"]')
+    REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.score += 10')
+  fi
 fi
+```
 
-# Check component design consistency
-REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.architecture.consistency += ["Component design follows established patterns"]')
+### 5. Documentation Review
+
+```bash
+echo "📝 Reviewing documentation..."
+
+# Documentation Assessment (10% of total score)
+# Focus on essential docs only
+
+# Check PR description quality (will be generated)
+REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.documentation.strengths += ["PR documentation will be auto-generated"]')
+REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.documentation.score += 5')
+
+# Check if code is self-documenting
+if [ "$TYPE_ERRORS" -eq 0 ]; then
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.documentation.strengths += ["Type-safe code is self-documenting"]')
+  REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.documentation.score += 5')
+fi
 
 # Calculate total score
-TOTAL_SCORE=$(echo "$REVIEW_FINDINGS" | jq '[.code_quality.score, .pattern_adherence.score, .test_quality.score, .architecture.score] | add')
+TOTAL_SCORE=$(echo "$REVIEW_FINDINGS" | jq '[.code_quality.score, .test_effectiveness.score, .architecture.score, .documentation.score] | add')
 REVIEW_FINDINGS=$(echo "$REVIEW_FINDINGS" | jq '.total_score = '$TOTAL_SCORE)
 
 # Save review findings
@@ -412,7 +411,13 @@ fi
 
 # Patterns to capture
 if [ "$TOTAL_SCORE" -ge 80 ]; then
-  INSIGHTS=$(echo "$INSIGHTS" | jq '.patterns_to_capture += ["This implementation demonstrates excellent practices - consider as pattern"]')
+  INSIGHTS=$(echo "$INSIGHTS" | jq '.patterns_to_capture += ["High quality implementation (score: '$TOTAL_SCORE'/100) - consider as reusable pattern"]')
+  
+  # Specific pattern recommendations based on strengths
+  CODE_SCORE=$(echo "$REVIEW_FINDINGS" | jq -r '.code_quality.score')
+  if [ "$CODE_SCORE" -ge 32 ]; then
+    INSIGHTS=$(echo "$INSIGHTS" | jq '.patterns_to_capture += ["Excellent code quality practices worth replicating"]')
+  fi
 fi
 
 # Improvements

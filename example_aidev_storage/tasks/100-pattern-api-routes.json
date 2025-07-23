@@ -1,9 +1,0 @@
-{
-    "id": "100",
-    "name": "pattern-api-routes",
-    "type": "pattern",
-    "dependencies": ["001", "004"],
-    "estimated_lines": 300,
-    "priority": "high",
-    "status": "pending"
-}

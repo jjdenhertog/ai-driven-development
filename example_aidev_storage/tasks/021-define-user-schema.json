@@ -1,0 +1,10 @@
+{
+  "id": "021",
+  "name": "define-user-schema",
+  "type": "feature",
+  "dependencies": ["020"],
+  "estimated_lines": 80,
+  "priority": "critical",
+  "category": "database",
+  "description": "Create User model in Prisma schema"
+}

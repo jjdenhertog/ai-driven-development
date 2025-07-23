@@ -44,7 +44,7 @@ export function FeaturesPageContent() {
             // Select the newly created feature
             router.push(`/plan/features?id=${newFeature.id}`)
         } catch (error) {
-            console.error('Failed to create feature:', error)
+            // Failed to create feature
             enqueueSnackbar(
                 error instanceof Error ? error.message : 'Failed to create feature',
                 { variant: 'error' }
@@ -58,7 +58,7 @@ export function FeaturesPageContent() {
             enqueueSnackbar('Feature updated successfully', { variant: 'success' })
             await mutate()
         } catch (error) {
-            console.error('Failed to update feature:', error)
+            // Failed to update feature
             enqueueSnackbar(
                 error instanceof Error ? error.message : 'Failed to update feature',
                 { variant: 'error' }
@@ -77,7 +77,7 @@ export function FeaturesPageContent() {
                 router.push('/plan/features')
             }
         } catch (error) {
-            console.error('Failed to delete feature:', error)
+            // Failed to delete feature
             enqueueSnackbar(
                 error instanceof Error ? error.message : 'Failed to delete feature',
                 { variant: 'error' }

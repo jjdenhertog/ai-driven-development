@@ -1,21 +1,19 @@
 /* eslint-disable unicorn/prefer-module */
+import { existsSync } from 'fs-extra'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-import { log } from '../utils/logger'
 import { checkGitInitialized } from '../utils/git/checkGitInitialized'
-import { existsSync } from 'fs-extra'
-import { sleep } from '../utils/sleep'
-import { startProxyServer } from '../utils/docker/startProxyServer'
+import { log } from '../utils/logger'
+import { getContainerName } from '../utils/docker/getContainerName'
 
 type Options = {
     cwd?: string;
     dev?: boolean;
-    disableProxy?: boolean;
 }
 
 export async function webCommand(options: Options) {
 
-    const { cwd, dev, disableProxy } = options;
+    const { cwd, dev } = options;
 
     try {
         // If a custom working directory is provided, change to it
@@ -27,31 +25,14 @@ export async function webCommand(options: Options) {
         }
 
         // Check if .aidev-storage exists in target directory
-        if (!existsSync(path.join(targetDir, '.aidev-storage'))) 
+        if (!existsSync(path.join(targetDir, '.aidev-storage')))
             throw new Error('AIdev has not been initialized. Run "aidev init" first.')
 
         log('Starting AIdev web interface...', 'info')
 
-        // Start proxy by default (unless disabled)
-        let proxyPort: number | undefined
-
-        if (!disableProxy) {
-
-            startProxyServer({
-                port: 8888
-            })
-            // Give proxy time to start
-            await sleep(1000)
-        }
-
         // Navigate to web directory - handle both development and production paths
         let webDir: string
-
-        // When running from development (npm link)
         const devWebDir = path.join(__dirname, '..', '..', '..', 'src', 'web')
-        
-        // When running from global npm install
-        // The web files are in dist/web (copied during build)
         const prodWebDir = path.join(__dirname, '..', '..', 'web')
 
         // Check which path exists
@@ -80,18 +61,20 @@ export async function webCommand(options: Options) {
                 env: {
                     ...process.env,
                     PROJECT_ROOT: targetDir,
-                    PORT: port,
-                    HOSTNAME: '0.0.0.0',  // Listen on all interfaces in container
-                    ...(proxyPort ? { AIDEV_HOST_PROXY: `http://localhost:${proxyPort}` } : {})
+                    HOSTNAME: 'localhost',  // Use localhost for development
+                    AIDEV_WEB_PORT: port,
+                    AIDEV_HOST_PROXY: `http://localhost:8888`,
+                    CONTAINER_PREFIX: getContainerName('')
                 }
             })
+
         } else {
             // Production mode - use standalone build
             // In production, the standalone files are copied directly to dist/web
             const standaloneServerPath = path.join(webDir, 'server.js')
 
             // Check if standalone build exists
-            if (!existsSync(standaloneServerPath)) 
+            if (!existsSync(standaloneServerPath))
                 throw new Error(`Web interface build not found. The package may be corrupted. Try reinstalling @jjdenhertog/ai-driven-development`)
 
             const port = process.env.AIDEV_WEB_PORT || '3001';
@@ -107,9 +90,10 @@ export async function webCommand(options: Options) {
                 env: {
                     ...process.env,
                     PROJECT_ROOT: targetDir,
-                    PORT: port,
                     HOSTNAME: hostname,
-                    ...(proxyPort ? { AIDEV_HOST_PROXY: `http://localhost:${proxyPort}` } : {})
+                    AIDEV_WEB_PORT: port,
+                    AIDEV_HOST_PROXY: `http://localhost:8888`,
+                    CONTAINER_PREFIX: getContainerName('')
                 }
             })
         }

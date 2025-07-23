@@ -1,0 +1,10 @@
+{
+  "id": "005",
+  "name": "configure-path-aliases",
+  "type": "feature",
+  "dependencies": ["002"],
+  "estimated_lines": 30,
+  "priority": "high",
+  "category": "setup",
+  "description": "Configure path aliases for cleaner imports"
+}

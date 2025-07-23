@@ -1,0 +1,192 @@
+/* Phases container - similar to sessions */
+.phases {
+  display: flex;
+  height: 100%;
+}
+
+.phaseList {
+  width: 300px;
+  border-right: 1px solid var(--border-color);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.phaseList h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.phaseContent {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* Phase list items */
+.phasesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.phaseItem {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.phaseItem:hover {
+  background: var(--bg-primary);
+  border-color: var(--accent-color);
+}
+
+.phaseItem.selected {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--bg-primary);
+}
+
+.phaseItem.selected .phaseLabel {
+  color: var(--bg-primary);
+}
+
+.phaseItem.selected .phaseId {
+  color: var(--bg-primary);
+  opacity: 0.8;
+}
+
+.phaseInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.phaseLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.phaseId {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* Phase viewer */
+.phaseViewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.phaseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.phaseHeader h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fileCount {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+/* Files list */
+.filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fileItem {
+  border: 1px solid var(--border-secondary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.fileHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-tertiary);
+}
+
+.fileHeader:hover {
+  background-color: var(--bg-primary);
+}
+
+.expandIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.2s;
+  color: var(--text-tertiary);
+}
+
+.expandIcon.expanded {
+  transform: rotate(90deg);
+}
+
+.fileIcon {
+  color: var(--text-secondary);
+  width: 1rem;
+}
+
+.fileName {
+  flex: 1;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.fileSize {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.fileContent {
+  border-top: 1px solid var(--border-secondary);
+  padding: 1rem;
+}
+
+/* Loading and error states */
+.loading,
+.error,
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-tertiary);
+}
+
+.error {
+  color: var(--error);
+}
+
+.empty {
+  font-style: italic;
+}

@@ -50,7 +50,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
-  width: 100%;
+  width: 95%;
 }
 
 .item:hover {
@@ -58,6 +58,7 @@
   border-color: var(--primary-color);
 }
 
+.item.selected:hover,
 .item.selected {
   background: var(--selected-bg);
   border-color: var(--primary-color);
