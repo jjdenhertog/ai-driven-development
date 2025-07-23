@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--overlay-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12,15 +12,15 @@
 }
 
 .modal {
-    background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to bottom, var(--bg-tertiary), var(--bg-secondary));
+    border: 1px solid var(--modal-border);
     border-radius: 8px;
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--modal-shadow);
     overflow: hidden;
 }
 
@@ -241,7 +241,7 @@
     padding: 0;
     border: none;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(9, 0, 64, 0.9);
     color: white;
     cursor: pointer;
     display: flex;
@@ -252,7 +252,7 @@
 }
 
 .removeImageButton:hover {
-    background: rgba(0, 0, 0, 0.9);
+    background: var(--bg-primary);
 }
 
 .uploadSection {
@@ -286,7 +286,7 @@
 }
 
 .imagesSection.dragging {
-    background: rgba(59, 130, 246, 0.1);
+    background: var(--accent-muted);
     border: 2px dashed var(--accent-color);
     border-radius: 0.5rem;
     padding: 1rem;

@@ -5,7 +5,6 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: var(--bg-primary);
   width: 100%;
 }
 
@@ -30,13 +29,16 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 2rem;
   width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .card {
-  background: var(--bg-secondary);
+  background: var(--gradient-subtle);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
   padding: 2.5rem;
@@ -54,7 +56,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--accent-color), #8b5cf6);
+  background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
   transform: translateX(-100%);
   transition: transform 0.3s ease;
 }
@@ -63,6 +65,7 @@
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
   border-color: var(--accent-color);
+  background: var(--gradient-hover);
 }
 
 .card:hover::before {

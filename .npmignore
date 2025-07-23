@@ -1,0 +1,36 @@
+# Source files (we only ship dist)
+src/
+example_aidev_storage/
+
+# Development files
+*.ts
+!*.d.ts
+tsconfig.json
+.eslintrc.json
+
+# Git
+.git/
+.gitignore
+
+# Dependencies and build artifacts
+node_modules/
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Web app source and dependencies
+dist/web/node_modules/
+dist/web/.next/
+dist/web/src/
+dist/web/public/
+dist/web/tsconfig.json
+dist/web/next.config.js
+dist/web/package-lock.json
+dist/web/.eslintrc.json
+
+# Keep only essential web files
+!dist/web/package.json
+!dist/web/server.js

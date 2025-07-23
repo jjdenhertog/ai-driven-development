@@ -32,7 +32,9 @@ export const ContainerList: React.FC<ContainerListProps> = ({
     if (loading) {
         return (
             <div className={styles.container}>
-                <h2 className={styles.title}>Containers</h2>
+                <div className={styles.header}>
+                    <h2 className={styles.title}>Containers</h2>
+                </div>
                 <div className={styles.list}>
                     <SkeletonLoader variant="list-item" count={3} />
                 </div>
@@ -52,6 +54,9 @@ export const ContainerList: React.FC<ContainerListProps> = ({
 
     return (
         <div className={styles.container}>
+            <div className={styles.header}>
+                <h2 className={styles.title}>Containers</h2>
+            </div>
             <div className={styles.list}>
                 {containers.map((container) => (
                     <ContainerItem

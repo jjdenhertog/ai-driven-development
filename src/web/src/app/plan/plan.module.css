@@ -6,8 +6,6 @@
 }
 
 .header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
     padding: 1.5rem 2rem 0;
 }
 

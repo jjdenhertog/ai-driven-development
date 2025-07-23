@@ -4,12 +4,13 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFile } from '@fortawesome/free-regular-svg-icons'
 import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { PageLayout } from '@/components/common/PageLayout'
 import { Button } from '@/components/common/Button'
+import { TabNavigation, Tab } from '@/components/common/TabNavigation'
+import { FileButton } from '@/components/common/FileButton'
 import { SettingsForm } from '@/features/Settings/components/SettingsForm'
 import styles from '@/features/Settings/components/SettingsSection.module.css'
 import { useSnackbar } from 'notistack'
@@ -271,43 +272,38 @@ function SettingsPageContent() {
     const fileList = getFileList()
 
     const sidebarHeader = (
-        <div className={styles.tabs}>
-            <Button
+        <TabNavigation>
+            <Tab
                 onClick={handleTabChangePlan}
-                variant={activeTab === 'plan' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'plan'}
             >
                 Plan
-            </Button>
-            <Button
+            </Tab>
+            <Tab
                 onClick={handleTabChangeCode}
-                variant={activeTab === 'code' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'code'}
             >
                 Code
-            </Button>
-            <Button
+            </Tab>
+            <Tab
                 onClick={handleTabChangeLearn}
-                variant={activeTab === 'learn' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'learn'}
             >
                 Learn
-            </Button>
-            <Button
+            </Tab>
+            <Tab
                 onClick={handleTabChangeIndex}
-                variant={activeTab === 'index' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'index'}
             >
                 Index
-            </Button>
-            <Button
+            </Tab>
+            <Tab
                 onClick={handleTabChangeSettings}
-                variant={activeTab === 'settings' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'settings'}
             >
                 Settings
-            </Button>
-        </div>
+            </Tab>
+        </TabNavigation>
     )
 
     const sidebarContent = (
@@ -319,19 +315,14 @@ function SettingsPageContent() {
             ) : (
                 <div className={styles.fileList}>
                     {fileList.map((item) => (
-                        <Button
+                        <FileButton
                             key={item.name}
+                            icon={faFile}
+                            title={item.title}
+                            description={item.description}
+                            selected={selectedFile === item.name}
                             onClick={createFileSelectHandler(item.name)}
-                            variant={selectedFile === item.name ? 'primary' : 'ghost'}
-                            fullWidth
-                            className={styles.fileItem}
-                        >
-                            <FontAwesomeIcon icon={faFile} className={styles.fileIcon} />
-                            <div className={styles.fileInfo}>
-                                <span className={styles.fileName}>{item.title}</span>
-                                {item.description ? <span className={styles.fileDescription}>{item.description}</span> : null}
-                            </div>
-                        </Button>
+                        />
                     ))}
                 </div>
             )}
@@ -385,14 +376,12 @@ function SettingsPageContent() {
                             value={content}
                             onChange={handleContentChange}
                             language={selectedFile.endsWith('.json') ? 'json' : 'markdown'}
-                            height="auto"
-                            minHeight={500}
-                            maxHeight={800}
+                            height="100%"
                         />
                     </div>
                 </>
             ) : (
-                <div className={styles.placeholder}>
+                <div className={styles.placeholder} style={{ background: 'none' }}>
                     <p>Select a file to edit</p>
                 </div>
             )}

@@ -1,3 +1,4 @@
+/* eslint-disable men-in-green/simple-ternary-max-length */
 /* eslint-disable react/no-multi-comp */
 'use client'
 
@@ -12,6 +13,8 @@ import { api } from '@/lib/api'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { PageLayout } from '@/components/common/PageLayout'
 import { Button } from '@/components/common/Button'
+import { TabNavigation, Tab } from '@/components/common/TabNavigation'
+import { FileButton } from '@/components/common/FileButton'
 import styles from '@/features/Concepts/components/ConceptSection.module.css'
 import { useSnackbar } from 'notistack'
 import { NewConceptModal } from '@/features/Concepts/components/NewConceptModal'
@@ -71,15 +74,15 @@ function ConceptsPageContent() {
     const handleSaveWrapper = useCallback(() => {
         handleSave()
     }, [handleSave])
-    
+
     const handleShowNewConcept = useCallback(() => {
         setShowNewConcept(true)
     }, [])
-    
+
     const handleCloseNewConcept = useCallback(() => {
         setShowNewConcept(false)
     }, [])
-    
+
     const handleCreateConcept = useCallback(async (name: string, content: string) => {
         try {
             await api.createConcept(name, content)
@@ -92,15 +95,15 @@ function ConceptsPageContent() {
             enqueueSnackbar('Failed to create concept', { variant: 'error' })
         }
     }, [mutate, enqueueSnackbar, handleSelectFile])
-    
+
     const handleDeleteConcept = useCallback(async () => {
         if (!selectedFile) return
-        
+
         // eslint-disable-next-line no-alert
         if (!window.confirm(`Are you sure you want to delete "${selectedFile}"?`)) {
             return
         }
-        
+
         try {
             await api.deleteConcept(selectedFile)
             mutate()
@@ -116,36 +119,14 @@ function ConceptsPageContent() {
     if (!concepts) return <div className={styles.loading}>Loading concepts...</div>
 
     const sidebarHeader = (
-        <>
-            <div className={styles.tabs}>
-                <Link href="/plan/concepts">
-                    <Button
-                        variant="primary"
-                        size="small"
-                    >
-                        Concepts
-                    </Button>
-                </Link>
-                <Link href="/plan/features">
-                    <Button
-                        variant="ghost"
-                        size="small"
-                    >
-                        Features
-                    </Button>
-                </Link>
-            </div>
-            <div className={styles.sidebarActions}>
-                <Button 
-                    onClick={handleShowNewConcept}
-                    variant="primary"
-                    size="small"
-                >
-                    <FontAwesomeIcon icon={faPlus} />
-                    New
-                </Button>
-            </div>
-        </>
+        <TabNavigation>
+            <Tab href="/plan/concepts" active={true}>
+                Concepts
+            </Tab>
+            <Tab href="/plan/features" active={false}>
+                Features
+            </Tab>
+        </TabNavigation>
     )
 
     const sidebarContent = (
@@ -153,25 +134,33 @@ function ConceptsPageContent() {
             {concepts.length === 0 ? (
                 <div className={styles.empty}>
                     <p>No concepts yet</p>
-                </div>
-            ) : (
-                concepts.map((concept) => (
                     <Button
-                        key={concept.name}
-                        onClick={createFileSelectHandler(concept.name)}
-                        variant={selectedFile === concept.name ? 'primary' : 'ghost'}
-                        fullWidth
-                        className={styles.fileItem}
+                        onClick={handleShowNewConcept}
+                        variant="primary"
+                        size="small"
                     >
-                        <FontAwesomeIcon icon={faFileAlt} className={styles.fileIcon} />
-                        <div className={styles.fileInfo}>
-                            <span className={styles.fileName}>{concept.name}</span>
-                            <span className={styles.fileSize}>
-                                {concept.size ? `${(concept.size / 1024).toFixed(1)}KB` : ''}
-                            </span>
-                        </div>
+                        <FontAwesomeIcon icon={faPlus} />
+                        Create new
                     </Button>
-                )))}
+                </div>
+            ) : <>
+                {concepts.map((concept) => (
+                    <FileButton
+                        key={concept.name}
+                        icon={faFileAlt}
+                        title={concept.name}
+                        description={concept.size ? `${(concept.size / 1024).toFixed(1)}KB` : undefined}
+                        selected={selectedFile === concept.name}
+                        onClick={createFileSelectHandler(concept.name)}
+                    />
+                ))}
+                <Button onClick={handleShowNewConcept} variant="secondary" size="small" style={{ width: "100%" }}>
+                    <FontAwesomeIcon icon={faPlus} />
+                    Create new file
+                </Button>
+            </>
+
+            }
         </div>
     )
 
@@ -214,9 +203,7 @@ function ConceptsPageContent() {
                             value={content}
                             onChange={handleContentChange}
                             language="markdown"
-                            height="auto"
-                            minHeight={500}
-                            maxHeight={800}
+                            height="100%"
                         />
                     </div>
                 </>
@@ -224,7 +211,7 @@ function ConceptsPageContent() {
                 <div className={styles.placeholder}>
                     <p>Select a concept to view details</p>
                     {concepts.length === 0 && (
-                        <Button 
+                        <Button
                             onClick={handleShowNewConcept}
                             variant="primary"
                             size="large"
@@ -235,7 +222,7 @@ function ConceptsPageContent() {
                     )}
                 </div>
             )}
-            
+
             {!!showNewConcept && (
                 <NewConceptModal
                     onClose={handleCloseNewConcept}

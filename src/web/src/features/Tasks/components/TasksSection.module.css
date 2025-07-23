@@ -7,10 +7,10 @@
 .sidebar {
   width: 400px;
   flex-shrink: 0;
-  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: transparent;
 }
 
 .header {
@@ -18,7 +18,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  background: transparent;
 }
 
 .title {
@@ -60,4 +60,45 @@
   height: 100%;
   color: var(--text-secondary);
   font-size: 1.125rem;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebarActions {
+  padding: 1rem 1.5rem;
+  background: transparent;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.taskList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--bg-primary);
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.error {
+  padding: 1rem;
+  color: var(--text-error);
+  text-align: center;
+}
+
+.loading {
+  padding: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty p {
+  margin: 0 0 1rem 0;
 }

@@ -106,7 +106,7 @@
 }
 
 .switch input:focus + .slider {
-  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+  box-shadow: 0 0 0 2px var(--accent-muted);
 }
 
 .switch input:checked + .slider:before {
@@ -129,7 +129,7 @@
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.5rem;
-  color: #ef4444;
+  color: var(--error-color);
   font-size: 0.875rem;
 }
 

@@ -3,7 +3,6 @@
     flex-direction: column;
     height: calc(100vh - 72px);
     overflow: hidden;
-    background-color: var(--bg-primary);
 }
 
 .container {
@@ -18,17 +17,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--bg-primary);
     flex-shrink: 0;
 }
 
 .sidebarHeader {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    flex-direction: column;
 }
 
 .headerContent {
@@ -81,11 +75,11 @@
 .sidebar {
     width: 400px;
     flex-shrink: 0;
-    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: var(--bg-primary);
+    background: transparent;
+    padding: 0;
 }
 
 .mainContent {
@@ -93,7 +87,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-primary);
 }
 
 /* Grid layout */
@@ -106,11 +99,11 @@
 .gridSidebar {
     width: 400px;
     flex-shrink: 0;
-    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: var(--bg-primary);
+    background: transparent;
+    padding: 0;
 }
 
 .gridMain {
@@ -118,7 +111,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background-color: var(--bg-primary);
 }
 
 /* Scrollbar styling for sidebar and main content */

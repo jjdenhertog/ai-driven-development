@@ -1,11 +1,13 @@
+/* eslint-disable max-lines */
+/* eslint-disable react/no-multi-comp */
 'use client'
 
-import React, { useState, useEffect, useCallback, use } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import useSWR from 'swr'
 import { useSnackbar } from 'notistack'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPlus, faSync } from '@fortawesome/free-solid-svg-icons'
 import { api, Task } from '@/lib/api'
 import { SessionViewer } from '@/features/Sessions/components/SessionViewer'
 import { CodeEditor } from '@/components/common/CodeEditor'
@@ -18,10 +20,16 @@ import { PhasesList } from '@/features/Phases/components/PhasesList'
 import { PhaseViewer } from '@/features/Phases/components/PhaseViewer'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/common/Button'
+import { PageLayout } from '@/components/common/PageLayout'
+import { TabNavigation, Tab } from '@/components/common/TabNavigation'
+import { TaskListWithRouting } from '@/features/Tasks/components/TaskListWithRouting'
+import { NewTaskModal } from '@/features/Tasks/components/NewTaskModal'
 import styles from '@/features/Tasks/components/TaskDetails.module.css'
+import sectionStyles from '@/features/Tasks/components/TasksSection.module.css'
 
-export default function TaskPage({ params }: { readonly params: Promise<{ id: string }> }) {
-    const { id: taskId } = use(params)
+function TaskDetailsPageContent() {
+    const params = useParams()
+    const taskId = params?.id as string
     const router = useRouter()
     const searchParams = useSearchParams()
     const { enqueueSnackbar } = useSnackbar()
@@ -79,31 +87,35 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const handleTabChange = useCallback((tab: 'overview' | 'prp' | 'sessions' | 'decision-tree' | 'uploads' | 'phases') => {
         // Only update if actually changing
         if (tab === activeTab) return
-        
+
         setActiveTab(tab)
         const params = new URLSearchParams(searchParams.toString())
         params.set('tab', tab)
-        
+
         if (tab !== 'sessions') {
             params.delete('session')
         }
-        
+
         if (tab !== 'phases') {
             params.delete('phase')
         }
-        
+
         router.push(`/tasks/${taskId}?${params.toString()}`)
     }, [searchParams, router, taskId, activeTab])
 
-    // Auto-select session from URL on initial load
+    // Auto-select session from URL on initial load, or select first session by default
     useEffect(() => {
-        if (sessionParam && sessionsData?.sessions) {
+        if (sessionsData?.sessions) {
             const sessions = sessionsData.sessions as string[];
-            if (sessions.includes(sessionParam)) {
+            if (sessionParam && sessions.includes(sessionParam)) {
+                // Use session from URL if it exists and is valid
                 setSelectedSession(sessionParam)
+            } else if (!sessionParam && sessions.length > 0 && !selectedSession) {
+                // Auto-select first session if no URL parameter and no session selected
+                setSelectedSession(prev => prev || sessions[0])
             }
         }
-    }, [sessionParam, sessionsData])
+    }, [sessionParam, sessionsData, selectedSession])
 
     // Ensure active tab is still valid when data changes
     useEffect(() => {
@@ -224,13 +236,13 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
         setSelectedSession(newSession)
         setSelectedPhase(newPhase)
     }, [searchParams])
+        
 
     // Update URL when session changes
     const handleSessionChange = useCallback((sessionId: string) => {
         // Only update if actually changing
         if (sessionId === selectedSession) return
-        
-        setSelectedSession(sessionId)
+
         const params = new URLSearchParams(searchParams.toString())
         params.set('session', sessionId)
         router.push(`/tasks/${taskId}?${params.toString()}`)
@@ -240,7 +252,7 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const handlePhaseChange = useCallback((phaseId: string) => {
         // Only update if actually changing
         if (phaseId === selectedPhase) return
-        
+
         setSelectedPhase(phaseId)
         const params = new URLSearchParams(searchParams.toString())
         params.set('phase', phaseId)
@@ -252,193 +264,254 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
     const showUploads = task ? (task.status !== 'completed' && task.status !== 'archived') : false
 
 
-    if (!task) return <div className="loading" />
+    // Get tasks list for sidebar
+    const { data: tasks, error: tasksError, mutate: mutateTasks, isValidating: isValidatingTasks } = useSWR('tasks', api.getTasks, {
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+    })
+
+    // Listen for task deletion events
+    useEffect(() => {
+        const handleTaskDeleted = () => {
+            mutateTasks(api.getTasks(), false)
+        }
+
+        window.addEventListener('task-deleted', handleTaskDeleted)
+
+        return () => {
+            window.removeEventListener('task-deleted', handleTaskDeleted)
+        }
+    }, [mutateTasks])
+
+    const handleRefreshTasks = useCallback(() => {
+        mutateTasks()
+    }, [mutateTasks])
+
+    if (tasksError) return <div className={sectionStyles.error}>Failed to load tasks</div>
+
+    if (!tasks) return <div className={sectionStyles.loading}>Loading tasks...</div>
+
+    if (!task) return <div className={sectionStyles.loading}>Loading task details...</div>
+
+    const sidebarHeader = (
+        <div className={sectionStyles.sidebarActions}>
+            <Button
+                onClick={handleRefreshTasks}
+                variant="ghost"
+                size="small"
+                disabled={isValidatingTasks}
+                title="Refresh tasks"
+            >
+                <FontAwesomeIcon icon={faSync} spin={isValidatingTasks} />
+            </Button>
+        </div>
+    )
+
+    const sidebarContent = (
+        <div className={sectionStyles.taskList}>
+            {tasks.length === 0 ? (
+                <div className={sectionStyles.empty}>
+                    <p>No tasks yet</p>
+                </div>
+            ) : (
+                <TaskListWithRouting tasks={tasks} />
+            )}
+        </div>
+    )
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <h2 className={styles.title}>
-                        Task {task.id}: {task.name}
-                    </h2>
+        <PageLayout
+            title="Tasks"
+            subtitle="Manage and track your development tasks"
+            variant="sidebar"
+            sidebarHeader={sidebarHeader}
+            sidebarContent={sidebarContent}
+            sidebarWidth={450}
+        >
+            <>
+                <div className={styles.header}>
+                    <div className={styles.headerLeft}>
+                        <h2 className={styles.title}>
+                            Task {task.id}: {task.name}
+                        </h2>
+                    </div>
+                    <Button
+                        variant="danger"
+                        size="small"
+                        onClick={handleShowDeleteConfirm}
+                        title="Delete task"
+                    >
+                        <FontAwesomeIcon icon={faTrash} />
+                    </Button>
                 </div>
-                <Button
-                    variant="danger"
-                    size="small"
-                    onClick={handleShowDeleteConfirm}
-                    title="Delete task"
-                >
-                    <FontAwesomeIcon icon={faTrash} />
-                </Button>
-            </div>
 
-            <div className={styles.tabs}>
-                <Button
-                    variant={activeTab === 'overview' ? 'primary' : 'ghost'}
-                    onClick={handleTabChangeOverview}
-                >
-                    Overview
-                </Button>
-                {!!hasPrp && (
-                    <Button
-                        variant={activeTab === 'prp' ? 'primary' : 'ghost'}
-                        onClick={handleTabChangePrp}
-                    >
-                        PRP
-                    </Button>
-                )}
-                {!!hasSessions && (
-                    <Button
-                        variant={activeTab === 'sessions' ? 'primary' : 'ghost'}
-                        onClick={handleTabChangeSessions}
-                    >
-                        Sessions
-                    </Button>
-                )}
-                {!!hasDecisionTree && (
-                    <Button
-                        variant={activeTab === 'decision-tree' ? 'primary' : 'ghost'}
-                        onClick={handleTabChangeDecisionTree}
-                    >
-                        Decision Tree
-                    </Button>
-                )}
-                {!!hasPhases && (
-                    <Button
-                        variant={activeTab === 'phases' ? 'primary' : 'ghost'}
-                        onClick={handleTabChangePhases}
-                    >
-                        Phases Output
-                    </Button>
-                )}
-                {showUploads ? (
-                    <Button
-                        variant={activeTab === 'uploads' ? 'primary' : 'ghost'}
-                        onClick={handleTabChangeUploads}
-                    >
-                        Uploads
-                    </Button>
-                ) : null}
-            </div>
-
-            <div className={styles.content}>
-                {activeTab === 'overview' && (
-                    <div className={styles.overview}>
-                        <TaskMetadataGrid
-                            task={task}
-                            canEditHold={canEditHold}
-                            onUpdateTask={handleUpdateTask}
-                        />
-                        
-                        <TaskSpecification
-                            content={taskContent}
-                            canEdit={canEdit}
-                            onSave={handleSaveSpec}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'sessions' && (
-                    <div className={styles.sessions}>
-                        <div className={styles.sessionList}>
-                            <h3>Sessions</h3>
-                            {sessionsData?.sessions ? (
-                                <EnhancedSessionList
-                                    taskId={task.id}
-                                    sessions={sessionsData.sessions}
-                                    selectedSession={selectedSession}
-                                    onSelectSession={handleSessionChange}
-                                />
-                            ) : (
-                                <div className={styles.empty}>No sessions available</div>
-                            )}
-                        </div>
-                        {selectedSession ? <div className={styles.sessionContent}>
-                            <SessionViewer
-                                taskId={task.id}
-                                sessionId={selectedSession}
-                            />
-                        </div> : null}
-                    </div>
-                )}
-
-                {activeTab === 'prp' && (
-                    <div className={styles.output}>
-                        {prpData ? (
-                            <CodeEditor
-                                value={prpData.content}
-                                language="markdown"
-                                readOnly
-                                height="auto"
-                                minHeight={400}
-                                maxHeight={50_000}
-                            />
-                        ) : lastResultData ? (
-                            <CodeEditor
-                                value={lastResultData.content}
-                                language="markdown"
-                                readOnly
-                                height="auto"
-                                minHeight={400}
-                                maxHeight={50_000}
-                            />
-                        ) : (
-                            <div className={styles.empty}>No PRP data available</div>
+                <div className={styles.tabs}>
+                    <TabNavigation>
+                        <Tab onClick={handleTabChangeOverview} active={activeTab === 'overview'}>
+                            Overview
+                        </Tab>
+                        {!!hasPrp && (
+                            <Tab
+                                onClick={handleTabChangePrp}
+                                active={activeTab === 'prp'}
+                            >
+                                PRP
+                            </Tab>
                         )}
-                    </div>
-                )}
-
-                {activeTab === 'decision-tree' && (
-                    <div className={styles.output}>
-                        {decisionTreeData ? (
-                            <DecisionTree data={decisionTreeData.content} />
-                        ) : (
-                            <div className={styles.empty}>
-                                <p>No decision tree data available</p>
-                                <p style={{ fontSize: '0.813rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
-                                    Looking for: tasks_output/{task.id}/decision_tree.jsonl
-                                </p>
-                            </div>
+                        {!!hasSessions && (
+                            <Tab
+                                onClick={handleTabChangeSessions}
+                                active={activeTab === 'sessions'}
+                            >
+                                Sessions
+                            </Tab>
                         )}
-                    </div>
-                )}
-
-                {activeTab === 'uploads' && (
-                    <div className={styles.uploads}>
-                        <TaskUploads
-                            task={task}
-                            onUpdateTask={handleUpdateTask}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'phases' && (
-                    <div className={styles.phases}>
-                        <div className={styles.phaseList}>
-                            <h3>Phases</h3>
-                            {phasesData?.phases ? (
-                                <PhasesList
-                                    phases={phasesData.phases}
-                                    selectedPhase={selectedPhase}
-                                    onSelectPhase={handlePhaseChange}
-                                />
-                            ) : (
-                                <div className={styles.empty}>No phase outputs available</div>
-                            )}
-                        </div>
-                        {selectedPhase ? (
-                            <div className={styles.phaseContent}>
-                                <PhaseViewer
-                                    taskId={task.id}
-                                    phaseId={selectedPhase}
-                                />
-                            </div>
+                        {!!hasDecisionTree && (
+                            <Tab
+                                onClick={handleTabChangeDecisionTree}
+                                active={activeTab === 'decision-tree'}
+                            >
+                                Decision Tree
+                            </Tab>
+                        )}
+                        {!!hasPhases && (
+                            <Tab
+                                onClick={handleTabChangePhases}
+                                active={activeTab === 'phases'}
+                            >
+                                Phases Output
+                            </Tab>
+                        )}
+                        {showUploads ? (
+                            <Tab
+                                onClick={handleTabChangeUploads}
+                                active={activeTab === 'uploads'}
+                            >
+                                Uploads
+                            </Tab>
                         ) : null}
-                    </div>
-                )}
+                    </TabNavigation>
+                </div>
 
-            </div>
-            
+                <div className={styles.content}>
+                    {activeTab === 'overview' && (
+                        <div className={styles.overview}>
+                            <TaskMetadataGrid
+                                task={task}
+                                canEditHold={canEditHold}
+                                onUpdateTask={handleUpdateTask}
+                            />
+
+                            <TaskSpecification
+                                content={taskContent}
+                                canEdit={canEdit}
+                                onSave={handleSaveSpec}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'sessions' && (
+                        <div className={styles.sessions}>
+                            <div className={styles.sessionList}>
+                                <h3>Sessions</h3>
+                                {sessionsData?.sessions ? (
+                                    <EnhancedSessionList
+                                        taskId={task.id}
+                                        sessions={sessionsData.sessions}
+                                        selectedSession={selectedSession}
+                                        onSelectSession={handleSessionChange}
+                                    />
+                                ) : (
+                                    <div className={styles.empty}>No sessions available</div>
+                                )}
+                            </div>
+                            {selectedSession ? <div className={styles.sessionContent}>
+                                <SessionViewer
+                                    taskId={task.id}
+                                    sessionId={selectedSession}
+                                />
+                            </div> : null}
+                        </div>
+                    )}
+
+                    {activeTab === 'prp' && (
+                        <div className={styles.output}>
+                            {prpData ? (
+                                <CodeEditor
+                                    value={prpData.content}
+                                    language="markdown"
+                                    readOnly
+                                    height="auto"
+                                    minHeight={400}
+                                    maxHeight={50_000}
+                                />
+                            ) : lastResultData ? (
+                                <CodeEditor
+                                    value={lastResultData.content}
+                                    language="markdown"
+                                    readOnly
+                                    height="auto"
+                                    minHeight={400}
+                                    maxHeight={50_000}
+                                />
+                            ) : (
+                                <div className={styles.empty}>No PRP data available</div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'decision-tree' && (
+                        <div className={styles.output}>
+                            {decisionTreeData ? (
+                                <DecisionTree data={decisionTreeData.content} />
+                            ) : (
+                                <div className={styles.empty}>
+                                    <p>No decision tree data available</p>
+                                    <p style={{ fontSize: '0.813rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                                        Looking for: tasks_output/{task.id}/decision_tree.jsonl
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'uploads' && (
+                        <div className={styles.uploads}>
+                            <TaskUploads
+                                task={task}
+                                onUpdateTask={handleUpdateTask}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'phases' && (
+                        <div className={styles.phases}>
+                            <div className={styles.phaseList}>
+                                <h3>Phases</h3>
+                                {phasesData?.phases ? (
+                                    <PhasesList
+                                        phases={phasesData.phases}
+                                        selectedPhase={selectedPhase}
+                                        onSelectPhase={handlePhaseChange}
+                                    />
+                                ) : (
+                                    <div className={styles.empty}>No phase outputs available</div>
+                                )}
+                            </div>
+                            {selectedPhase ? (
+                                <div className={styles.phaseContent}>
+                                    <PhaseViewer
+                                        taskId={task.id}
+                                        phaseId={selectedPhase}
+                                    />
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
+
+                </div>
+            </>
+
             <ConfirmDialog
                 isOpen={showDeleteConfirm}
                 title="Delete Task"
@@ -448,6 +521,15 @@ export default function TaskPage({ params }: { readonly params: Promise<{ id: st
                 onConfirm={handleConfirmDelete}
                 onCancel={handleCancelDelete}
             />
-        </div>
+
+        </PageLayout>
+    )
+}
+
+export default function TaskPage() {
+    return (
+        <Suspense fallback={<div className={sectionStyles.loading}>Loading...</div>}>
+            <TaskDetailsPageContent />
+        </Suspense>
     )
 }

@@ -9,6 +9,7 @@ type PageLayoutProps = {
     readonly variant?: 'default' | 'sidebar' | 'grid';
     readonly sidebarContent?: React.ReactNode;
     readonly sidebarHeader?: React.ReactNode;
+    readonly sidebarWidth?: number;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({
@@ -18,7 +19,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
     actions,
     variant = 'default',
     sidebarContent,
-    sidebarHeader
+    sidebarHeader,
+    sidebarWidth = 400
 }) => {
     const renderHeader = () => {
         if (!title && !subtitle && !actions) return null;
@@ -41,7 +43,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div className={styles.wrapper}>
                 {renderHeader()}
                 <div className={styles.container}>
-                    <aside className={styles.sidebar}>
+                    <aside className={styles.sidebar} style={{ width: `${sidebarWidth}px` }}>
                         {sidebarHeader ? (
                             <div className={styles.sidebarHeader}>
                                 {sidebarHeader}

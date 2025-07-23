@@ -3,7 +3,6 @@
 import React, { useCallback, useMemo } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
-import { Button } from '@/components/common/Button'
 import { formatDuration } from '@/lib/utils/formatDuration'
 import styles from './TaskDetails.module.css'
 
@@ -64,12 +63,10 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
             const isValidDate = !isNaN(date.getTime());
       
             return (
-                <Button
+                <div
                     key={sessionId}
-                    variant={selectedSession === sessionId ? 'primary' : 'ghost'}
-                    fullWidth
+                    className={`${styles.sessionItem} ${selectedSession === sessionId ? styles.selected : ''}`}
                     onClick={handleClick}
-                    className={styles.sessionItem}
                 >
                     <div className={styles.sessionInfo}>
                         <div className={styles.sessionHeader}>
@@ -91,19 +88,17 @@ export const EnhancedSessionList: React.FC<EnhancedSessionListProps> = ({
                             </span> : null}
                         </div>
                     </div>
-                </Button>
+                </div>
             );
         } catch (_e) {
             return (
-                <Button
+                <div
                     key={sessionId}
-                    variant={selectedSession === sessionId ? 'primary' : 'ghost'}
-                    fullWidth
+                    className={`${styles.sessionItem} ${selectedSession === sessionId ? styles.selected : ''}`}
                     onClick={handleClick}
-                    className={styles.sessionItem}
                 >
                     {sessionId}
-                </Button>
+                </div>
             );
         }
     }, [selectedSession, sessionMetadata, createSessionClickHandler])

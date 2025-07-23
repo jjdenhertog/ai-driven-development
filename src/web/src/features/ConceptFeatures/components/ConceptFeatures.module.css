@@ -1,40 +1,20 @@
 .container {
     display: flex;
     height: 100%;
-    background: var(--bg-primary);
     flex: 1;
 }
 
 .sidebar {
     width: 300px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-.sidebarHeader {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.tabs {
-    display: flex;
-    gap: 0.5rem;
+    background: transparent;
 }
 
 .sidebarActions {
-    margin-top: 1rem;
-}
-
-.sidebarHeader h3 {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 600;
+    padding: 1rem 1rem 0.5rem;
+    background: transparent;
 }
 
 .newButton {
@@ -58,7 +38,10 @@
 .featureList {
     flex: 1;
     overflow-y: auto;
-    padding: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    margin: 0 1rem 1rem 1rem;
+    border-radius: 0.5rem;
 }
 
 .empty {
@@ -114,79 +97,35 @@
     color: var(--accent-color);
 }
 
-.featureItem {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    background: var(--bg-primary);
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
+/* Status styling with left border accent */
+.status-draft {
+    border-left: 3px solid var(--text-tertiary) !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
-.featureItem:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color-light);
-    transform: translateX(2px);
+.status-ready {
+    border-left: 3px solid #3b82f6 !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
-.featureItem.selected {
-    background: var(--accent-muted);
-    border-color: var(--accent-color);
+.status-reviewing {
+    border-left: 3px solid #6366f1 !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
-/* Subtle status styling with left border accent */
-.featureItem.status-draft {
-    border-left: 3px solid var(--text-tertiary);
-    padding-left: calc(1rem - 2px);
+.status-questions {
+    border-left: 3px solid #f59e0b !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
-.featureItem.status-ready {
-    border-left: 3px solid #3b82f6;
-    padding-left: calc(1rem - 2px);
+.status-reviewed {
+    border-left: 3px solid #8b5cf6 !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
-.featureItem.status-reviewing {
-    border-left: 3px solid #6366f1;
-    padding-left: calc(1rem - 2px);
-}
-
-.featureItem.status-questions {
-    border-left: 3px solid #f59e0b;
-    padding-left: calc(1rem - 2px);
-}
-
-.featureItem.status-reviewed {
-    border-left: 3px solid #8b5cf6;
-    padding-left: calc(1rem - 2px);
-}
-
-.featureItem.status-approved {
-    border-left: 3px solid #10b981;
-    padding-left: calc(1rem - 2px);
-}
-
-.featureHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-}
-
-.featureTitle {
-    font-weight: 500;
-    color: var(--text-primary);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.stateIcon {
-    font-size: 0.5rem;
-    margin-left: 0.5rem;
+.status-approved {
+    border-left: 3px solid #10b981 !important;
+    padding-left: calc(1.25rem - 3px) !important;
 }
 
 

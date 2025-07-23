@@ -4,6 +4,8 @@
 import { Button } from '@/components/common/Button'
 import { CodeEditor } from '@/components/common/CodeEditor'
 import { PageLayout } from '@/components/common/PageLayout'
+import { TabNavigation, Tab } from '@/components/common/TabNavigation'
+import { FileButton } from '@/components/common/FileButton'
 import styles from '@/features/Settings/components/SettingsSection.module.css'
 import { api } from '@/lib/api'
 import { faFile } from '@fortawesome/free-regular-svg-icons'
@@ -117,22 +119,20 @@ function CodeBaseContent() {
     const fileList = getFileList()
 
     const sidebarHeader = (
-        <div className={styles.tabs}>
-            <Button
+        <TabNavigation>
+            <Tab
                 onClick={handleTabChangePreferences}
-                variant={activeTab === 'preferences' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'preferences'}
             >
                 Preferences
-            </Button>
-            <Button
+            </Tab>
+            <Tab
                 onClick={handleTabChangeExamples}
-                variant={activeTab === 'examples' ? 'primary' : 'ghost'}
-                size="small"
+                active={activeTab === 'examples'}
             >
                 Examples
-            </Button>
-        </div>
+            </Tab>
+        </TabNavigation>
     )
 
     const sidebarContent = (
@@ -143,19 +143,14 @@ function CodeBaseContent() {
                 const description = typeof item === 'object' ? item.description : undefined
 
                 return (
-                    <Button
+                    <FileButton
                         key={fileName}
+                        icon={faFile}
+                        title={displayName}
+                        description={description}
+                        selected={selectedFile === fileName}
                         onClick={createFileSelectHandler(fileName)}
-                        variant={selectedFile === fileName ? 'primary' : 'ghost'}
-                        fullWidth
-                        className={styles.fileItem}
-                    >
-                        <FontAwesomeIcon icon={faFile} className={styles.fileIcon} />
-                        <div className={styles.fileInfo}>
-                            <span className={styles.fileName}>{displayName}</span>
-                            {description ? <span className={styles.fileDescription}>{description}</span> : null}
-                        </div>
-                    </Button>
+                    />
                 )
             })}
         </div>
@@ -163,8 +158,8 @@ function CodeBaseContent() {
 
     return (
         <PageLayout
-            title="Your Codebase"
-            subtitle="Manage preferences, examples, and templates for AI-driven development"
+            title="Your Preferences"
+            subtitle="Manage preferences your prefrences and examples"
             variant="sidebar"
             sidebarHeader={sidebarHeader}
             sidebarContent={sidebarContent}
@@ -190,14 +185,12 @@ function CodeBaseContent() {
                             value={content}
                             onChange={handleContentChange}
                             language={selectedFile.endsWith('.json') ? 'json' : 'markdown'}
-                            height="auto"
-                            minHeight={500}
-                            maxHeight={800}
+                            height="100%"
                         />
                     </div>
                 </>
                 :
-                <div className={styles.placeholder}>
+                <div className={styles.placeholder} style={{ background:'none' }}>
                     <p>Select a file to edit</p>
                 </div>
             }

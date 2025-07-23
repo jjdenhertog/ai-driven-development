@@ -24,10 +24,12 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
     const [expandedItem, setExpandedItem] = useState<string | null>(null)
 
     const handleToggleItem = useCallback((itemId: string) => {
-        return () => {
-            setExpandedItem(prev => prev === itemId ? null : itemId)
-        }
+        setExpandedItem(prev => prev === itemId ? null : itemId)
     }, [])
+
+    const handleToggleManual = useCallback(() => {
+        handleToggleItem('manual')
+    }, [handleToggleItem])
 
     if (error) return <div className={styles.error}>Failed to load session</div>
     
@@ -47,7 +49,7 @@ export const SessionViewer: React.FC<SessionViewerProps> = ({ taskId, sessionId 
                         taskId={taskId} 
                         sessionId={sessionId}
                         isExpanded={expandedItem === 'manual'}
-                        onToggle={handleToggleItem('manual')}
+                        onToggle={handleToggleManual}
                     />
                     
                     <div className={styles.phaseFilesSection}>

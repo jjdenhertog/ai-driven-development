@@ -1,111 +1,23 @@
 .container {
   display: flex;
   height: calc(100vh - 72px);
-  background: var(--bg-primary);
 }
 
 .sidebar {
   width: 380px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  background: transparent;
 }
 
-.tabs {
-  display: flex;
-  padding: 0.5rem;
-  gap: 0.25rem;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.tab {
-  flex: 1;
-  padding: 0.625rem 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid transparent;
-  border-radius: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tab:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.tab.active {
-  background: var(--bg-secondary);
-  color: var(--accent-color);
-  border-color: var(--border-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
 .fileList {
   flex: 1;
   overflow-y: auto;
-  padding: 0;
-}
-
-.fileItem {
-  width: 100%;
-  text-align: left;
-  padding: 0.875rem 1.25rem;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.fileItem:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.fileItem.selected {
-  background: var(--accent-muted);
-  border-left: 3px solid var(--accent-color);
-  padding-left: calc(1.25rem - 3px);
-}
-
-.fileIcon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--text-tertiary);
-}
-
-.fileInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.fileName {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 0.125rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fileDescription {
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  padding: 1rem;
+  background: var(--bg-primary);
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 0.5rem;
 }
 
 .main {
@@ -113,15 +25,18 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg-primary);
 }
 
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
+  padding-top: 0;
+  padding-bottom: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-secondary);
+  background: transparent;
+  border-bottom: none;
 }
 
 .headerInfo {
@@ -167,8 +82,11 @@
 
 .editor {
   flex: 1;
-  padding: 1.5rem;
+  padding: 2rem;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .placeholder {
@@ -178,4 +96,7 @@
   justify-content: center;
   color: var(--text-tertiary);
   font-size: 1rem;
+  background: var(--bg-primary);
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 0.5rem;
 }

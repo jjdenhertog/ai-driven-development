@@ -1,18 +1,25 @@
 .container {
   height: 100%;
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: transparent;
+  padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: transparent;
+}
+
 .title {
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: var(--foreground);
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .refreshing {
@@ -36,7 +43,10 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-primary);
+  margin: 0 1rem 1rem 1rem;
+  border-radius: 0.5rem;
 }
 
 .item {
@@ -44,17 +54,18 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: transparent;
+  margin-bottom: 0.5rem;
+  background: var(--gradient-subtle);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
-  width: 95%;
+  width: 100%;
 }
 
 .item:hover {
-  background: var(--hover-bg);
+  background: var(--gradient-hover);
   border-color: var(--primary-color);
 }
 

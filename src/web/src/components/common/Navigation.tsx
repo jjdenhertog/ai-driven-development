@@ -46,8 +46,6 @@ export const Navigation: React.FC = () => {
                         </li>
                     ))}
                 </ul>
-        
-                <div className={styles.placeholder} />
             </div>
         </nav>
     )

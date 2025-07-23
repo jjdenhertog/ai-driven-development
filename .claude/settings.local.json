@@ -33,7 +33,14 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:chakra-templates.vercel.app)",
       "Bash(# Copy webfonts (solid, regular, light, and brands)\ncp fontawesome-pro-6.7.2-web/webfonts/fa-solid-900.woff2 src/web/public/fonts/\ncp fontawesome-pro-6.7.2-web/webfonts/fa-regular-400.woff2 src/web/public/fonts/\ncp fontawesome-pro-6.7.2-web/webfonts/fa-light-300.woff2 src/web/public/fonts/\ncp fontawesome-pro-6.7.2-web/webfonts/fa-brands-400.woff2 src/web/public/fonts/\n\n# Copy CSS files\ncp fontawesome-pro-6.7.2-web/css/fontawesome.min.css src/web/public/css/\ncp fontawesome-pro-6.7.2-web/css/solid.min.css src/web/public/css/\ncp fontawesome-pro-6.7.2-web/css/regular.min.css src/web/public/css/\ncp fontawesome-pro-6.7.2-web/css/light.min.css src/web/public/css/\ncp fontawesome-pro-6.7.2-web/css/brands.min.css src/web/public/css/)",
-      "Bash(tsc --noEmit)"
+      "Bash(tsc --noEmit)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_tab_list",
+      "mcp__playwright__browser_evaluate"
     ],
     "deny": []
   }

@@ -21,7 +21,7 @@ type PhaseFile = {
 }
 
 export const PhaseViewer: React.FC<PhaseViewerProps> = ({ taskId, phaseId }) => {
-    const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set())
+    const [expandedFile, setExpandedFile] = useState<string | null>(null)
 
     const { data, error } = useSWR(
         `tasks/${taskId}/phases/${phaseId}`,
@@ -30,16 +30,7 @@ export const PhaseViewer: React.FC<PhaseViewerProps> = ({ taskId, phaseId }) => 
 
     const toggleFile = useCallback((filename: string) => {
         return () => {
-            setExpandedFiles(prev => {
-                const newSet = new Set(prev)
-                if (newSet.has(filename)) {
-                    newSet.delete(filename)
-                } else {
-                    newSet.add(filename)
-                }
-                
-                return newSet
-            })
+            setExpandedFile(prev => prev === filename ? null : filename)
         }
     }, [])
 
@@ -87,10 +78,10 @@ export const PhaseViewer: React.FC<PhaseViewerProps> = ({ taskId, phaseId }) => 
                 {files.map((file: PhaseFile) => (
                     <div key={file.filename} className={styles.fileItem}>
                         <div 
-                            className={`${styles.fileHeader} ${expandedFiles.has(file.filename) ? styles.expanded : ''}`}
+                            className={`${styles.fileHeader} ${expandedFile === file.filename ? styles.expanded : ''}`}
                             onClick={toggleFile(file.filename)}
                         >
-                            <span className={`${styles.expandIcon} ${expandedFiles.has(file.filename) ? styles.expanded : ''}`}>
+                            <span className={`${styles.expandIcon} ${expandedFile === file.filename ? styles.expanded : ''}`}>
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </span>
                             <FontAwesomeIcon icon={getFileIcon(file.filename)} className={styles.fileIcon} />
@@ -100,15 +91,13 @@ export const PhaseViewer: React.FC<PhaseViewerProps> = ({ taskId, phaseId }) => 
                             </span>
                         </div>
                         
-                        {expandedFiles.has(file.filename) && (
+                        {expandedFile === file.filename && (
                             <div className={styles.fileContent}>
                                 <CodeEditor
                                     value={file.content}
                                     language={getFileLanguage(file.filename)}
                                     readOnly
-                                    height="auto"
-                                    minHeight={100}
-                                    maxHeight={600}
+                                    height="500px"
                                     fontSize={12}
                                 />
                             </div>
