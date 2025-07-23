@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'node:fs'
+import { readFile, access, readdir } from 'fs-extra'
 import path from 'node:path'
 import { ensureStoragePath } from '@/lib/storage'
 
@@ -13,13 +13,13 @@ export async function GET(
         
         // Check if directory exists
         try {
-            await fs.access(sessionDir)
+            await access(sessionDir)
         } catch {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
         }
         
         // Read all files in the session directory
-        const files = await fs.readdir(sessionDir)
+        const files = await readdir(sessionDir)
         
         // Find all JSON files (Claude logs)
         const jsonFiles = files.filter(file => file.endsWith('.json'))
@@ -55,7 +55,7 @@ export async function GET(
             if (!jsonFiles.includes(filename)) continue
             
             try {
-                const content = await fs.readFile(path.join(sessionDir, filename))
+                const content = await readFile(path.join(sessionDir, filename), 'utf8')
                 const phaseData = JSON.parse(content)
                 
                 // Aggregate duration

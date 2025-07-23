@@ -114,16 +114,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     const computedLanguage = getLanguage(language)
     const computedHeight = isAutoGrow ? `${autoHeight}px` : height
 
-    const _handleChange = (newValue: string | undefined) => {
+    const handleChange = useCallback((newValue: string | undefined) => {
         onChange?.(newValue || '')
-    }
+    }, [onChange])
 
     return (
         <div style={{ height: computedHeight, width: '100%', border: '1px solid var(--border-color)', borderRadius: '0.5rem', overflow: 'hidden' }}>
-            <Suspense fallback={<SimpleEditor value={value} onChange={onChange} language={language} readOnly={readOnly} height={computedHeight} />}>
+            <Suspense fallback={<SimpleEditor value={value} onChange={onChange || (() => { /* noop */ })} language={language} readOnly={readOnly} height={computedHeight} />}>
                 <MonacoEditor
                     value={value}
-                    onChange={onChange}
+                    onChange={onChange ? handleChange : undefined}
                     language={computedLanguage}
                     theme="vs-dark"
                     height={computedHeight}
